@@ -1,0 +1,27 @@
+{
+  "name": "thai-meow-backend-example",
+  "version": "1.0.0",
+  "description": "Example backend server for Thai-Meow real-time sync system",
+  "main": "backend-example-server.js",
+  "scripts": {
+    "start": "node backend-example-server.js",
+    "dev": "nodemon backend-example-server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.4",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "keywords": [
+    "thai-meow",
+    "real-time",
+    "socket.io",
+    "express",
+    "sync"
+  ],
+  "author": "Thai-Meow Team",
+  "license": "MIT"
+}
