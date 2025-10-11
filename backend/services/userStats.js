@@ -1,4 +1,3 @@
-const mongoose = require('mongoose');
 const User = require('../models/User');
 const Player = require('../models/Player');
 const UserStatsModel = require('../models/UserStats');
@@ -268,7 +267,7 @@ async function buildStatsDTO(user) {
   }
 
   const latestGameResult = await GameResult.findOne({
-    userId: mongoose.Types.ObjectId(user._id),
+    userId: user._id,
   })
     .sort({ createdAt: -1 })
     .lean()
@@ -282,7 +281,7 @@ async function buildStatsDTO(user) {
 
   if (toNumber(user.totalSessions) === 0) {
     const sessionsCount = await GameResult.countDocuments({
-      userId: mongoose.Types.ObjectId(user._id),
+      userId: user._id,
     }).catch(() => 0);
     if (sessionsCount > 0) {
       user.totalSessions = sessionsCount;
