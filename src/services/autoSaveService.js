@@ -1,18 +1,34 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import apiClient from './apiClient';
 
-const AUTOSAVE_KEY = (lessonId) => `autosave:${lessonId}`;
-const USER_STATS_KEY = 'user:stats';
+const AUTOSAVE_KEY = (lessonId, userId) => `autosave:${userId || 'guest'}:${lessonId}`;
+const USER_STATS_KEY = (userId) => `user:stats:${userId || 'guest'}`;
+
+const getCurrentUserId = async (fallback) => {
+  try {
+    const raw = await AsyncStorage.getItem('userData');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed?.id) {
+        return parsed.id;
+      }
+    }
+  } catch (error) {
+    console.warn('Failed to read stored user id:', error?.message);
+  }
+  return fallback || 'guest';
+};
 
 class AutoSaveService {
   // Save progress to local storage only (avoid network errors)
   async saveProgress(progressData) {
     try {
-      const { lessonId, userId = 'demo' } = progressData;
+      const { lessonId } = progressData;
+      const userId = progressData.userId || (await getCurrentUserId());
       
       // Save to local storage only (for offline support)
       await AsyncStorage.setItem(
-        AUTOSAVE_KEY(lessonId), 
+        AUTOSAVE_KEY(lessonId, userId), 
         JSON.stringify({
           ...progressData,
           lastSaved: Date.now()
@@ -33,10 +49,11 @@ class AutoSaveService {
   }
 
   // Restore progress from local storage only
-  async restoreProgress(lessonId, userId = 'demo') {
+  async restoreProgress(lessonId, userId) {
     try {
+      const resolvedUserId = userId || (await getCurrentUserId());
       // Use local storage only to avoid network errors
-      const localData = await AsyncStorage.getItem(AUTOSAVE_KEY(lessonId));
+      const localData = await AsyncStorage.getItem(AUTOSAVE_KEY(lessonId, resolvedUserId));
       if (localData) {
         const progress = JSON.parse(localData);
         console.log('✅ Restored from local storage:', progress);
@@ -52,7 +69,8 @@ class AutoSaveService {
   // Clear progress (when lesson is completed)
   async clearProgress(lessonId) {
     try {
-      await AsyncStorage.removeItem(AUTOSAVE_KEY(lessonId));
+      const userId = await getCurrentUserId();
+      await AsyncStorage.removeItem(AUTOSAVE_KEY(lessonId, userId));
       console.log('🗑️ Progress cleared for lesson:', lessonId);
     } catch (error) {
       console.error('❌ Error clearing progress:', error);
@@ -62,7 +80,8 @@ class AutoSaveService {
   // Save user stats locally
   async saveUserStats(stats) {
     try {
-      await AsyncStorage.setItem(USER_STATS_KEY, JSON.stringify(stats));
+      const userId = stats?.id || stats?.userId || (await getCurrentUserId());
+      await AsyncStorage.setItem(USER_STATS_KEY(userId), JSON.stringify(stats));
       console.log('💾 User stats saved locally');
     } catch (error) {
       console.error('❌ Error saving user stats:', error);
@@ -72,7 +91,8 @@ class AutoSaveService {
   // Get user stats from local storage
   async getUserStats() {
     try {
-      const stats = await AsyncStorage.getItem(USER_STATS_KEY);
+      const userId = await getCurrentUserId();
+      const stats = await AsyncStorage.getItem(USER_STATS_KEY(userId));
       return stats ? JSON.parse(stats) : null;
     } catch (error) {
       console.error('❌ Error getting user stats:', error);
@@ -81,9 +101,10 @@ class AutoSaveService {
   }
 
   // Update streak
-  async updateStreak(userId = 'demo') {
+  async updateStreak(userId) {
     try {
-      const response = await apiClient.post('/streak/update', { userId });
+      const resolvedUserId = userId || (await getCurrentUserId());
+      const response = await apiClient.post('/streak/tick', { userId: resolvedUserId });
       console.log('🔥 Streak updated:', response.data);
       return response.data;
     } catch (error) {
@@ -93,10 +114,9 @@ class AutoSaveService {
   }
 
   // Add XP and check for level up
-  async addXP(userId = 'demo', xpGain, diamondsGain = 0, reason = 'lesson_complete') {
+  async addXP(userId, xpGain, diamondsGain = 0, reason = 'lesson_complete') {
     try {
       const response = await apiClient.post('/xp/add', {
-        userId,
         xpGain,
         diamondsGain,
         reason
@@ -105,8 +125,8 @@ class AutoSaveService {
       console.log('💎 XP added:', response.data);
       
       // Save updated stats locally
-      if (response.data.user) {
-        await this.saveUserStats(response.data.user);
+      if (response.data?.stats) {
+        await this.saveUserStats(response.data.stats);
       }
       
       return response.data;
@@ -118,13 +138,14 @@ class AutoSaveService {
   }
 
   // Get user stats from backend
-  async getUserStatsFromBackend(userId = 'demo') {
+  async getUserStatsFromBackend(userId) {
     try {
-      const response = await apiClient.get(`/user/stats/${userId}`);
+      const resolvedUserId = userId || (await getCurrentUserId());
+      const response = await apiClient.get(`/user/stats/${resolvedUserId}`);
       console.log('📊 User stats fetched:', response.data);
       
       // Save to local storage
-      const stats = response.data?.data || response.data;
+      const stats = response.data?.stats || response.data?.data || response.data;
       if (stats) {
         await this.saveUserStats(stats);
       }

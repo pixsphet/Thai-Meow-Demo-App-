@@ -10,6 +10,10 @@ const ProgressSchema = new Schema({
   hearts:      { type: Number, default: 5 },
   score:       { type: Number, default: 0 },
   xp:          { type: Number, default: 0 },
+  progress:    { type: Number, default: 0 },                 // 0-100 percentage
+  accuracy:    { type: Number, default: 0 },                 // 0-100 percentage
+  completed:   { type: Boolean, default: false },
+  completedAt: { type: Date, default: null },
 
   perLetter: { type: Schema.Types.Mixed, default: {} },      // {'ก': {...}}
   answers:   { type: Schema.Types.Mixed, default: {} },      // by questionId

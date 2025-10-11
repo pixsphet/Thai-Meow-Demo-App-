@@ -87,7 +87,7 @@ class RealUserStatsService {
         console.log('🌐 Fetching stats from server...');
         console.log('🔗 API URL:', `/user/stats/${this.userId}`); // Fixed: removed /api prefix
         const response = await apiClient.get(`/user/stats/${this.userId}`);
-        const stats = response.data?.data || response.data;
+        const stats = response.data?.stats || response.data?.data || response.data;
         
         // Save to local storage as backup
         await this.saveLocalStats(stats);
@@ -146,19 +146,20 @@ class RealUserStatsService {
 
       if (this.isOnline) {
         // Update server
-        const response = await apiClient.post('/user/stats', updatedStats);
+        const response = await apiClient.post('/user/stats', { stats: updatedStats });
         console.log('✅ User stats updated on server');
+
+        const serverStats = response.data?.stats || response.data?.data || updatedStats;
+
+        await this.saveLocalStats(serverStats);
         
-        // Update local storage
-        await this.saveLocalStats(updatedStats);
-        
-        return response.data;
+        return serverStats;
       } else {
         // Update local storage and queue for sync
         await this.saveLocalStats(updatedStats);
         await this.queueStatsUpdate(updatedStats);
         console.log('📱 User stats updated locally (offline)');
-        return { success: true, offline: true };
+        return updatedStats;
       }
     } catch (error) {
       console.error('❌ Error updating user stats:', error);
@@ -170,7 +171,7 @@ class RealUserStatsService {
       await this.saveLocalStats(updatedStats);
       await this.queueStatsUpdate(updatedStats);
       
-      return { success: false, offline: true, error };
+      return updatedStats;
     }
   }
 
@@ -213,7 +214,7 @@ class RealUserStatsService {
 
     for (const item of queue) {
       try {
-        await apiClient.post('/user/stats', item.stats);
+        await apiClient.post('/user/stats', { stats: item.stats });
         console.log('✅ Synced stats update');
       } catch (error) {
         console.error('❌ Failed to sync stats update:', error);

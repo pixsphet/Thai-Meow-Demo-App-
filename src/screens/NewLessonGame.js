@@ -719,6 +719,7 @@ const NewLessonGame = ({ navigation, route }) => {
     // ข้อมูลไฟสะสมรายวัน
     const [dailyStreak, setDailyStreak] = useState({
         currentStreak: 0,
+        maxStreak: 0,
         isNewStreak: false,
         rewards: { xp: 0, diamonds: 0, bonus: '' },
         isPlayedToday: false
@@ -1021,12 +1022,17 @@ const NewLessonGame = ({ navigation, route }) => {
             const streakResult = await dailyStreakService.startStreak();
             const rewards = dailyStreakService.getStreakRewards(streakResult.streak);
             
-            setDailyStreak({
+            setDailyStreak(prev => ({
                 currentStreak: streakResult.streak,
+                maxStreak: Math.max(
+                    streakResult?.maxStreak ?? 0,
+                    streakResult.streak,
+                    Number.isFinite(prev?.maxStreak) ? prev.maxStreak : 0
+                ),
                 isNewStreak: streakResult.isNewStreak,
                 rewards: rewards,
                 isPlayedToday: true
-            });
+            }));
 
             console.log('🔥 Daily streak started:', {
                 streak: streakResult.streak,

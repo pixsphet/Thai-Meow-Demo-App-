@@ -15,7 +15,7 @@ export const getUserStats = async () => {
 
 export const postUserStats = async (payload) => {
   try {
-    const { data } = await apiClient.post('/user/stats', payload);
+    const { data } = await apiClient.post('/user/stats', { stats: payload });
     return data?.stats || null;
   } catch (error) {
     console.error('Error updating user stats:', error);
@@ -25,7 +25,7 @@ export const postUserStats = async (payload) => {
 
 export const tickDailyStreak = async () => {
   try {
-    const { data } = await apiClient.post('/user/streak/tick');
+    const { data } = await apiClient.post('/streak/tick');
     return data;
   } catch (error) {
     console.error('Error ticking daily streak:', error);

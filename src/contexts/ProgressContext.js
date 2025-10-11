@@ -1,298 +1,330 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState
+} from 'react';
 import { useUser } from './UserContext';
-// import { apiService } from '../services/apiService'; // Using mock data for now
+import { useUnifiedStats } from './UnifiedStatsContext';
+import progressService from '../services/progressServicePerUser';
 
-const ProgressContext = createContext();
+const ProgressContext = createContext(null);
 
-export const useProgress = () => {
-  const context = useContext(ProgressContext);
-  if (!context) {
-    throw new Error('useProgress must be used within a ProgressProvider');
-  }
-  return context;
+const clampNumber = (value, { min = Number.NEGATIVE_INFINITY, max = Number.POSITIVE_INFINITY }) => {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return min;
+  return Math.min(max, Math.max(min, numeric));
 };
 
 export const ProgressProvider = ({ children }) => {
-  const { user: authUser } = useUser();
-  const currentUserId = authUser?.id || 'guest';
-  const storageKey = useCallback((key) => `${key}:${currentUserId}`, [currentUserId]);
+  const { user } = useUser();
+  const {
+    stats,
+    updateStats,
+    forceRefresh,
+    xp,
+    diamonds,
+    hearts,
+    level,
+    streak,
+    maxStreak,
+    totalTimeSpent,
+    totalSessions,
+    totalCorrectAnswers,
+    totalWrongAnswers,
+    averageAccuracy,
+    loading: statsLoading
+  } = useUnifiedStats();
 
-  const [user, setUser] = useState(null);
-  const [progress, setProgress] = useState({});
-  const [isLoading, setIsLoading] = useState(true);
+  const [lessonProgress, setLessonProgress] = useState({});
+  const [progressLoading, setProgressLoading] = useState(false);
 
-  // User stats
-  const [hearts, setHearts] = useState(5);
-  const [streak, setStreak] = useState(0);
-  const [xp, setXp] = useState(0);
-  const [diamonds, setDiamonds] = useState(0);
-  const [level, setLevel] = useState(1);
-
-  const resetState = useCallback(() => {
-    setUser(null);
-    setProgress({});
-    setHearts(5);
-    setStreak(0);
-    setXp(0);
-    setDiamonds(0);
-    setLevel(1);
-  }, []);
-
-  const loadUserData = useCallback(async () => {
-    if (!currentUserId) {
-      resetState();
-      setIsLoading(false);
+  const loadUserProgress = useCallback(async () => {
+    if (!user?.id) {
+      setLessonProgress({});
       return;
     }
 
+    setProgressLoading(true);
     try {
-      setIsLoading(true);
-
-      resetState();
-
-      const userKey = storageKey('progress_user');
-      const localUser = await AsyncStorage.getItem(userKey);
-      if (localUser) {
-        const userData = JSON.parse(localUser);
-        setUser(userData);
-        setHearts(userData.hearts || 5);
-        setStreak(userData.streak || 0);
-        setXp(userData.xp || 0);
-        setDiamonds(userData.diamonds || 0);
-        setLevel(userData.level || 1);
+      const entries = await progressService.getAllUserProgress();
+      const mapped = {};
+      if (Array.isArray(entries)) {
+        entries.forEach((entry) => {
+          const key = entry.lessonId || entry._id || entry.id;
+          if (key) {
+            mapped[String(key)] = entry;
+          }
+        });
       }
-
-      // Load progress data
-      const progressKey = storageKey('progress_data');
-      const localProgress = await AsyncStorage.getItem(progressKey);
-      if (localProgress) {
-        setProgress(JSON.parse(localProgress));
-      }
-
-      // Sync with backend
-      await syncWithBackend();
+      setLessonProgress(mapped);
     } catch (error) {
-      console.error('Error loading user data:', error);
+      console.error('Error loading user progress:', error);
     } finally {
-      setIsLoading(false);
+      setProgressLoading(false);
     }
-  }, [currentUserId, resetState, storageKey]);
+  }, [user?.id]);
 
   useEffect(() => {
-    loadUserData();
-  }, [loadUserData]);
+    loadUserProgress();
+  }, [loadUserProgress]);
 
-  const syncWithBackend = async () => {
-    try {
-      if (typeof apiService === 'undefined') {
-        return;
+  useEffect(() => {
+    if (stats?.progressByLesson && typeof stats.progressByLesson === 'object') {
+      setLessonProgress(stats.progressByLesson);
+    }
+  }, [stats?.progressByLesson]);
+
+  const applyDelta = useCallback(
+    async (delta = {}) => {
+      if (!user?.id) {
+        console.warn('applyDelta skipped: no authenticated user');
+        return stats;
       }
-      if (user) {
-        // Sync user data
-        const userData = await apiService.getUser(user.id);
-        if (userData) {
-          setUser(userData);
-          setHearts(userData.hearts);
-          setStreak(userData.streak);
-          setXp(userData.xp);
-          setDiamonds(userData.diamonds);
-          setLevel(userData.level);
-          
-          // Save to local storage
-          await AsyncStorage.setItem(storageKey('progress_user'), JSON.stringify(userData));
-        }
 
-        // Sync progress data
-        const progressData = await apiService.getProgress(user.id);
-        if (progressData) {
-          setProgress(progressData);
-          await AsyncStorage.setItem(storageKey('progress_data'), JSON.stringify(progressData));
+      const base = stats || {};
+      const updates = {};
+
+      if (delta.xp !== undefined) {
+        const nextXp = Math.max(0, (base.xp || 0) + Number(delta.xp || 0));
+        updates.xp = nextXp;
+        const computedLevel = Math.floor(nextXp / 100) + 1;
+        if (computedLevel !== base.level) {
+          updates.level = computedLevel;
         }
       }
-    } catch (error) {
-      console.error('Error syncing with backend:', error);
-    }
-  };
 
-  const updateProgress = async (lessonKey, completed, score) => {
-    try {
-      const newProgress = {
-        ...progress,
-        [lessonKey]: {
-          completed,
-          score,
-          lastPlayed: new Date().toISOString(),
-        },
-      };
-
-      setProgress(newProgress);
-      await AsyncStorage.setItem(storageKey('progress_data'), JSON.stringify(newProgress));
-
-      // Update backend
-      if (user) {
-        await apiService.updateProgress(user.id, lessonKey, completed, score);
+      if (delta.diamonds !== undefined) {
+        updates.diamonds = Math.max(0, (base.diamonds || 0) + Number(delta.diamonds || 0));
       }
 
-      // Award XP and check for level up
-      if (completed) {
-        const xpGained = Math.floor(score / 10) + 10; // Base XP + bonus
-        const newXp = xp + xpGained;
-        setXp(newXp);
-        
-        // Check for level up
-        const newLevel = Math.floor(newXp / 100) + 1;
-        if (newLevel > level) {
-          setLevel(newLevel);
-          setDiamonds(diamonds + 5); // Reward for leveling up
-        }
-
-        // Update user data
-        const updatedUser = {
-          ...user,
-          xp: newXp,
-          level: newLevel,
-          diamonds: diamonds + (newLevel > level ? 5 : 0),
-        };
-        setUser(updatedUser);
-        await AsyncStorage.setItem(storageKey('progress_user'), JSON.stringify(updatedUser));
+      if (delta.hearts !== undefined) {
+        const currentHearts = Number.isFinite(base.hearts) ? base.hearts : 5;
+        const maxHearts = Number.isFinite(base.maxHearts) ? base.maxHearts : 5;
+        updates.hearts = clampNumber(currentHearts + Number(delta.hearts || 0), {
+          min: 0,
+          max: maxHearts
+        });
       }
-    } catch (error) {
-      console.error('Error updating progress:', error);
-    }
-  };
 
-  const loseHeart = () => {
-    const newHearts = Math.max(0, hearts - 1);
-    setHearts(newHearts);
-    
-    if (user) {
-      const updatedUser = { ...user, hearts: newHearts };
-      setUser(updatedUser);
-      AsyncStorage.setItem(storageKey('progress_user'), JSON.stringify(updatedUser));
-    }
-  };
+      if (delta.streak !== undefined) {
+        updates.streak = Math.max(0, Number(delta.streak));
+        const candidateMax = delta.maxStreak !== undefined
+          ? Number(delta.maxStreak)
+          : updates.streak;
+        const resolvedMax = Number.isFinite(base.maxStreak) ? base.maxStreak : 0;
+        updates.maxStreak = Math.max(resolvedMax, candidateMax);
+      } else if (delta.maxStreak !== undefined) {
+        const resolvedMax = Number.isFinite(base.maxStreak) ? base.maxStreak : 0;
+        updates.maxStreak = Math.max(resolvedMax, Number(delta.maxStreak));
+      }
 
-  const gainHeart = () => {
-    const newHearts = Math.min(5, hearts + 1);
-    setHearts(newHearts);
-    
-    if (user) {
-      const updatedUser = { ...user, hearts: newHearts };
-      setUser(updatedUser);
-      AsyncStorage.setItem(storageKey('progress_user'), JSON.stringify(updatedUser));
-    }
-  };
+      if (delta.finishedLesson) {
+        updates.lessonsCompleted = (base.lessonsCompleted || 0) + 1;
+      }
 
-  const updateStreak = (newStreak) => {
-    setStreak(newStreak);
-    
-    if (user) {
-      const updatedUser = { ...user, streak: newStreak };
-      setUser(updatedUser);
-      AsyncStorage.setItem(storageKey('progress_user'), JSON.stringify(updatedUser));
-    }
-  };
+      if (delta.totalSessions !== undefined) {
+        updates.totalSessions = Math.max(
+          0,
+          (base.totalSessions || 0) + Number(delta.totalSessions || 0)
+        );
+      } else if (delta.incrementSession) {
+        updates.totalSessions = Math.max(0, (base.totalSessions || 0) + 1);
+      } else if (totalSessions === undefined && base.totalSessions === undefined && delta.xp) {
+        updates.totalSessions = 1;
+      }
 
-  const spendDiamonds = (amount) => {
-    const newDiamonds = Math.max(0, diamonds - amount);
-    setDiamonds(newDiamonds);
-    
-    if (user) {
-      const updatedUser = { ...user, diamonds: newDiamonds };
-      setUser(updatedUser);
-      AsyncStorage.setItem(storageKey('progress_user'), JSON.stringify(updatedUser));
-    }
-  };
+      const timeDelta =
+        delta.totalTimeSpent !== undefined
+          ? Number(delta.totalTimeSpent)
+          : delta.timeSpentSec !== undefined
+          ? Number(delta.timeSpentSec)
+          : 0;
+      if (timeDelta) {
+        updates.totalTimeSpent = Math.max(0, (base.totalTimeSpent || 0) + timeDelta);
+      }
 
-  // Helper functions for HomeScreen
-  const getTotalXP = () => xp;
-  const getCurrentLevel = () => level;
-  const getCurrentStreak = () => streak;
-  const getLevelProgressPercentage = () => {
-    const currentLevelXp = (level - 1) * 100;
-    const nextLevelXp = level * 100;
-    const progress = ((xp - currentLevelXp) / (nextLevelXp - currentLevelXp)) * 100;
-    return Math.min(100, Math.max(0, progress));
-  };
-  const getStatistics = () => ({
-    totalLessons: Object.keys(progress).length,
-    completedLessons: Object.values(progress).filter(p => p.completed).length,
-    totalGames: Object.keys(progress).length,
-    completedGames: Object.values(progress).filter(p => p.completed).length,
-    accuracy: 85, // Mock accuracy
-    timeSpent: 120, // Mock time in minutes
-  });
-  const getRecentGames = () => [
-    {
-      id: '1',
-      title: 'พยัญชนะ ก-ฮ',
-      description: 'จับคู่พยัญชนะ',
-      icon: 'alphabetical',
-      color: '#FF6B6B',
-      score: 85,
-      completedAt: new Date().toISOString(),
+      if (delta.totalCorrectAnswers !== undefined) {
+        updates.totalCorrectAnswers = Math.max(
+          0,
+          (base.totalCorrectAnswers || 0) + Number(delta.totalCorrectAnswers || 0)
+        );
+      }
+
+      if (delta.totalWrongAnswers !== undefined) {
+        updates.totalWrongAnswers = Math.max(
+          0,
+          (base.totalWrongAnswers || 0) + Number(delta.totalWrongAnswers || 0)
+        );
+      }
+
+      if (delta.lastGameResults) {
+        updates.lastGameResults = delta.lastGameResults;
+      }
+
+      if (Object.keys(updates).length === 0) {
+        return stats;
+      }
+
+      try {
+        return await updateStats(updates);
+      } catch (error) {
+        console.error('Failed to apply progress delta:', error);
+        throw error;
+      }
     },
-    {
-      id: '2',
-      title: 'สระไทย',
-      description: 'เลือกคำตอบ',
-      icon: 'format-letter-case',
-      color: '#4ECDC4',
-      score: 92,
-      completedAt: new Date(Date.now() - 86400000).toISOString(),
+    [stats, updateStats, user?.id]
+  );
+
+  const addXP = useCallback((amount) => applyDelta({ xp: amount }), [applyDelta]);
+  const addDiamonds = useCallback(
+    (amount) => applyDelta({ diamonds: amount }),
+    [applyDelta]
+  );
+  const addHearts = useCallback((amount) => applyDelta({ hearts: amount }), [applyDelta]);
+  const loseHeart = useCallback(() => applyDelta({ hearts: -1 }), [applyDelta]);
+  const gainHeart = useCallback(() => applyDelta({ hearts: 1 }), [applyDelta]);
+  const spendDiamonds = useCallback(
+    (amount) => applyDelta({ diamonds: -Math.abs(amount || 0) }),
+    [applyDelta]
+  );
+  const updateStreak = useCallback(
+    (value) =>
+      applyDelta({
+        streak: value,
+        maxStreak: Math.max(value, maxStreak || 0)
+      }),
+    [applyDelta, maxStreak]
+  );
+
+  const updateProgress = useCallback(
+    async (lessonId, payload = {}) => {
+      if (!lessonId) {
+        throw new Error('lessonId is required to update progress');
+      }
+
+      await progressService.saveProgress(lessonId, {
+        ...payload,
+        lessonId
+      });
+
+      setLessonProgress((prev) => ({
+        ...prev,
+        [String(lessonId)]: {
+          ...(prev[String(lessonId)] || {}),
+          ...payload,
+          lessonId
+        }
+      }));
     },
-  ];
+    []
+  );
 
-  const addXP = (amount) => {
-    const newXp = xp + amount;
-    setXp(newXp);
-    
-    // Check for level up
-    const newLevel = Math.floor(newXp / 100) + 1;
-    if (newLevel > level) {
-      setLevel(newLevel);
-      setDiamonds(diamonds + 5);
-    }
-    
-    if (user) {
-      const updatedUser = { ...user, xp: newXp, level: newLevel };
-      setUser(updatedUser);
-      AsyncStorage.setItem('user', JSON.stringify(updatedUser));
-    }
-  };
+  const getTotalXP = useCallback(() => Number.isFinite(xp) ? xp : 0, [xp]);
+  const getCurrentLevel = useCallback(() => Number.isFinite(level) ? level : 1, [level]);
+  const getCurrentStreak = useCallback(
+    () => Number.isFinite(streak) ? streak : 0,
+    [streak]
+  );
 
-  const addHearts = (amount) => {
-    const newHearts = Math.min(5, hearts + amount);
-    setHearts(newHearts);
-    
-    if (user) {
-      const updatedUser = { ...user, hearts: newHearts };
-      setUser(updatedUser);
-      AsyncStorage.setItem('user', JSON.stringify(updatedUser));
-    }
-  };
+  const getLevelProgressPercentage = useCallback(() => {
+    const safeLevel = getCurrentLevel();
+    const levelBase = (safeLevel - 1) * 100;
+    const nextLevelTarget = safeLevel * 100;
+    const currentXp = getTotalXP();
+    const progress =
+      nextLevelTarget - levelBase === 0
+        ? 0
+        : ((currentXp - levelBase) / (nextLevelTarget - levelBase)) * 100;
+    return clampNumber(progress, { min: 0, max: 100 });
+  }, [getCurrentLevel, getTotalXP]);
 
-  const addDiamonds = (amount) => {
-    const newDiamonds = diamonds + amount;
-    setDiamonds(newDiamonds);
-    
-    if (user) {
-      const updatedUser = { ...user, diamonds: newDiamonds };
-      setUser(updatedUser);
-      AsyncStorage.setItem('user', JSON.stringify(updatedUser));
-    }
-  };
+  const getStatistics = useCallback(() => {
+    const lessons = Object.values(lessonProgress);
+    const completed = lessons.filter((entry) => entry.completed || entry.progress >= 100);
+    return {
+      totalLessons: lessons.length,
+      completedLessons: completed.length,
+      totalSessions: totalSessions ?? lessons.length,
+      completedSessions: completed.length,
+      accuracy: averageAccuracy ?? 0,
+      timeSpent: (totalTimeSpent || 0) / 60 // minutes
+    };
+  }, [lessonProgress, totalSessions, averageAccuracy, totalTimeSpent]);
+
+  const getRecentGames = useCallback(() => {
+    const lastResult = stats?.lastGameResults;
+    if (!lastResult) return [];
+    return [
+      {
+        id: lastResult.completedAt || Date.now().toString(),
+        title: lastResult.gameType || 'Lesson',
+        description: 'ผลการเล่นล่าสุด',
+        icon: 'gamepad-variant',
+        color: '#FF6B6B',
+        score: lastResult.correct || 0,
+        accuracy: lastResult.accuracy || 0,
+        completedAt: lastResult.completedAt
+      }
+    ];
+  }, [stats?.lastGameResults]);
+
+  const syncWithBackend = useCallback(async () => {
+    await Promise.all([
+      forceRefresh().catch((error) =>
+        console.warn('Failed to refresh unified stats:', error?.message)
+      ),
+      loadUserProgress().catch((error) =>
+        console.warn('Failed to reload lesson progress:', error?.message)
+      )
+    ]);
+  }, [forceRefresh, loadUserProgress]);
+
+  const userProgress = useMemo(() => ({
+    xp: getTotalXP(),
+    diamonds: Number.isFinite(diamonds) ? diamonds : 0,
+    hearts: Number.isFinite(hearts) ? hearts : 5,
+    maxHearts: Number.isFinite(stats?.maxHearts) ? stats.maxHearts : Number.isFinite(hearts) ? Math.max(hearts, 5) : 5,
+    level: getCurrentLevel(),
+    streak: getCurrentStreak(),
+    maxStreak: Number.isFinite(maxStreak) ? maxStreak : 0,
+    lessonsCompleted: stats?.lessonsCompleted || 0,
+    totalLessons: Object.keys(lessonProgress).length,
+    totalTimeSpent: totalTimeSpent || 0,
+    totalSessions: totalSessions || 0,
+    totalCorrectAnswers: totalCorrectAnswers || 0,
+    totalWrongAnswers: totalWrongAnswers || 0,
+    accuracy: averageAccuracy || 0
+  }), [
+    averageAccuracy,
+    diamonds,
+    hearts,
+    lessonProgress,
+    maxStreak,
+    stats?.lessonsCompleted,
+    stats?.maxHearts,
+    totalCorrectAnswers,
+    totalSessions,
+    totalTimeSpent,
+    totalWrongAnswers,
+    getCurrentLevel,
+    getCurrentStreak,
+    getTotalXP
+  ]);
 
   const value = {
-    user,
-    progress,
-    hearts,
-    streak,
-    xp,
-    diamonds,
-    level,
-    isLoading,
+    user: userProgress,
+    userProgress,
+    progress: lessonProgress,
+    hearts: userProgress.hearts,
+    maxHearts: userProgress.maxHearts,
+    streak: userProgress.streak,
+    xp: userProgress.xp,
+    diamonds: userProgress.diamonds,
+    level: userProgress.level,
+    isLoading: statsLoading || progressLoading,
     updateProgress,
     loseHeart,
     gainHeart,
@@ -308,6 +340,7 @@ export const ProgressProvider = ({ children }) => {
     addXP,
     addHearts,
     addDiamonds,
+    applyDelta
   };
 
   return (
@@ -315,4 +348,12 @@ export const ProgressProvider = ({ children }) => {
       {children}
     </ProgressContext.Provider>
   );
+};
+
+export const useProgress = () => {
+  const context = useContext(ProgressContext);
+  if (!context) {
+    throw new Error('useProgress must be used within a ProgressProvider');
+  }
+  return context;
 };

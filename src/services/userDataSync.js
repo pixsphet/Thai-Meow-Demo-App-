@@ -107,12 +107,15 @@ const UserDataSync = {
   async forcePull() {
     try {
       const token = (await AsyncStorage.getItem(KS.TOKEN)) || '';
-      const res = await axios.get(`${API_BASE}/api/users/${_userId}/stats`, {
+      const res = await axios.get(`${API_BASE}/api/user/stats/${_userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res?.data) return;
 
-      const serverData = { ...res.data, updatedAt: res.data.updatedAt || nowIso() };
+      const serverSnapshot = res.data?.stats || res.data?.data || res.data;
+      if (!serverSnapshot) return;
+
+      const serverData = { ...serverSnapshot, updatedAt: serverSnapshot.updatedAt || nowIso() };
       const local = await this.getLocal();
       const merged = this._resolveConflict(local, serverData);
 
@@ -130,11 +133,24 @@ const UserDataSync = {
    */
   async updateUserStats(delta) {
     const local = await this.getLocal();
+    const baseMaxHearts = local.maxHearts ?? 5;
+    const targetMaxHearts = clamp(
+      delta.maxHearts !== undefined ? delta.maxHearts : baseMaxHearts,
+      1,
+      10
+    );
+    const nextHearts = clamp(
+      (local.hearts ?? targetMaxHearts) + (delta.hearts || 0),
+      0,
+      targetMaxHearts
+    );
+
     const merged = {
       ...local,
       xp: (local.xp || 0) + (delta.xp || 0),
       diamonds: (local.diamonds || 0) + (delta.diamonds || 0),
-      hearts: clamp((local.hearts ?? 5) + (delta.hearts || 0), 0, 5),
+      hearts: nextHearts,
+      maxHearts: targetMaxHearts,
       level: delta.level ? delta.level : (local.level || 1),
       accuracy: delta.accuracy ?? local.accuracy,
       streak: delta.streak ?? local.streak,
@@ -150,7 +166,7 @@ const UserDataSync = {
     };
 
     await AsyncStorage.setItem(KS.LOCAL, JSON.stringify(merged));
-    this._queue({ type: 'patch', payload: delta });
+    this._queue({ type: 'patch', payload: merged });
     this._emit(merged);
 
     // debounce + throttle push
@@ -287,9 +303,8 @@ const UserDataSync = {
       try {
         // REST fallback (เชื่อถือได้ใน RN)
         const token = (await AsyncStorage.getItem(KS.TOKEN)) || '';
-        await axios.post(`${API_BASE}/api/users/updateStats`, {
-          userId: _userId,
-          stats: job.payload
+        await axios.post(`${API_BASE}/api/user/stats`, {
+          stats: job.payload,
         }, {
           headers: { Authorization: `Bearer ${token}` },
           timeout: 8000,

@@ -158,9 +158,9 @@ class GameProgressService {
    */
   async syncSessionToServer(session) {
     try {
-      const response = await apiClient.post('/game/sessions', {
+      const response = await apiClient.post('/game-results', {
         userId: this.userId,
-        sessionData: session
+        ...session
       });
       
       if (response.data.success) {
@@ -245,12 +245,22 @@ class GameProgressService {
       await this.saveUserStats(updatedStats);
 
       // Try to sync to server
+      let latestStats = updatedStats;
+
       if (this.isOnline) {
-        await this.syncUserStatsToServer(updatedStats);
+        try {
+          const syncedStats = await this.syncUserStatsToServer(updatedStats);
+          if (syncedStats) {
+            latestStats = syncedStats;
+            await this.saveUserStats(latestStats);
+          }
+        } catch (syncError) {
+          console.warn('⚠️ Failed to sync user stats, using local snapshot:', syncError?.message);
+        }
       }
 
-      console.log('📊 User stats updated:', updatedStats);
-      return updatedStats;
+      console.log('📊 User stats updated:', latestStats);
+      return latestStats;
     } catch (error) {
       console.error('❌ Error updating user stats:', error);
       throw error;
@@ -298,15 +308,12 @@ class GameProgressService {
    */
   async syncUserStatsToServer(stats) {
     try {
-      const response = await apiClient.post('/user/stats', {
-        userId: this.userId,
-        stats
-      });
-      
-      if (response.data.success) {
+      const response = await apiClient.post('/user/stats', { stats });
+      if (response.data?.success) {
         console.log('☁️ User stats synced to server');
-        return response.data;
+        return response.data?.stats || response.data?.data || null;
       }
+      return null;
     } catch (error) {
       console.error('❌ Error syncing user stats to server:', error);
       throw error;
@@ -378,7 +385,10 @@ class GameProgressService {
    */
   async syncLevelUnlockToServer(unlockData) {
     try {
-      const response = await apiClient.post('/levels/unlock', unlockData);
+      const response = await apiClient.post('/user/unlock-level', {
+        userId: this.userId,
+        levelId: unlockData.levelId
+      });
       
       if (response.data.success) {
         console.log('☁️ Level unlock synced to server');

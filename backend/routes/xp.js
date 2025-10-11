@@ -1,55 +1,43 @@
 const express = require('express');
-const User = require('../models/User');
 const router = express.Router();
+const auth = require('../middleware/auth');
+const { getUserWithMergedData, getUserStatsSnapshot } = require('../services/userStats');
 
 // Add XP and check for level up
-router.post('/add', async (req, res) => {
+router.post('/add', auth, async (req, res) => {
   try {
-    const { userId = 'demo', xpGain = 0, diamondsGain = 0, reason = 'lesson_complete' } = req.body;
-    
-    const user = await User.findOne({ username: userId });
+    const userId = req.user.id;
+    const { xpGain = 0, diamondsGain = 0, reason = 'lesson_complete' } = req.body || {};
+
+    const user = await getUserWithMergedData(userId);
     if (!user) {
       return res.status(404).json({
         success: false,
-        error: 'User not found'
+        error: 'User not found',
       });
     }
 
-    // Add XP
     const xpResult = user.addXP(xpGain);
-    
-    // Add diamonds
-    user.diamonds += diamondsGain;
+    user.diamonds = Math.max(0, Number(user.diamonds || 0) + Number(diamondsGain || 0));
 
     await user.save();
 
-    console.log(`💎 XP added: +${xpGain} XP, +${diamondsGain} diamonds for user ${userId}`);
+    const stats = await getUserStatsSnapshot(userId);
 
     res.json({
       success: true,
-      user: {
-        id: user._id,
-        level: user.level,
-        xp: user.xp,
-        nextLevelXP: user.nextLevelXP,
-        diamonds: user.diamonds,
-        streak: user.streak
-      },
+      stats,
       xpGain,
       diamondsGain,
       leveledUp: xpResult.leveledUp,
-      levelUpReward: xpResult.diamondsEarned,
-      xpRemaining: xpResult.xpRemaining,
-      message: xpResult.leveledUp 
-        ? `🎉 Level Up! You're now level ${xpResult.newLevel}!`
-        : `+${xpGain} XP earned!`
+      newLevel: xpResult.newLevel,
+      reason,
     });
-
   } catch (error) {
     console.error('Error adding XP:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to add XP'
+      error: 'Failed to add XP',
     });
   }
 });
@@ -57,36 +45,35 @@ router.post('/add', async (req, res) => {
 // Get user stats - moved to user.routes.js
 
 // Award diamonds for specific achievements
-router.post('/diamonds', async (req, res) => {
+router.post('/diamonds', auth, async (req, res) => {
   try {
-    const { userId = 'demo', diamonds = 0, reason = 'achievement' } = req.body;
-    
-    const user = await User.findOne({ username: userId });
+    const userId = req.user.id;
+    const { diamonds = 0, reason = 'achievement' } = req.body || {};
+
+    const user = await getUserWithMergedData(userId);
     if (!user) {
       return res.status(404).json({
         success: false,
-        error: 'User not found'
+        error: 'User not found',
       });
     }
 
-    user.diamonds += diamonds;
+    user.diamonds = Math.max(0, Number(user.diamonds || 0) + Number(diamonds || 0));
     await user.save();
 
-    console.log(`💎 Diamonds awarded: +${diamonds} for ${reason} to user ${userId}`);
+    const stats = await getUserStatsSnapshot(userId);
 
     res.json({
       success: true,
-      diamonds: user.diamonds,
-      diamondsGained: diamonds,
+      stats,
+      diamondsGained: Number(diamonds || 0),
       reason,
-      message: `+${diamonds} 💎 earned for ${reason}!`
     });
-
   } catch (error) {
     console.error('Error awarding diamonds:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to award diamonds'
+      error: 'Failed to award diamonds',
     });
   }
 });

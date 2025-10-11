@@ -1,143 +1,98 @@
-import { simpleApiService } from './simpleApiService';
+import apiClient from './apiClient';
+
+const normalizeLessonResponse = (payload) => {
+  if (!payload) {
+    return {
+      success: false,
+      data: [],
+      lessons: [],
+      message: 'No data received'
+    };
+  }
+
+  const lessons = payload.lessons || payload.data || [];
+  return {
+    success: payload.success !== false,
+    data: lessons,
+    lessons,
+    message: payload.message
+  };
+};
 
 const lessonService = {
-  // ดึงบทเรียนตามระดับ
   async getLessonsByLevel(level) {
     try {
-      console.log(`Fetching lessons for level: ${level}`);
-      
-      // ใช้ simpleApiService เพื่อเรียก API
-      const response = await simpleApiService.makeRequest(`/lessons/level/${level}`, {
-        method: 'GET',
-      });
-
-      if (response.success) {
-        console.log('Lessons fetched successfully:', response.data);
-        return {
-          success: true,
-          data: response.data,
-          lessons: response.data, // สำหรับ backward compatibility
-        };
-      } else {
-        console.error('Failed to fetch lessons:', response.error);
-        return {
-          success: false,
-          message: response.error || 'Failed to fetch lessons',
-          data: [],
-          lessons: [],
-        };
-      }
+      const { data } = await apiClient.get(`/lessons/level/${encodeURIComponent(level)}`);
+      return normalizeLessonResponse(data);
     } catch (error) {
-      console.error('Error in getLessonsByLevel:', error);
+      console.error('Error fetching lessons by level:', error);
       return {
         success: false,
-        message: error.message || 'Network error',
+        message: error.response?.data?.error || error.message,
         data: [],
-        lessons: [],
+        lessons: []
       };
     }
   },
 
-  // ดึงบทเรียนทั้งหมด
   async getAllLessons() {
     try {
-      console.log('Fetching all lessons');
-      
-      const response = await simpleApiService.makeRequest('/lessons', {
-        method: 'GET',
-      });
-
-      if (response.success) {
-        console.log('All lessons fetched successfully:', response.data);
-        return {
-          success: true,
-          data: response.data,
-          lessons: response.data,
-        };
-      } else {
-        console.error('Failed to fetch all lessons:', response.error);
-        return {
-          success: false,
-          message: response.error || 'Failed to fetch lessons',
-          data: [],
-          lessons: [],
-        };
-      }
+      const { data } = await apiClient.get('/lessons');
+      return normalizeLessonResponse(data);
     } catch (error) {
-      console.error('Error in getAllLessons:', error);
+      console.error('Error fetching all lessons:', error);
       return {
         success: false,
-        message: error.message || 'Network error',
+        message: error.response?.data?.error || error.message,
         data: [],
-        lessons: [],
+        lessons: []
       };
     }
   },
 
-  // ดึงบทเรียนตาม ID
   async getLessonById(lessonId) {
     try {
-      console.log(`Fetching lesson by ID: ${lessonId}`);
-      
-      const response = await simpleApiService.makeRequest(`/lessons/${lessonId}`, {
-        method: 'GET',
-      });
-
-      if (response.success) {
-        console.log('Lesson fetched successfully:', response.data);
-        return {
-          success: true,
-          data: response.data,
-        };
-      } else {
-        console.error('Failed to fetch lesson:', response.error);
-        return {
-          success: false,
-          message: response.error || 'Failed to fetch lesson',
-          data: null,
-        };
-      }
+      const { data } = await apiClient.get(`/lessons/${encodeURIComponent(lessonId)}`);
+      return {
+        success: data?.success !== false,
+        data: data?.data || null,
+        message: data?.message
+      };
     } catch (error) {
-      console.error('Error in getLessonById:', error);
+      console.error('Error fetching lesson by ID:', error);
       return {
         success: false,
-        message: error.message || 'Network error',
-        data: null,
+        message: error.response?.data?.error || error.message,
+        data: null
       };
     }
   },
 
-  // อัปเดตความคืบหน้าบทเรียน
-  async updateLessonProgress(lessonId, progress) {
+  async updateLessonProgress(lessonId, progress, extra = {}) {
     try {
-      console.log(`Updating lesson progress for ID: ${lessonId}, progress: ${progress}`);
-      
-      const response = await simpleApiService.makeRequest(`/lessons/${lessonId}/progress`, {
-        method: 'PUT',
-        body: JSON.stringify({ progress }),
-      });
+      const payload = {
+        progress,
+        ...extra
+      };
 
-      if (response.success) {
-        console.log('Lesson progress updated successfully:', response.data);
-        return {
-          success: true,
-          data: response.data,
-        };
-      } else {
-        console.error('Failed to update lesson progress:', response.error);
-        return {
-          success: false,
-          message: response.error || 'Failed to update progress',
-        };
-      }
+      const { data } = await apiClient.put(
+        `/lessons/${encodeURIComponent(lessonId)}/progress`,
+        payload
+      );
+
+      return {
+        success: data?.success !== false,
+        data: data?.data || null,
+        message: data?.message
+      };
     } catch (error) {
-      console.error('Error in updateLessonProgress:', error);
+      console.error('Error updating lesson progress:', error);
       return {
         success: false,
-        message: error.message || 'Network error',
+        message: error.response?.data?.error || error.message
       };
     }
-  },
+  }
 };
 
 export default lessonService;

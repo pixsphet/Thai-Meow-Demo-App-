@@ -1,204 +1,91 @@
 const express = require('express');
+const mongoose = require('mongoose');
+const Lesson = require('../models/Lesson');
+const Progress = require('../models/Progress');
+const auth = require('../middleware/auth');
+
 const router = express.Router();
 
-// Mock lessons data
-const mockLessons = [
-  {
-    _id: '1',
-    lesson_id: 1,
-    title: 'พยัญชนะ ก-จ',
-    titleTH: 'พยัญชนะ ก-จ',
-    level: 'Beginner',
-    key: 'consonants-1',
-    description: 'เรียนรู้พยัญชนะพื้นฐาน 5 ตัวแรก',
-    order: 1,
-    difficulty: 'easy',
-    estimatedTime: 10,
-    xpReward: 50,
-    isUnlocked: true,
-    isCompleted: false,
-    progress: 0,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  },
-  {
-    _id: '2',
-    lesson_id: 2,
-    title: 'พยัญชนะ ฉ-ญ',
-    titleTH: 'พยัญชนะ ฉ-ญ',
-    level: 'Beginner',
-    key: 'consonants-2',
-    description: 'เรียนรู้พยัญชนะพื้นฐาน 5 ตัวถัดไป',
-    order: 2,
-    difficulty: 'easy',
-    estimatedTime: 10,
-    xpReward: 50,
-    isUnlocked: false,
-    isCompleted: false,
-    progress: 0,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  },
-  {
-    _id: '3',
-    lesson_id: 3,
-    title: 'พยัญชนะ ฎ-ณ',
-    titleTH: 'พยัญชนะ ฎ-ณ',
-    level: 'Beginner',
-    key: 'consonants-3',
-    description: 'เรียนรู้พยัญชนะพื้นฐาน 5 ตัวถัดไป',
-    order: 3,
-    difficulty: 'easy',
-    estimatedTime: 10,
-    xpReward: 50,
-    isUnlocked: false,
-    isCompleted: false,
-    progress: 0,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  },
-  {
-    _id: '4',
-    lesson_id: 4,
-    title: 'พยัญชนะ ด-บ',
-    titleTH: 'พยัญชนะ ด-บ',
-    level: 'Beginner',
-    key: 'consonants-4',
-    description: 'เรียนรู้พยัญชนะพื้นฐาน 5 ตัวถัดไป',
-    order: 4,
-    difficulty: 'easy',
-    estimatedTime: 10,
-    xpReward: 50,
-    isUnlocked: false,
-    isCompleted: false,
-    progress: 0,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  },
-  {
-    _id: '5',
-    lesson_id: 5,
-    title: 'พยัญชนะ ป-ย',
-    titleTH: 'พยัญชนะ ป-ย',
-    level: 'Beginner',
-    key: 'consonants-5',
-    description: 'เรียนรู้พยัญชนะพื้นฐาน 5 ตัวถัดไป',
-    order: 5,
-    difficulty: 'easy',
-    estimatedTime: 10,
-    xpReward: 50,
-    isUnlocked: false,
-    isCompleted: false,
-    progress: 0,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  },
-  {
-    _id: '6',
-    lesson_id: 6,
-    title: 'พยัญชนะ ร-อ',
-    titleTH: 'พยัญชนะ ร-อ',
-    level: 'Beginner',
-    key: 'consonants-6',
-    description: 'เรียนรู้พยัญชนะพื้นฐาน 5 ตัวถัดไป',
-    order: 6,
-    difficulty: 'easy',
-    estimatedTime: 10,
-    xpReward: 50,
-    isUnlocked: false,
-    isCompleted: false,
-    progress: 0,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  },
-  {
-    _id: '7',
-    lesson_id: 7,
-    title: 'พยัญชนะ ฮ',
-    titleTH: 'พยัญชนะ ฮ',
-    level: 'Beginner',
-    key: 'consonants-7',
-    description: 'เรียนรู้พยัญชนะตัวสุดท้าย',
-    order: 7,
-    difficulty: 'easy',
-    estimatedTime: 10,
-    xpReward: 50,
-    isUnlocked: false,
-    isCompleted: false,
-    progress: 0,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  },
-  {
-    _id: '8',
-    lesson_id: 8,
-    title: 'ทบทวนพยัญชนะทั้งหมด',
-    titleTH: 'ทบทวนพยัญชนะทั้งหมด',
-    level: 'Beginner',
-    key: 'consonants-review',
-    description: 'ทบทวนพยัญชนะทั้งหมดที่เรียนมา',
-    order: 8,
-    difficulty: 'medium',
-    estimatedTime: 15,
-    xpReward: 100,
-    isUnlocked: false,
-    isCompleted: false,
-    progress: 0,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  },
-  {
-    _id: '9',
-    lesson_id: 9,
-    title: 'การออกเสียงพยัญชนะ',
-    titleTH: 'การออกเสียงพยัญชนะ',
-    level: 'Beginner',
-    key: 'pronunciation',
-    description: 'เรียนรู้การออกเสียงพยัญชนะที่ถูกต้อง',
-    order: 9,
-    difficulty: 'medium',
-    estimatedTime: 15,
-    xpReward: 100,
-    isUnlocked: false,
-    isCompleted: false,
-    progress: 0,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  },
-  {
-    _id: '10',
-    lesson_id: 10,
-    title: 'แบบทดสอบพยัญชนะ',
-    titleTH: 'แบบทดสอบพยัญชนะ',
-    level: 'Beginner',
-    key: 'consonants-test',
-    description: 'ทดสอบความรู้พยัญชนะทั้งหมด',
-    order: 10,
-    difficulty: 'hard',
-    estimatedTime: 20,
-    xpReward: 200,
-    isUnlocked: false,
-    isCompleted: false,
-    progress: 0,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  }
-];
+/**
+ * Normalize lesson document to legacy response shape expected by mobile app.
+ */
+const normalizeLesson = (lesson, index = 0) => {
+  if (!lesson) return null;
 
-// GET /api/lessons/level/:level - ดึงบทเรียนตามระดับ
-router.get('/level/:level', (req, res) => {
+  const order = Number.isFinite(lesson.order)
+    ? lesson.order
+    : Number.isFinite(lesson.lessonNumber)
+    ? lesson.lessonNumber
+    : index + 1;
+
+  const rewards = lesson.rewards || {};
+
+  return {
+    _id: lesson._id,
+    lesson_id: order,
+    title: lesson.title,
+    titleTH: lesson.titleTH || lesson.title,
+    level: lesson.level,
+    key: lesson.key || `${lesson.category || 'lesson'}-${order}`,
+    description: lesson.description,
+    order,
+    difficulty: lesson.difficulty,
+    estimatedTime: lesson.estimatedTime,
+    xpReward: Number.isFinite(lesson.xpReward) ? lesson.xpReward : rewards.xp || 0,
+    diamondsReward: Number.isFinite(lesson.diamondsReward)
+      ? lesson.diamondsReward
+      : rewards.diamonds || 0,
+    category: lesson.category,
+    isActive: lesson.isActive,
+    isUnlocked: Boolean(lesson.defaultUnlocked ?? order === 1),
+    isCompleted: false,
+    progress: 0,
+    createdAt: lesson.createdAt,
+    updatedAt: lesson.updatedAt,
+  };
+};
+
+const findLessonDocument = async (lessonId) => {
+  if (!lessonId) return null;
+
+  // Try ObjectId lookup first
+  if (mongoose.Types.ObjectId.isValid(lessonId)) {
+    const byId = await Lesson.findById(lessonId);
+    if (byId) return byId;
+  }
+
+  // Fallback lookups (order, key)
+  const numericId = Number(lessonId);
+  const query = [
+    { key: lessonId },
+    { slug: lessonId },
+    { lessonNumber: numericId },
+    { order: numericId },
+  ];
+
+  return Lesson.findOne({ $or: query }).sort({ createdAt: 1 });
+};
+
+// GET /api/lessons/level/:level - fetch lessons by level
+router.get('/level/:level', async (req, res) => {
   try {
     const { level } = req.params;
-    console.log(`📚 Fetching lessons for level: ${level}`);
-    
-    const lessons = mockLessons.filter(lesson => lesson.level === level);
-    
+
+    const lessons = await Lesson.find({
+      level,
+      isActive: { $ne: false },
+    }).sort({ order: 1, createdAt: 1 });
+
+    const normalized = lessons.map((lesson, index) =>
+      normalizeLesson(lesson, index)
+    );
+
     res.json({
       success: true,
-      data: lessons,
-      lessons: lessons, // สำหรับ backward compatibility
-      count: lessons.length,
-      level: level
+      data: normalized,
+      lessons: normalized,
+      count: normalized.length,
+      level,
     });
   } catch (error) {
     console.error('Error fetching lessons by level:', error);
@@ -206,21 +93,27 @@ router.get('/level/:level', (req, res) => {
       success: false,
       error: 'ไม่สามารถดึงข้อมูลบทเรียนได้',
       data: [],
-      lessons: []
+      lessons: [],
     });
   }
 });
 
-// GET /api/lessons - ดึงบทเรียนทั้งหมด
-router.get('/', (req, res) => {
+// GET /api/lessons - fetch all active lessons
+router.get('/', async (_req, res) => {
   try {
-    console.log('📚 Fetching all lessons');
-    
+    const lessons = await Lesson.find({
+      isActive: { $ne: false },
+    }).sort({ level: 1, order: 1, createdAt: 1 });
+
+    const normalized = lessons.map((lesson, index) =>
+      normalizeLesson(lesson, index)
+    );
+
     res.json({
       success: true,
-      data: mockLessons,
-      lessons: mockLessons, // สำหรับ backward compatibility
-      count: mockLessons.length
+      data: normalized,
+      lessons: normalized,
+      count: normalized.length,
     });
   } catch (error) {
     console.error('Error fetching all lessons:', error);
@@ -228,81 +121,103 @@ router.get('/', (req, res) => {
       success: false,
       error: 'ไม่สามารถดึงข้อมูลบทเรียนได้',
       data: [],
-      lessons: []
+      lessons: [],
     });
   }
 });
 
-// GET /api/lessons/:id - ดึงบทเรียนตาม ID
-router.get('/:id', (req, res) => {
+// GET /api/lessons/:id - fetch single lesson
+router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    console.log(`📚 Fetching lesson by ID: ${id}`);
-    
-    const lesson = mockLessons.find(l => l._id === id || l.lesson_id === parseInt(id));
-    
+    const lesson = await findLessonDocument(id);
+
     if (!lesson) {
       return res.status(404).json({
         success: false,
         error: 'ไม่พบบทเรียนที่ต้องการ',
-        data: null
+        data: null,
       });
     }
-    
+
     res.json({
       success: true,
-      data: lesson
+      data: normalizeLesson(lesson),
     });
   } catch (error) {
     console.error('Error fetching lesson by ID:', error);
     res.status(500).json({
       success: false,
       error: 'ไม่สามารถดึงข้อมูลบทเรียนได้',
-      data: null
+      data: null,
     });
   }
 });
 
-// PUT /api/lessons/:id/progress - อัปเดตความคืบหน้าบทเรียน
-router.put('/:id/progress', (req, res) => {
+// PUT /api/lessons/:id/progress - update per-user lesson progress
+router.put('/:id/progress', auth, async (req, res) => {
   try {
     const { id } = req.params;
-    const { progress } = req.body;
-    
-    console.log(`📚 Updating lesson progress for ID: ${id}, progress: ${progress}`);
-    
-    const lessonIndex = mockLessons.findIndex(l => l._id === id || l.lesson_id === parseInt(id));
-    
-    if (lessonIndex === -1) {
-      return res.status(404).json({
-        success: false,
-        error: 'ไม่พบบทเรียนที่ต้องการ'
-      });
+    const userId = req.user.id;
+
+    const {
+      progress = 0,
+      accuracy,
+      completed,
+      score,
+      xp,
+      lessonId: lessonIdOverride,
+    } = req.body || {};
+
+    const lessonKey = String(lessonIdOverride || id);
+
+    const normalizedProgress = Math.max(
+      0,
+      Math.min(100, Number(progress) || 0)
+    );
+
+    const update = {
+      progress: normalizedProgress,
+      updatedAt: new Date(),
+    };
+
+    if (accuracy !== undefined) {
+      const normalizedAccuracy = Math.max(
+        0,
+        Math.min(100, Number(accuracy) || 0)
+      );
+      update.accuracy = normalizedAccuracy;
     }
-    
-    // อัปเดตความคืบหน้า
-    mockLessons[lessonIndex].progress = progress;
-    mockLessons[lessonIndex].updatedAt = new Date();
-    
-    // ถ้าความคืบหน้าเป็น 100% ให้ทำเครื่องหมายว่าเสร็จแล้ว
-    if (progress >= 100) {
-      mockLessons[lessonIndex].isCompleted = true;
-      // ปลดล็อกบทเรียนถัดไป
-      if (lessonIndex + 1 < mockLessons.length) {
-        mockLessons[lessonIndex + 1].isUnlocked = true;
-      }
+
+    if (typeof completed === 'boolean') {
+      update.completed = completed;
+      update.completedAt = completed ? new Date() : null;
     }
-    
+
+    if (score !== undefined && Number.isFinite(Number(score))) {
+      update.score = Number(score);
+    }
+
+    if (xp !== undefined && Number.isFinite(Number(xp))) {
+      update.xp = Number(xp);
+    }
+
+    const progressDoc = await Progress.findOneAndUpdate(
+      { userId, lessonId: lessonKey },
+      { $set: update },
+      { new: true, upsert: true }
+    ).lean();
+
     res.json({
       success: true,
-      data: mockLessons[lessonIndex],
-      message: 'อัปเดตความคืบหน้าสำเร็จ'
+      data: progressDoc,
+      message: 'อัปเดตความคืบหน้าสำเร็จ',
     });
   } catch (error) {
     console.error('Error updating lesson progress:', error);
     res.status(500).json({
       success: false,
-      error: 'ไม่สามารถอัปเดตความคืบหน้าได้'
+      error: 'ไม่สามารถอัปเดตความคืบหน้าได้',
     });
   }
 });

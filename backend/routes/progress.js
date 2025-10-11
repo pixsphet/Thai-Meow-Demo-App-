@@ -1,7 +1,11 @@
 const express = require('express');
 const Progress = require('../models/Progress');
-const Player = require('../models/Player');
 const auth = require('../middleware/auth');
+const {
+  applyProgressToUser,
+  getUserStatsSnapshot,
+  getUserWithMergedData,
+} = require('../services/userStats');
 const router = express.Router();
 
 // POST upsert
@@ -40,38 +44,22 @@ router.post('/finish', auth, async (req, res) => {
     { $set: { score, xp: xpGain, diamondsEarned: diamonds, hearts: heartsLeft ?? 0, updatedAt: new Date() } }
   );
 
-  // award to player
-  const player = await Player.findOne({ userId });
-  if (!player) await Player.create({ userId });
-
-  // level calc
-  function nextLevelXp(level) { return 100 + (level - 1) * 50; }
-
-  const p = await Player.findOne({ userId });
-  let { level, xp, nextLevelXp: need } = p.levelInfo;
-
-  xp += xpGain;
-  while (xp >= need) {
-    xp -= need; level += 1; need = nextLevelXp(level);
+  const user = await getUserWithMergedData(userId);
+  if (user) {
+    applyProgressToUser(user, {
+      xpGain,
+      diamondsEarned: diamonds,
+      heartsLeft: heartsLeft ?? user.hearts,
+      completedLesson: true,
+      incrementSession: true,
+      lastPlayed: new Date(),
+    });
+    await user.save();
   }
 
-  const newDiamonds = (p.wallet.diamonds || 0) + diamonds;
+  const stats = await getUserStatsSnapshot(userId);
 
-  await Player.updateOne(
-    { userId },
-    {
-      $set: {
-        'levelInfo.level': level,
-        'levelInfo.xp': xp,
-        'levelInfo.nextLevelXp': need,
-        'wallet.diamonds': newDiamonds,
-        'wallet.hearts': heartsLeft ?? p.wallet.hearts
-      },
-      $inc: { 'totals.lessonsCompleted': 1 }
-    }
-  );
-
-  res.json({ ok: true });
+  res.json({ ok: true, stats });
 });
 
 // ดึงความคืบหน้าทั้งหมดของผู้ใช้
@@ -87,7 +75,7 @@ router.get("/user", auth, async (req, res) => {
 });
 
 // DELETE
-router.delete("/session", async (req, res) => {
+router.delete("/session", auth, async (req, res) => {
   try {
     const userId = req.user.id;
     const { lessonId } = req.query;

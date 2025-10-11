@@ -1,5 +1,5 @@
 // src/contexts/UnifiedStatsContext.js
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { useUser } from './UserContext';
 import { useUserData } from './UserDataContext';
 import realUserStatsService from '../services/realUserStatsService';
@@ -13,6 +13,7 @@ export const UnifiedStatsProvider = ({ children }) => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const statsRef = useRef(null);
 
   // Initialize service when user changes
   useEffect(() => {
@@ -63,6 +64,10 @@ export const UnifiedStatsProvider = ({ children }) => {
     initializeService();
   }, [user?.id]);
 
+  useEffect(() => {
+    statsRef.current = stats;
+  }, [stats]);
+
   // Sync with userData from UserDataContext
   useEffect(() => {
     if (userData) {
@@ -98,6 +103,66 @@ export const UnifiedStatsProvider = ({ children }) => {
       throw err;
     }
   }, [user?.id]);
+
+  useEffect(() => {
+    if (!user?.id) {
+      return undefined;
+    }
+
+    const handleStreakUpdate = async (snapshot) => {
+      if (!snapshot || typeof snapshot.streak !== 'number') {
+        return;
+      }
+      if (snapshot.userId && snapshot.userId !== user.id) {
+        return;
+      }
+
+      const prevStats = statsRef.current || {};
+      const prevStreak = Number.isFinite(prevStats?.streak) ? prevStats.streak : 0;
+      const prevMax = Number.isFinite(prevStats?.maxStreak) ? prevStats.maxStreak : 0;
+      const snapshotMax = Number.isFinite(snapshot.maxStreak) ? snapshot.maxStreak : 0;
+      const computedMax = Math.max(prevMax, snapshotMax, snapshot.streak);
+      const lastPlayed =
+        snapshot.lastPlayDate ||
+        prevStats.lastPlayed ||
+        prevStats.lastUpdated ||
+        new Date().toISOString();
+
+      if (prevStreak === snapshot.streak && prevMax >= computedMax) {
+        return;
+      }
+
+      try {
+        await updateStats({
+          streak: snapshot.streak,
+          maxStreak: computedMax,
+          lastPlayed
+        });
+      } catch (err) {
+        console.warn('⚠️ Failed to sync streak stats:', err?.message);
+        setStats(prev => {
+          const safePrev = prev || {};
+          const merged = {
+            ...safePrev,
+            userId: safePrev.userId || user?.id || snapshot.userId || null,
+            streak: snapshot.streak,
+            maxStreak: computedMax,
+            lastPlayed
+          };
+          realUserStatsService.saveLocalStats(merged).catch(() => {});
+          return merged;
+        });
+      }
+    };
+
+    const unsubscribe = dailyStreakService.subscribe(handleStreakUpdate);
+
+    return () => {
+      if (typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
+    };
+  }, [user?.id, updateStats]);
 
   // Update from game session
   const updateFromGameSession = useCallback(async (sessionData) => {
@@ -166,6 +231,7 @@ export const UnifiedStatsProvider = ({ children }) => {
     xp: stats?.xp || 0,
     diamonds: stats?.diamonds || 0,
     hearts: stats?.hearts || 5,
+    maxHearts: stats?.maxHearts || Math.max(stats?.hearts || 5, 5),
     level: stats?.level || 1,
     streak: stats?.streak || 0,
     maxStreak: stats?.maxStreak || 0,
@@ -178,6 +244,7 @@ export const UnifiedStatsProvider = ({ children }) => {
     lastPlayed: stats?.lastPlayed || null,
     achievements: stats?.achievements || [],
     badges: stats?.badges || [],
+    progressByLesson: stats?.progressByLesson || {},
     
     // Level progress
     levelProgress: stats ? {

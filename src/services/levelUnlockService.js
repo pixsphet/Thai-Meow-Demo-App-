@@ -268,9 +268,9 @@ class LevelUnlockService {
    */
   async syncLevelUnlockToServer(unlockData) {
     try {
-      const response = await apiClient.post('/levels/unlock', {
+      const response = await apiClient.post('/user/unlock-level', {
         userId: this.userId,
-        unlockData
+        levelId: unlockData.levelId
       });
       
       if (response.data.success) {

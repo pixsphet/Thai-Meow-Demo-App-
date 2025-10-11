@@ -88,6 +88,7 @@ const xpRoutes = require('./routes/xp');
 const userRoutes = require('./routes/user.routes');
 const friendsRoutes = require('./routes/friends');
 const progressPerUserRoutes = require('./routes/progressPerUser');
+const gameResultRoutes = require('./routes/gameResult');
 const auth = require('./middleware/auth');
 
 // ==============================
@@ -126,6 +127,7 @@ app.use('/api/streak', streakRoutes);
 app.use('/api/xp', xpRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/friends', friendsRoutes);
+app.use('/api/game-results', gameResultRoutes);
 
 // ตัวอย่าง Route Error (สำหรับ test)
 app.get('/error-test', (req, res, next) => {

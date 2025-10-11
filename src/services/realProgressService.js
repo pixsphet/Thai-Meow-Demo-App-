@@ -255,7 +255,7 @@ class RealProgressService {
         lastPlayed: results.completedAt
       };
 
-      await apiClient.post('/user/stats', statsUpdate);
+      await apiClient.post('/user/stats', { stats: statsUpdate });
       console.log('✅ User stats updated');
     } catch (error) {
       console.error('❌ Error updating user stats:', error);

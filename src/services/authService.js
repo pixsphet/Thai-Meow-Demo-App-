@@ -1,6 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from './apiClient';
-import { simpleApiService } from './simpleApiService';
 
 class AuthService {
   async login(email, password) {
@@ -63,64 +62,43 @@ class AuthService {
 
   async register(email, password, username, petName) {
     try {
-      // Test connection first
-      const connectionTest = await simpleApiService.testConnection();
-      if (!connectionTest.success) {
-        return {
-          success: false,
-          error: 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้ กรุณาตรวจสอบการเชื่อมต่อ'
-        };
-      }
-
-      const result = await simpleApiService.register({
+      const res = await api.post('/auth/register', {
         email,
         password,
         username,
         petName
       });
-      
-      if (result.success && result.data) {
-        // Validate token and user data before storing
-        // The result.data contains the full server response, so we need result.data.data
-        const token = result.data.data?.token;
-        const user = result.data.data?.user;
-        
-        if (!token) {
-          console.error('❌ [REGISTER] No token received from server');
+
+      if (res.data.success) {
+        const token = res.data.data?.token;
+        const user = res.data.data?.user;
+
+        if (!token || !user) {
           return {
             success: false,
-            error: 'ไม่ได้รับ token จากเซิร์ฟเวอร์'
+            error: 'ไม่ได้รับข้อมูลผู้ใช้หรือ token จากเซิร์ฟเวอร์'
           };
         }
-        
-        if (!user) {
-          console.error('❌ [REGISTER] No user data received from server');
-          return {
-            success: false,
-            error: 'ไม่ได้รับข้อมูลผู้ใช้จากเซิร์ฟเวอร์'
-          };
-        }
-        
-        // Store token and user data
+
         await AsyncStorage.setItem('authToken', token);
         await AsyncStorage.setItem('userData', JSON.stringify(user));
-        
+
         return {
           success: true,
-          user: user,
-          token: token
-        };
-      } else {
-        return {
-          success: false,
-          error: result.data?.error || result.error || 'สมัครสมาชิกไม่สำเร็จ'
+          user,
+          token
         };
       }
+
+      return {
+        success: false,
+        error: res.data.error || 'สมัครสมาชิกไม่สำเร็จ'
+      };
     } catch (error) {
       console.error('AuthService register error:', error);
       return {
         success: false,
-        error: 'เกิดข้อผิดพลาดในการสมัครสมาชิก'
+        error: error.response?.data?.error || 'เกิดข้อผิดพลาดในการสมัครสมาชิก'
       };
     }
   }

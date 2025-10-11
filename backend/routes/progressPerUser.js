@@ -1,7 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const Progress = require('../models/Progress');
-const UserStats = require('../models/UserStats');
+const {
+  applyProgressToUser,
+  getUserStatsSnapshot,
+  getUserWithMergedData,
+} = require('../services/userStats');
 
 // POST upsert progress session
 router.post('/session', async (req, res) => {
@@ -109,44 +113,27 @@ router.post('/finish', async (req, res) => {
       }
     );
 
-    // Update or create user stats
-    const userStats = await UserStats.findOne({ userId });
-    if (!userStats) {
-      await UserStats.create({ userId });
+    const user = await getUserWithMergedData(userId);
+    if (user) {
+      applyProgressToUser(user, {
+        xpGain,
+        diamondsEarned: diamonds,
+        heartsLeft: heartsLeft ?? user.hearts,
+        completedLesson: true,
+        incrementSession: true,
+        streak: req.body.streak,
+        correctAnswers: req.body.correctAnswers,
+        wrongAnswers: req.body.wrongAnswers,
+        timeSpent: req.body.timeSpent,
+        accuracy: req.body.accuracy,
+        lastGameResults: req.body.lastGameResults,
+      });
+      await user.save();
     }
 
-    // Calculate level up
-    function nextLevelXp(level) { 
-      return 100 + (level - 1) * 50; 
-    }
+    const stats = await getUserStatsSnapshot(userId);
 
-    const stats = await UserStats.findOne({ userId });
-    let { level, xp, nextLevelXp: need } = stats;
-
-    xp += xpGain;
-    while (xp >= need) {
-      xp -= need; 
-      level += 1; 
-      need = nextLevelXp(level);
-    }
-
-    const newDiamonds = (stats.diamonds || 0) + diamonds;
-
-    await UserStats.updateOne(
-      { userId },
-      {
-        $set: {
-          level,
-          xp,
-          nextLevelXp: need,
-          diamonds: newDiamonds,
-          hearts: heartsLeft ?? stats.hearts
-        },
-        $inc: { lessonsCompleted: 1 }
-      }
-    );
-
-    res.json({ ok: true });
+    res.json({ ok: true, stats });
   } catch (error) {
     console.error('Error finishing lesson:', error);
     res.status(500).json({ error: 'Failed to finish lesson' });
@@ -166,4 +153,3 @@ router.get('/user', async (req, res) => {
 });
 
 module.exports = router;
-

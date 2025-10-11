@@ -223,6 +223,7 @@ const LevelStage1 = ({ navigation }) => {
         
         console.log('✅ Stages with progress from API:', computed);
         setStages(computed);
+        setLoading(false);
         return;
       }
     } catch (error) {
@@ -556,12 +557,11 @@ const LevelStage1 = ({ navigation }) => {
                     
                     // Special case for lesson 2 - navigate to vowels stage
                     if (stage.lesson_id === 2) {
-                      navigation.navigate('BeginnerVowelsStage', {
-                        lessonId: stage.lesson_id, 
+                      navigation.navigate('ThaiVowelsGame', {
+                        lessonId: stage.lesson_id,
                         category: 'vowels_basic',
-                        vowelType: 'basic',
                         level: stage.level,
-                        stageTitle: stage.title 
+                        stageTitle: stage.title
                       });
                     } else {
                       navigation.navigate('NewLessonGame', {

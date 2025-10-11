@@ -3,8 +3,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const getUserStats = async () => {
   try {
-    const response = await apiClient.get('/user/stats/demo');
-    return response.data?.data || response.data;
+    const response = await apiClient.get('/user/stats');
+    return response.data?.stats || response.data?.data || response.data;
   } catch (error) {
     console.error('Error fetching legacy user stats:', error?.message);
     return null;
@@ -13,7 +13,7 @@ export const getUserStats = async () => {
 
 export const postUserStats = async (payload) => {
   try {
-    const response = await apiClient.post('/user/stats', payload);
+    const response = await apiClient.post('/user/stats', { stats: payload });
     return response.data?.stats || response.data?.data || null;
   } catch (error) {
     console.error('Error posting legacy user stats:', error?.message);
@@ -23,7 +23,7 @@ export const postUserStats = async (payload) => {
 
 export const tickDailyStreak = async () => {
   try {
-    const response = await apiClient.post('/user/streak/tick');
+    const response = await apiClient.post('/streak/tick');
     return response.data;
   } catch (error) {
     console.error('Error ticking daily streak:', error?.message);

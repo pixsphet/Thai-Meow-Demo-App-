@@ -1,277 +1,244 @@
-# 🐱 Thai-Meow - Thai Language Learning App
+# Thai Meow 🐱 - Interactive Thai Language Learning App
 
-แอปพลิเคชันเรียนรู้ภาษาไทยที่ออกแบบมาเพื่อให้การเรียนรู้เป็นเรื่องสนุกและมีประสิทธิภาพ พร้อมระบบเกมมิฟิเคชันที่ช่วยให้ผู้เรียนมีแรงจูงใจในการเรียน
+A comprehensive React Native + Node.js + MongoDB application for learning Thai language through gamified experiences.
 
-## 📱 ภาพรวมแอป
+## 📱 App Overview
 
-Thai-Meow เป็นแอปเรียนรู้ภาษาไทยที่รวมการเรียนรู้เข้ากับเกม โดยมีระบบ XP, Level, และ Rewards ที่ทำให้การเรียนเป็นเรื่องสนุก ผู้เรียนสามารถเรียนรู้พยัญชนะ สระ และวรรณยุกต์ผ่านเกมต่างๆ พร้อมระบบติดตามความคืบหน้าและสถิติที่ละเอียด
+Thai Meow is an interactive language learning app that makes learning Thai fun and engaging through gamified lessons, progress tracking, and AI-powered pronunciation.
 
-## 🎯 ฟีเจอร์หลัก
-
-### 🏠 หน้าหลัก (HomeScreen)
-- แสดงสถิติผู้ใช้แบบเรียลไทม์
-- ระบบ Level และ XP
-- แสดงความคืบหน้าในการเรียน
-- Quick Actions สำหรับเข้าสู่บทเรียนต่างๆ
-- ระบบ Streak และ Hearts
-
-### 📊 หน้าความคืบหน้า (ProgressScreen)
-- แสดงสถิติการเรียนแบบละเอียด
-- กราฟแสดงความคืบหน้า
-- ระบบ Achievement และ Badges
-- แสดงเวลาที่ใช้ในการเรียน
-- ความแม่นยำในการตอบคำถาม
-
-### 👤 หน้าโปรไฟล์ (ProfileScreen)
-- จัดการข้อมูลส่วนตัว
-- แสดงสถิติและความสำเร็จ
-- ระบบ Level Rewards
-- การตั้งค่าบัญชีผู้ใช้
-- แสดงความคืบหน้า XP แบบละเอียด
-
-### 👥 หน้าเพิ่มเพื่อน (AddFriendScreen)
-- ค้นหาและเพิ่มเพื่อน
-- ระบบ Social Learning
-- แข่งขันกับเพื่อน
-- แชร์ความสำเร็จ
-
-## 🎮 ระบบเกมการเรียนรู้
-
-### 📚 บทเรียนพยัญชนะ (ConsonantLearnScreen)
-- เรียนรู้พยัญชนะไทย 44 ตัว
-- ระบบเสียงและการออกเสียง
-- แบบฝึกหัดแบบ Interactive
-- ระบบ Progress Tracking
-
-### 🔤 บทเรียนสระ (ThaiVowelGame)
-- เรียนรู้สระไทยทั้งหมด
-- เกมจับคู่สระกับเสียง
-- ระบบฝึกออกเสียง
-- แบบทดสอบความเข้าใจ
-
-### 🎵 บทเรียนวรรณยุกต์ (ThaiTonesGame)
-- เรียนรู้วรรณยุกต์ทั้ง 5 เสียง
-- เกมฝึกฟังและแยกเสียง
-- ระบบฝึกออกเสียงวรรณยุกต์
-- แบบทดสอบความแม่นยำ
-
-## 🏗️ โครงสร้างโปรเจค
+## 🏗️ Project Structure
 
 ```
 Thai-Meow/
-├── 📱 Frontend (React Native + Expo)
-│   ├── src/
-│   │   ├── components/          # Components ที่ใช้ร่วมกัน
-│   │   ├── contexts/            # React Context สำหรับ State Management
-│   │   ├── hooks/               # Custom Hooks
-│   │   ├── navigation/          # Navigation Configuration
-│   │   ├── screens/            # หน้าจอต่างๆ ของแอป
-│   │   ├── services/            # API Services
-│   │   └── utils/               # Utility Functions
-│   ├── assets/                 # รูปภาพ, เสียง, และ Animations
-│   └── App.js                  # Entry Point
-│
-├── 🖥️ Backend (Node.js + Express)
-│   ├── controllers/            # API Controllers
-│   ├── models/                 # Database Models (MongoDB)
-│   ├── routes/                 # API Routes
-│   ├── middleware/             # Middleware Functions
-│   ├── config/                 # Database Configuration
-│   └── server.js               # Server Entry Point
-│
-└── 📄 Documentation
-    ├── README.md
-    ├── SETUP_GUIDE.md
-    └── API_DOCUMENTATION.md
+├── src/                          # Frontend (React Native + Expo)
+│   ├── components/               # Reusable UI components
+│   ├── contexts/                 # React Context providers
+│   ├── hooks/                    # Custom React hooks
+│   ├── navigation/               # Navigation configuration
+│   ├── screens/                  # App screens
+│   ├── services/                 # API and business logic
+│   └── utils/                    # Utility functions
+├── backend/                      # Backend (Node.js + Express)
+│   ├── controllers/              # Route controllers
+│   ├── middleware/               # Express middleware
+│   ├── models/                   # MongoDB models
+│   ├── routes/                   # API routes
+│   └── server.js                 # Main server file
+└── assets/                       # Static assets
 ```
 
-## 🎨 ระบบ UI/UX
+## 🎮 Core Features
 
-### 🎨 Theme System
-- Dark/Light Mode Support
-- Consistent Color Palette
-- Responsive Design
-- Custom Components Library
+### 1. Learning Modules
+- **Thai Consonants (ก-ฮ)** - 44 letters with pronunciation
+- **Thai Vowels** - 32 vowels with audio learning
+- **Thai Tones** - 5 tones with pitch training
+- **Vocabulary Building** - Word recognition and meaning
 
-### 🎭 Animations
-- Lottie Animations สำหรับ Feedback
-- Smooth Transitions
-- Loading States
-- Success/Error Animations
+### 2. Game Modes
+- **Matching Game** - Match Thai letters with meanings
+- **Multiple Choice** - Choose correct answers
+- **Fill in the Blank** - Complete missing letters
+- **Order Game** - Arrange letters in sequence
+- **Quiz Mode** - Mixed challenge mode
 
-### 📱 Navigation
-- Bottom Tab Navigation
-- Stack Navigation
-- Custom Tab Bar Design
-- Deep Linking Support
+### 3. Gamification System
+- **Hearts (❤️)** - Player lives (regenerate over time)
+- **Streaks (🔥)** - Daily login progress
+- **XP (⭐)** - Experience points for leveling
+- **Diamonds (💎)** - Premium currency for rewards
+- **Achievements** - Unlockable badges and rewards
+- **Level System** - Progressive difficulty unlock
 
-## 🔧 เทคโนโลยีที่ใช้
+### 4. AI Voice Integration
+- **Vaja9 TTS** - Primary Thai text-to-speech service
+- **AI For Thai** - High-quality pronunciation
+- **Expo Speech** - Fallback TTS service
+- **Emotion Support** - Happy, neutral, sad, excited tones
+
+### 5. Progress Tracking
+- **Real-time Sync** - Progress synced with MongoDB
+- **Offline Support** - Local cache with AsyncStorage
+- **Session Tracking** - Resume interrupted games
+- **Analytics** - Detailed performance metrics
+- **User Stats** - Comprehensive progress dashboard
+
+## 🛠️ Technical Stack
 
 ### Frontend
-- **React Native** - Cross-platform mobile development
-- **Expo** - Development platform และ tools
-- **React Navigation** - Navigation library
-- **Lottie React Native** - Animations
-- **Expo Linear Gradient** - Gradient backgrounds
-- **React Context API** - State management
-- **AsyncStorage** - Local data storage
+- **Framework**: React Native with Expo
+- **Navigation**: React Navigation v7
+- **State Management**: React Context API
+- **Animations**: Lottie React Native
+- **Storage**: AsyncStorage for offline support
+- **TTS**: Expo Speech + Vaja9 TTS + AI For Thai
 
 ### Backend
-- **Node.js** - Runtime environment
-- **Express.js** - Web framework
-- **MongoDB** - Database
-- **Mongoose** - ODM for MongoDB
-- **JWT** - Authentication
-- **bcrypt** - Password hashing
+- **Framework**: Node.js + Express
+- **Database**: MongoDB Atlas (Cloud)
+- **Authentication**: JWT tokens
+- **Security**: Helmet, CORS, Rate Limiting
+- **API**: RESTful API design
 
-### Development Tools
-- **Git** - Version control
-- **ESLint** - Code linting
-- **Prettier** - Code formatting
-- **GitHub** - Repository hosting
+### Database Collections
+- `users` - User profiles and authentication
+- `userstats` - User statistics and progress
+- `vocabularies` - Thai letters, vowels, tones with audio
+- `progresses` - Learning progress and session data
+- `lessons` - Structured lessons and content
+- `gameresults` - Quiz results and performance
+- `players` - Player data and achievements
 
-## 🚀 การติดตั้งและรัน
+## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js (v16 หรือใหม่กว่า)
-- npm หรือ yarn
+- Node.js 18+
+- MongoDB Atlas account
 - Expo CLI
-- MongoDB
-- Android Studio / Xcode (สำหรับรันบนอุปกรณ์จริง)
+- iOS Simulator or Android Emulator
 
-### Frontend Setup
-```bash
-# ติดตั้ง dependencies
-npm install
+### Installation
 
-# รันแอป
-npm start
-# หรือ
-expo start
-```
+1. **Clone and install dependencies**
+   ```bash
+   git clone https://github.com/your-username/thai-meow.git
+   cd thai-meow
+   npm install
+   cd backend && npm install
+   ```
 
-### Backend Setup
-```bash
-# เข้าไปในโฟลเดอร์ backend
-cd backend
+2. **Environment Setup**
+   ```bash
+   # Copy and edit environment file
+   cp backend/config.env.example backend/config.env
+   # Add your MongoDB Atlas connection string
+   ```
 
-# ติดตั้ง dependencies
-npm install
+3. **Start the application**
+   ```bash
+   # Start backend server
+   cd backend
+   npm start
+   
+   # Start frontend (in new terminal)
+   npm start
+   ```
 
-# ตั้งค่า environment variables
-cp config.env.example config.env
+## 🔧 Key API Endpoints
 
-# รันเซิร์ฟเวอร์
-npm start
-```
+### Authentication
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - Login user
+- `GET /api/auth/me` - Get current user
 
-## 📊 ระบบข้อมูล
+### Game & Progress
+- `POST /api/game-results` - Save game result
+- `POST /api/progress/session` - Save progress session
+- `POST /api/progress/finish` - Finish lesson
+- `GET /api/progress/user` - Get user progress
 
 ### User Management
-- การสมัครสมาชิกและเข้าสู่ระบบ
-- จัดการข้อมูลส่วนตัว
-- ระบบ Authentication และ Authorization
+- `POST /api/user/stats` - Update user stats
+- `POST /api/user/unlock-level` - Unlock level
+- `GET /api/user/profile` - Get user profile
 
-### Progress Tracking
-- บันทึกความคืบหน้าในการเรียน
-- ระบบ XP และ Level
-- สถิติการเรียนแบบละเอียด
-- ระบบ Streak และ Rewards
+### Vocabulary
+- `GET /api/vocab/consonants` - Get Thai consonants
+- `GET /api/vocab/vowels` - Get Thai vowels
+- `GET /api/vocab/search/:term` - Search vocabulary
 
-### Game Data
-- ข้อมูลพยัญชนะ สระ และวรรณยุกต์
-- ระบบคำถามและคำตอบ
-- บันทึกผลการเล่นเกม
-- ระบบคะแนนและ Ranking
+## 🎨 UI/UX Features
 
-## 🎯 ฟีเจอร์พิเศษ
+### Theme System
+- **Light/Dark Mode** - Automatic theme switching
+- **Color Palette** - Consistent design system
+- **Typography** - Readable fonts for Thai text
+- **Accessibility** - Screen reader support
 
-### 🏆 ระบบ Gamification
-- **XP System**: ได้รับ XP จากการเรียนและเล่นเกม
-- **Level System**: เลื่อนระดับตาม XP ที่สะสม
-- **Rewards**: ได้รับ Hearts และ Diamonds เป็นรางวัล
-- **Streak**: ระบบเรียนต่อเนื่องเพื่อรับรางวัลพิเศษ
-- **Achievements**: ระบบความสำเร็จและ Badges
+### Animations & Interactions
+- **Lottie Animations** - Smooth micro-interactions
+- **Progress Bars** - Visual progress indicators
+- **Success/Error States** - Clear feedback
+- **Loading States** - Smooth transitions
 
-### 📈 Analytics & Statistics
-- ติดตามเวลาที่ใช้ในการเรียน
-- คำนวณความแม่นยำในการตอบคำถาม
-- แสดงสถิติการเรียนแบบรายวัน/รายสัปดาห์/รายเดือน
-- ระบบเปรียบเทียบกับเพื่อน
+## 🔒 Security & Performance
 
-### 🔄 Real-time Sync
-- ซิงค์ข้อมูลแบบเรียลไทม์
-- Offline Mode Support
-- Auto-save Progress
-- Conflict Resolution
+### Security Features
+- **JWT Authentication** - Secure token-based auth
+- **Password Hashing** - bcryptjs encryption
+- **Rate Limiting** - API abuse prevention
+- **CORS Protection** - Cross-origin security
+- **Input Validation** - Data sanitization
 
-## 🎨 Design System
+### Performance Optimizations
+- **MongoDB Indexes** - Optimized database queries
+- **Image Optimization** - Compressed assets
+- **Lazy Loading** - On-demand content loading
+- **Caching** - Local storage for offline support
+- **Bundle Splitting** - Reduced app size
 
-### Colors
-- **Primary**: #FF8000 (Orange)
-- **Secondary**: #34A853 (Green)
-- **Accent**: #2196F3 (Blue)
-- **Background**: #FFFFFF / #1B1B1B
-- **Surface**: #F5F5F5 / #2C2C2C
+## 📱 App Screens & Navigation
 
-### Typography
-- **Primary Font**: System Default
-- **Thai Font**: Sarabun, Kanit
-- **Sizes**: 12px - 28px
-- **Weights**: 400, 500, 600, 700, 800
+### Main Screens
+- **HomeScreen** - Dashboard with progress overview
+- **ProfileScreen** - User profile and settings
+- **ProgressScreen** - Detailed progress tracking
+- **SettingsScreen** - App configuration
 
-### Components
-- **Cards**: Rounded corners, subtle shadows
-- **Buttons**: Rounded, gradient backgrounds
-- **Inputs**: Clean design, focus states
-- **Navigation**: Bottom tabs, consistent styling
+### Learning Screens
+- **NewLessonGame** - Main lesson interface
+- **ThaiConsonantsGame** - Consonant learning
+- **ThaiVowelGame** - Vowel learning
+- **ThaiTonesGame** - Tone learning
+- **LessonCompleteScreen** - Lesson completion
 
-## 🔮 Roadmap
+### Authentication Screens
+- **SignInScreen** - User login
+- **SignUpScreen** - User registration
+- **ForgotPasswordScreen** - Password recovery
+- **Onboarding1-3** - App introduction
 
-### Phase 1 (Current)
-- ✅ Basic Learning Modules
-- ✅ User Authentication
-- ✅ Progress Tracking
-- ✅ Basic Gamification
+## 🧪 Testing & Development
 
-### Phase 2 (Planned)
-- 🔄 Advanced Analytics
-- 🔄 Social Features
-- 🔄 Offline Mode
-- 🔄 Push Notifications
+```bash
+# Run backend tests
+cd backend
+npm test
 
-### Phase 3 (Future)
-- 📋 AI-powered Learning Paths
-- 📋 Voice Recognition
-- 📋 AR/VR Integration
-- 📋 Multi-language Support
+# Run frontend tests
+npm test
+
+# Development mode
+npm run dev
+```
+
+## 📈 Recent Updates
+
+- ✅ Fixed 404 errors for game progress saving
+- ✅ Fixed level unlock syncing issues
+- ✅ Improved user stats synchronization
+- ✅ Enhanced offline support
+- ✅ Optimized API endpoints
 
 ## 🤝 Contributing
 
-เรายินดีรับการมีส่วนร่วมจากชุมชน! หากคุณต้องการช่วยพัฒนาหรือปรับปรุงแอป สามารถ:
-
-1. Fork repository นี้
-2. สร้าง feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit การเปลี่ยนแปลง (`git commit -m 'Add some AmazingFeature'`)
-4. Push ไปยัง branch (`git push origin feature/AmazingFeature`)
-5. เปิด Pull Request
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
 
 ## 📄 License
 
-โปรเจคนี้อยู่ภายใต้ MIT License - ดูรายละเอียดในไฟล์ [LICENSE](LICENSE)
-
-## 📞 ติดต่อ
-
-- **Developer**: pixsphet
-- **GitHub**: [@pixsphet](https://github.com/pixsphet)
-- **Repository**: [Thai-Meow-Demo-App](https://github.com/pixsphet/Thai-Meow-Demo-App-.git)
+This project is licensed under the MIT License.
 
 ## 🙏 Acknowledgments
 
-- ขอบคุณชุมชน React Native และ Expo
-- ขอบคุณผู้ให้ข้อมูลภาษาไทยและเสียง
-- ขอบคุณผู้ทดสอบและให้ feedback
+- **Vaja9 TTS** - Thai text-to-speech service
+- **AI For Thai** - AI-powered pronunciation
+- **MongoDB Atlas** - Cloud database hosting
+- **Expo** - React Native development platform
 
 ---
 
-**🐱 Thai-Meow** - ทำให้การเรียนรู้ภาษาไทยเป็นเรื่องสนุก! 🎉
+**Made with ❤️ by the Thai Meow Team**

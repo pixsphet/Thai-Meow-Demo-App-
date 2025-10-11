@@ -1,32 +1,30 @@
+const mongoose = require('mongoose');
 const User = require('../models/User');
+const {
+  getUserStatsSnapshot,
+  getUserWithMergedData,
+} = require('../services/userStats');
 
-const buildStatsDTO = (u) => ({
-  userId: u._id?.toString() || 'demo',
-  username: u.username,
-  level: u.level || 1,
-  xp: u.xp || 0,
-  streak: u.streak || 0,
-  hearts: u.hearts ?? 5,
-  diamonds: u.diamonds || 0,
-  lessonsCompleted: u.lessonsCompleted || 0,
-  lastActiveAt: u.updatedAt,
-  badges: u.badges || [],
-});
+const safeNumber = (value, fallback = 0) => {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : fallback;
+};
 
-const buildProfileDTO = (u) => ({
-  id: u._id?.toString() || 'demo',
-  username: u.username,
-  email: u.email,
-  petName: u.petName,
-  avatar: u.avatar,
-  level: u.level || 1,
-  xp: u.xp || 0,
-  streak: u.streak || 0,
-  hearts: u.hearts ?? 5,
-  diamonds: u.diamonds || 0,
-  lessonsCompleted: u.lessonsCompleted || 0,
-  lastActiveAt: u.updatedAt,
-  badges: u.badges || [],
+const buildProfileDTO = (user, stats) => ({
+  id: user._id?.toString() || 'demo',
+  username: user.username,
+  email: user.email,
+  petName: user.petName,
+  avatar: user.avatar,
+  level: user.level || 1,
+  xp: user.xp || 0,
+  streak: user.streak || 0,
+  hearts: user.hearts ?? 5,
+  diamonds: user.diamonds || 0,
+  lessonsCompleted: user.lessonsCompleted || 0,
+  lastActiveAt: user.updatedAt,
+  badges: user.badges || [],
+  stats: stats || null,
 });
 
 // ✅ GET /api/user/stats/:userId
@@ -35,47 +33,39 @@ exports.getUserStats = async (req, res, next) => {
     const { userId } = req.params;
 
     let user;
-    
-    // Try to find by ObjectId first
-    if (userId.match(/^[0-9a-fA-F]{24}$/)) {
-      user = await User.findById(userId);
-    } else {
-      // Fallback to username search
-      user = await User.findOne({ username: userId });
-    }
 
-    // ถ้าไม่มี user demo ให้สร้างขึ้นอัตโนมัติ
-    if (!user && userId === 'demo') {
-      user = await User.create({
-        username: 'demo',
-        level: 1,
-        xp: 120,
-        streak: 3,
-        hearts: 5,
-        lessonsCompleted: 7,
-        badges: ['starter', 'first-lesson'],
-      });
+    if (mongoose.Types.ObjectId.isValid(userId)) {
+      user = await User.findById(userId);
     }
 
     if (!user) {
-      // If user not found, create default stats for the user
-      console.log('🔧 Creating default stats for user:', userId);
-      const defaultStats = {
-        userId: userId,
-        username: 'User',
+      user = await User.findOne({ username: userId });
+    }
+
+    if (!user && userId === 'demo') {
+      user = await User.create({
+        username: 'demo',
+        email: 'demo@example.com',
         level: 1,
         xp: 0,
         streak: 0,
         hearts: 5,
         diamonds: 0,
         lessonsCompleted: 0,
-        lastActiveAt: new Date(),
-        badges: []
-      };
-      return res.json({ success: true, data: defaultStats });
+        badges: ['starter'],
+      });
     }
 
-    return res.json({ success: true, data: buildStatsDTO(user) });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found',
+      });
+    }
+
+    const stats = await getUserStatsSnapshot(user._id);
+
+    return res.json({ success: true, stats });
   } catch (err) {
     next(err);
   }
@@ -145,10 +135,12 @@ exports.updateUserProfile = async (req, res, next) => {
 
     console.log(`✅ User profile updated: ${updatedUser.username}`);
 
-    return res.json({ 
-      success: true, 
+    const stats = await getUserStatsSnapshot(updatedUser._id);
+
+    return res.json({
+      success: true,
       message: 'Profile updated successfully',
-      data: buildProfileDTO(updatedUser)
+      data: buildProfileDTO(updatedUser, stats),
     });
   } catch (err) {
     console.error('Error updating user profile:', err);
@@ -160,20 +152,18 @@ exports.updateUserProfile = async (req, res, next) => {
 exports.getCurrentUserStats = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const user = await User.findById(userId);
-    
-    if (!user) {
-      return res.status(404).json({ 
-        success: false, 
-        error: 'User not found' 
+    const stats = await getUserStatsSnapshot(userId);
+
+    if (!stats) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found',
       });
     }
 
-    const stats = buildStatsDTO(user);
-    
-    res.json({ 
-      success: true, 
-      stats 
+    res.json({
+      success: true,
+      stats,
     });
   } catch (err) {
     console.error('Error getting current user stats:', err);
@@ -185,46 +175,142 @@ exports.getCurrentUserStats = async (req, res, next) => {
 exports.updateCurrentUserStats = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const updates = req.body || {};
-    
-    // Allowed fields for stats update
-    const allowedFields = ['hearts', 'diamonds', 'xp', 'level', 'streak', 'lessonsCompleted', 'badges'];
-    const updateData = {};
-    
-    allowedFields.forEach(field => {
-      if (updates[field] !== undefined) {
-        updateData[field] = updates[field];
+    const payload =
+      (req.body && typeof req.body === 'object' && req.body.stats && typeof req.body.stats === 'object')
+        ? req.body.stats
+        : req.body || {};
+
+    const user = await getUserWithMergedData(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found',
+      });
+    }
+
+    if (payload.hearts !== undefined) {
+      const maxHearts = safeNumber(payload.maxHearts, user.maxHearts || 5);
+      user.maxHearts = Math.max(1, maxHearts);
+      user.hearts = Math.max(
+        0,
+        Math.min(user.maxHearts, safeNumber(payload.hearts, user.hearts || user.maxHearts))
+      );
+    }
+
+    if (payload.maxHearts !== undefined) {
+      user.maxHearts = Math.max(1, safeNumber(payload.maxHearts, user.maxHearts || 5));
+      if (user.hearts > user.maxHearts) {
+        user.hearts = user.maxHearts;
       }
-    });
-
-    if (Object.keys(updateData).length === 0) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'No valid fields to update' 
-      });
     }
 
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      { $set: updateData },
-      { new: true, runValidators: true }
-    );
-
-    if (!updatedUser) {
-      return res.status(404).json({ 
-        success: false, 
-        error: 'User not found' 
-      });
+    if (payload.diamonds !== undefined) {
+      user.diamonds = Math.max(0, safeNumber(payload.diamonds, user.diamonds || 0));
     }
 
-    const stats = buildStatsDTO(updatedUser);
-    
-    console.log(`✅ User stats updated: ${updatedUser.username}`, updateData);
+    if (payload.xp !== undefined) {
+      const xpValue = Math.max(0, safeNumber(payload.xp, user.xp || 0));
+      user.xp = xpValue;
+      if (payload.level === undefined) {
+        user.level = Math.max(1, Math.floor(xpValue / 100) + 1);
+      }
+    }
 
-    res.json({ 
-      success: true, 
+    if (payload.level !== undefined) {
+      user.level = Math.max(1, safeNumber(payload.level, user.level || 1));
+    }
+
+    if (payload.streak !== undefined) {
+      const streakValue = Math.max(0, safeNumber(payload.streak, user.streak || 0));
+      user.streak = streakValue;
+      user.longestStreak = Math.max(safeNumber(user.longestStreak, 0), streakValue);
+      user.maxStreak = Math.max(safeNumber(user.maxStreak, 0), streakValue);
+    }
+
+    if (payload.maxStreak !== undefined) {
+      const maxStreakValue = Math.max(0, safeNumber(payload.maxStreak, user.maxStreak || 0));
+      user.longestStreak = Math.max(safeNumber(user.longestStreak, 0), maxStreakValue);
+      user.maxStreak = Math.max(safeNumber(user.maxStreak, 0), maxStreakValue);
+    }
+
+    if (payload.lessonsCompleted !== undefined) {
+      user.lessonsCompleted = Math.max(
+        0,
+        safeNumber(payload.lessonsCompleted, user.lessonsCompleted || 0)
+      );
+    }
+
+    if (payload.totalSessions !== undefined) {
+      user.totalSessions = Math.max(
+        0,
+        safeNumber(payload.totalSessions, user.totalSessions || 0)
+      );
+    }
+
+    if (payload.totalCorrectAnswers !== undefined) {
+      user.totalCorrectAnswers = Math.max(
+        0,
+        safeNumber(payload.totalCorrectAnswers, user.totalCorrectAnswers || 0)
+      );
+    }
+
+    if (payload.totalWrongAnswers !== undefined) {
+      user.totalWrongAnswers = Math.max(
+        0,
+        safeNumber(payload.totalWrongAnswers, user.totalWrongAnswers || 0)
+      );
+    }
+
+    if (payload.averageAccuracy !== undefined) {
+      user.averageAccuracy = Math.max(
+        0,
+        safeNumber(payload.averageAccuracy, user.averageAccuracy || 0)
+      );
+    }
+
+    if (payload.totalTimeSpent !== undefined) {
+      user.totalTimeSpent = Math.max(
+        0,
+        safeNumber(payload.totalTimeSpent, user.totalTimeSpent || 0)
+      );
+    }
+
+    if (payload.badges && Array.isArray(payload.badges)) {
+      user.badges = Array.from(new Set(payload.badges));
+    }
+
+    if (payload.achievements && Array.isArray(payload.achievements)) {
+      const existing = user.achievements || [];
+      const existingIds = new Set(existing.map((item) => item?.id));
+      payload.achievements.forEach((item) => {
+        if (item && item.id && !existingIds.has(item.id)) {
+          existing.push(item);
+          existingIds.add(item.id);
+        }
+      });
+      user.achievements = existing;
+    }
+
+    if (payload.lastGameResults) {
+      user.lastGameResults = payload.lastGameResults;
+      user.lastPlayed = payload.lastGameResults.completedAt
+        ? new Date(payload.lastGameResults.completedAt)
+        : new Date();
+    }
+
+    if (payload.lastPlayed) {
+      user.lastPlayed = new Date(payload.lastPlayed);
+    }
+
+    await user.save();
+
+    const stats = await getUserStatsSnapshot(user._id);
+
+    res.json({
+      success: true,
       message: 'Stats updated successfully',
-      stats 
+      stats,
     });
   } catch (err) {
     console.error('Error updating current user stats:', err);

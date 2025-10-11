@@ -1,218 +1,235 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import apiClient from './apiClient';
+import progressService from './progressServicePerUser';
+
+const clamp = (value, { min = Number.NEGATIVE_INFINITY, max = Number.POSITIVE_INFINITY } = {}) => {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) {
+    return min;
+  }
+  return Math.min(max, Math.max(min, numeric));
+};
+
+const getStoredUser = async () => {
+  try {
+    const stored = await AsyncStorage.getItem('userData');
+    return stored ? JSON.parse(stored) : null;
+  } catch (error) {
+    console.warn('Failed to parse stored user data:', error);
+    return null;
+  }
+};
+
+const getCurrentUserId = async () => {
+  const storedUser = await getStoredUser();
+  return storedUser?.id || null;
+};
+
+const extractStatsPayload = (data) => data?.stats || data?.data || data;
 
 const userService = {
-  // Get user stats (hearts, diamonds, XP, etc.)
   async getUserStats() {
     try {
-      // Mock implementation - in real app, you'd call API
-      const mockStats = {
-        hearts: 5,
-        diamonds: 0,
-        xp: 0,
-        level: 1,
-        streak: 0,
-        totalLessons: 0,
-        completedLessons: 0,
-      };
-
+      const response = await apiClient.get('/user/stats');
       return {
-        success: true,
-        data: mockStats,
+        success: response.data?.success !== false,
+        data: extractStatsPayload(response.data),
+        message: response.data?.message
       };
     } catch (error) {
       console.error('Error fetching user stats:', error);
       return {
         success: false,
-        error: error.message,
+        error: error.response?.data?.error || error.message
       };
     }
   },
 
-  // Update user stats
-  async updateUserStats(stats) {
+  async updateUserStats(updates) {
     try {
-      // Mock implementation - in real app, you'd call API
-      console.log('Updating user stats:', stats);
-      
+      const response = await apiClient.post('/user/stats', { stats: updates });
       return {
-        success: true,
-        data: stats,
+        success: response.data?.success !== false,
+        data: extractStatsPayload(response.data) || updates,
+        message: response.data?.message
       };
     } catch (error) {
       console.error('Error updating user stats:', error);
       return {
         success: false,
-        error: error.message,
+        error: error.response?.data?.error || error.message
       };
     }
   },
 
-  // Get user profile
   async getUserProfile() {
     try {
-      // Mock implementation - in real app, you'd call API
-      const mockProfile = {
-        id: '1',
-        username: 'ผู้เรียน',
-        email: 'user@example.com',
-        petName: 'Fluffy',
-        avatar: null,
-        createdAt: new Date().toISOString(),
-        lastLogin: new Date().toISOString(),
+      const [storedUser, statsResult] = await Promise.all([
+        getStoredUser(),
+        this.getUserStats()
+      ]);
+
+      const profile = {
+        ...(storedUser || {}),
+        stats: statsResult.success ? statsResult.data : null
       };
 
       return {
         success: true,
-        data: mockProfile,
+        data: profile
       };
     } catch (error) {
       console.error('Error fetching user profile:', error);
       return {
         success: false,
-        error: error.message,
+        error: error.message
       };
     }
   },
 
-  // Update user profile
   async updateUserProfile(profileData) {
     try {
-      console.log('Updating user profile:', profileData);
-      
       const response = await apiClient.put('/user/profile', profileData);
-      
+      if (response.data?.success && response.data?.data) {
+        await AsyncStorage.setItem('userData', JSON.stringify(response.data.data));
+      }
+
       return {
-        success: response.data.success,
-        data: response.data.data,
-        message: response.data.message,
+        success: response.data?.success !== false,
+        data: response.data?.data,
+        message: response.data?.message
       };
     } catch (error) {
       console.error('Error updating user profile:', error);
       return {
         success: false,
-        error: error.response?.data?.message || error.message,
+        error: error.response?.data?.message || error.message
       };
     }
   },
 
-  // Get user achievements
   async getUserAchievements() {
     try {
-      // Mock implementation - in real app, you'd call API
-      const mockAchievements = [
-        {
-          id: '1',
-          title: 'First Lesson',
-          description: 'Complete your first lesson',
-          icon: 'star',
-          unlocked: true,
-          unlockedAt: new Date().toISOString(),
-        },
-        {
-          id: '2',
-          title: 'Streak Master',
-          description: 'Maintain a 7-day streak',
-          icon: 'fire',
-          unlocked: false,
-          unlockedAt: null,
-        },
-      ];
+      const userId = await getCurrentUserId();
+      if (!userId) {
+        return {
+          success: false,
+          error: 'ไม่พบข้อมูลผู้ใช้'
+        };
+      }
 
+      const { data } = await apiClient.get(`/game-results/achievements/${userId}`);
       return {
-        success: true,
-        data: mockAchievements,
+        success: data?.success !== false,
+        data: data?.data || [],
+        message: data?.message
       };
     } catch (error) {
       console.error('Error fetching user achievements:', error);
       return {
         success: false,
-        error: error.message,
+        error: error.response?.data?.error || error.message
       };
     }
   },
 
-  // Get user progress
   async getUserProgress() {
     try {
-      // Mock implementation - in real app, you'd call API
-      const mockProgress = {
-        totalXP: 0,
-        currentLevel: 1,
-        currentStreak: 0,
-        totalLessons: 0,
-        completedLessons: 0,
-        progressPercentage: 0,
+      const statsResult = await this.getUserStats();
+      const lessons = await progressService.getAllUserProgress();
+      const entries = Array.isArray(lessons) ? lessons : [];
+      const completed = entries.filter(
+        (entry) => entry.completed || entry.progress >= 100
+      );
+
+      const summary = {
+        totalXP: statsResult.success ? statsResult.data?.xp || 0 : 0,
+        currentLevel: statsResult.success ? statsResult.data?.level || 1 : 1,
+        currentStreak: statsResult.success ? statsResult.data?.streak || 0 : 0,
+        totalLessons: entries.length,
+        completedLessons: completed.length,
+        progressPercentage: entries.length
+          ? Math.round((completed.length / entries.length) * 100)
+          : 0,
+        lessons: entries
       };
 
       return {
         success: true,
-        data: mockProgress,
+        data: summary
       };
     } catch (error) {
       console.error('Error fetching user progress:', error);
       return {
         success: false,
-        error: error.message,
+        error: error.message
       };
     }
   },
 
-  // Add XP to user
   async addXP(amount) {
     try {
-      // Mock implementation - in real app, you'd call API
-      console.log(`Adding ${amount} XP to user`);
-      
-      return {
-        success: true,
-        data: { xpAdded: amount },
-      };
+      const statsResult = await this.getUserStats();
+      if (!statsResult.success) return statsResult;
+
+      const current = statsResult.data || {};
+      const xpAmount = Number(amount) || 0;
+      const nextXp = Math.max(0, (current.xp || 0) + xpAmount);
+      const nextLevel = Math.floor(nextXp / 100) + 1;
+
+      return this.updateUserStats({
+        xp: nextXp,
+        level: nextLevel
+      });
     } catch (error) {
       console.error('Error adding XP:', error);
       return {
         success: false,
-        error: error.message,
+        error: error.message
       };
     }
   },
 
-  // Add hearts to user
   async addHearts(amount) {
     try {
-      // Mock implementation - in real app, you'd call API
-      console.log(`Adding ${amount} hearts to user`);
-      
-      return {
-        success: true,
-        data: { heartsAdded: amount },
-      };
+      const statsResult = await this.getUserStats();
+      if (!statsResult.success) return statsResult;
+
+      const current = statsResult.data || {};
+      const currentHearts = Number.isFinite(current.hearts) ? current.hearts : 5;
+      const maxHearts = Number.isFinite(current.maxHearts) ? current.maxHearts : 5;
+      const nextHearts = clamp(currentHearts + Number(amount || 0), {
+        min: 0,
+        max: maxHearts
+      });
+
+      return this.updateUserStats({ hearts: nextHearts });
     } catch (error) {
       console.error('Error adding hearts:', error);
       return {
         success: false,
-        error: error.message,
+        error: error.message
       };
     }
   },
 
-  // Add diamonds to user
   async addDiamonds(amount) {
     try {
-      // Mock implementation - in real app, you'd call API
-      console.log(`Adding ${amount} diamonds to user`);
-      
-      return {
-        success: true,
-        data: { diamondsAdded: amount },
-      };
+      const statsResult = await this.getUserStats();
+      if (!statsResult.success) return statsResult;
+
+      const current = statsResult.data || {};
+      const nextDiamonds = Math.max(0, (current.diamonds || 0) + Number(amount || 0));
+
+      return this.updateUserStats({ diamonds: nextDiamonds });
     } catch (error) {
       console.error('Error adding diamonds:', error);
       return {
         success: false,
-        error: error.message,
+        error: error.message
       };
     }
-  },
+  }
 };
 
 export default userService;
