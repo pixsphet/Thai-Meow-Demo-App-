@@ -47,6 +47,7 @@ class LevelUnlockService {
             userId: this.userId,
             currentLevel: currentLevelId,
             unlockedLevel: nextLevel,
+            levelId: nextLevel,
             accuracy,
             score,
             attempts,
@@ -147,6 +148,7 @@ class LevelUnlockService {
         const unlockData = {
           userId: this.userId,
           unlockedLevel: levelId,
+          levelId,
           unlockedAt: new Date().toISOString()
         };
         await this.saveLevelUnlock(unlockData);
@@ -175,7 +177,11 @@ class LevelUnlockService {
       );
       
       if (!alreadyUnlocked) {
-        const updatedUnlocks = [...existingUnlocks, unlockData];
+        const normalized = {
+          ...unlockData,
+          levelId: unlockData.levelId || unlockData.unlockedLevel,
+        };
+        const updatedUnlocks = [...existingUnlocks, normalized];
         await AsyncStorage.setItem(key, JSON.stringify(updatedUnlocks));
         console.log('💾 Level unlock saved locally');
       }
@@ -191,7 +197,11 @@ class LevelUnlockService {
     try {
       const key = `${UNLOCK_KEYS.UNLOCKED_LEVELS}_${this.userId}`;
       const unlocks = await AsyncStorage.getItem(key);
-      return unlocks ? JSON.parse(unlocks) : [];
+      if (!unlocks) return [];
+      return JSON.parse(unlocks).map(item => ({
+        ...item,
+        levelId: item.levelId || item.unlockedLevel,
+      }));
     } catch (error) {
       console.error('❌ Error getting unlocked levels:', error);
       return [];
@@ -268,9 +278,13 @@ class LevelUnlockService {
    */
   async syncLevelUnlockToServer(unlockData) {
     try {
+      const levelId = unlockData.levelId || unlockData.unlockedLevel || unlockData.currentLevel;
+      if (!this.userId || !levelId) {
+        throw new Error('Missing userId or levelId for level unlock sync');
+      }
       const response = await apiClient.post('/user/unlock-level', {
         userId: this.userId,
-        levelId: unlockData.levelId
+        levelId
       });
       
       if (response.data.success) {

@@ -2,10 +2,96 @@ const express = require('express');
 const router = express.Router();
 const GameResult = require('../models/GameResult');
 
+const toNumber = (value, fallback = 0) => {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : fallback;
+};
+
+const resolveLessonKey = (payload) => {
+  if (payload.lessonKey) return String(payload.lessonKey);
+  if (payload.lessonId) return `lesson_${payload.lessonId}`;
+  return 'lesson';
+};
+
+const resolveCategory = (payload) => {
+  const categories = ['consonants', 'vowels', 'tones', 'words', 'phrases'];
+  if (categories.includes(payload.category)) return payload.category;
+  if (typeof payload.level === 'string') {
+    const lower = payload.level.toLowerCase();
+    if (lower.includes('vowel') || lower.includes('สระ')) return 'vowels';
+    if (lower.includes('tone') || lower.includes('วรรณยุกต์')) return 'tones';
+  }
+  return 'consonants';
+};
+
+const resolveGameMode = (payload) => {
+  const modes = ['matching', 'multiple-choice', 'fill-blank', 'order', 'quiz'];
+  if (modes.includes(payload.gameMode)) return payload.gameMode;
+  return 'matching';
+};
+
+const buildQuestions = (payload) => {
+  if (Array.isArray(payload.questions) && payload.questions.length > 0) {
+    return payload.questions;
+  }
+  return [];
+};
+
 // POST /api/game-results - Save game result
 router.post('/', async (req, res) => {
   try {
-    const gameResult = new GameResult(req.body);
+    const payload = req.body || {};
+    const { userId } = payload;
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'userId is required',
+      });
+    }
+
+    const totalQuestions = Math.max(1, toNumber(payload.totalQuestions, buildQuestions(payload).length || 1));
+    const correctAnswers = toNumber(payload.correctAnswers, 0);
+    const wrongAnswers = toNumber(payload.wrongAnswers, 0);
+    const score = toNumber(payload.score, correctAnswers * 10);
+    const maxScore = toNumber(payload.maxScore, totalQuestions * 10);
+    const accuracy =
+      toNumber(payload.accuracy, totalQuestions ? Math.round((correctAnswers / totalQuestions) * 100) : 0);
+    const timeSpent = toNumber(payload.timeSpent, toNumber(payload.totalTimeSpent, 0));
+    const startTime =
+      payload.sessionData?.startTime ||
+      payload.startTime ||
+      new Date(Date.now() - Math.max(timeSpent, 0));
+    const endTime = payload.sessionData?.endTime || payload.completedAt || new Date();
+
+    const document = {
+      userId,
+      lessonKey: resolveLessonKey(payload),
+      category: resolveCategory(payload),
+      gameMode: resolveGameMode(payload),
+      score,
+      maxScore,
+      accuracy: Math.min(Math.max(accuracy, 0), 100),
+      timeSpent: Math.max(timeSpent, 0),
+      questions: buildQuestions(payload),
+      difficulty: payload.difficulty || 'medium',
+      xpGained: toNumber(payload.xpEarned || payload.xpGained, 0),
+      achievements: Array.isArray(payload.achievements) ? payload.achievements : [],
+      sessionData: {
+        startTime: new Date(startTime),
+        endTime: new Date(endTime),
+        deviceInfo: payload.sessionData?.deviceInfo || {},
+        location: payload.sessionData?.location || {},
+      },
+      isCompleted: payload.isCompleted !== undefined ? !!payload.isCompleted : true,
+      isPerfect: accuracy >= 100,
+      streak: toNumber(payload.streak, 0),
+      percentile: payload.percentile,
+      rank: payload.rank,
+      feedback: payload.feedback,
+    };
+
+    const gameResult = new GameResult(document);
     
     // Calculate rank and percentile
     await gameResult.calculateRank();
@@ -273,4 +359,3 @@ router.get('/analytics', async (req, res) => {
 });
 
 module.exports = router;
-

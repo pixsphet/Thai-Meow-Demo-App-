@@ -1,13 +1,18 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, Pressable } from 'react-native';
 import { FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useUnifiedStats } from '../contexts/UnifiedStatsContext';
 import { getLevelRewards, getXpProgress } from '../utils/leveling';
+import { useUser } from '../contexts/UserContext';
+import levelUnlockService from '../services/levelUnlockService';
+import gameProgressService from '../services/gameProgressService';
 
 const StreakLevelDisplay = () => {
+  const { user } = useUser();
   const { stats, streak, level, xp, diamonds, loading: statsLoading } = useUnifiedStats();
   const [showModal, setShowModal] = useState(false);
+  const [nextLevelInfo, setNextLevelInfo] = useState(null);
 
   const userStats = useMemo(() => {
     if (!stats) {
@@ -42,10 +47,68 @@ const StreakLevelDisplay = () => {
     () => getXpProgress(userStats.xp, userStats.level),
     [userStats.xp, userStats.level]
   );
-  const nextRewards = useMemo(
-    () => getLevelRewards(userStats.level + 1),
-    [userStats.level]
-  );
+  const displayLevel = xpProgress.level;
+  const nextRewards = useMemo(() => getLevelRewards(displayLevel + 1), [displayLevel]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadNextLevel = async () => {
+      if (!user?.id) {
+        setNextLevelInfo(null);
+        return;
+      }
+
+      try {
+        if (levelUnlockService.userId !== user.id) {
+          await levelUnlockService.initialize(user.id);
+        }
+        if (gameProgressService.userId !== user.id) {
+          await gameProgressService.initialize(user.id);
+        }
+
+        const levels = await levelUnlockService.getAllLevelsStatus();
+        if (!isMounted) return;
+
+        const nextLevel = levels.find((lvl) => lvl.status !== 'completed');
+        setNextLevelInfo(nextLevel || levels[levels.length - 1] || null);
+      } catch (error) {
+        if (isMounted) {
+          console.warn('⚠️ Failed to load level info:', error?.message || error);
+          setNextLevelInfo(null);
+        }
+      }
+    };
+
+    loadNextLevel();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.id, stats?.lessonsCompleted, stats?.lastPlayed, displayLevel]);
+
+  const nextLevelNumber = useMemo(() => {
+    if (nextLevelInfo?.id && /^level\\d+/.test(nextLevelInfo.id)) {
+      const parsed = Number(nextLevelInfo.id.replace('level', ''));
+      if (Number.isFinite(parsed)) {
+        return parsed;
+      }
+    }
+    return displayLevel + 1;
+  }, [nextLevelInfo, displayLevel]);
+
+  const nextLevelTitle = useMemo(() => {
+    const mappedName =
+      (nextLevelInfo?.name) ||
+      (levelUnlockService.getLevelName
+        ? levelUnlockService.getLevelName(`level${nextLevelNumber}`)
+        : null);
+
+    if (mappedName) {
+      return `เลเวลถัดไป: Lv.${nextLevelNumber} - ${mappedName}`;
+    }
+    return `เลเวลถัดไป Lv.${nextLevelNumber}`;
+  }, [nextLevelInfo, nextLevelNumber]);
 
   const xpLabel = `${xpProgress.withinClamped.toLocaleString('th-TH')} / ${xpProgress.requirement.toLocaleString('th-TH')} XP`;
   const progressWidth = `${xpProgress.percent}%`;
@@ -63,7 +126,7 @@ const StreakLevelDisplay = () => {
         <View style={styles.headerRow}>
           <View style={styles.levelBadge}>
             <FontAwesome name="star" size={18} color="#FFFFFF" />
-            <Text style={styles.levelText}>Lv.{userStats.level}</Text>
+            <Text style={styles.levelText}>Lv.{displayLevel}</Text>
           </View>
           <TouchableOpacity style={styles.infoChip} onPress={toggleModal} activeOpacity={0.7}>
             <MaterialCommunityIcons name="alert-circle-outline" size={16} color="#FF7A00" />
@@ -90,11 +153,9 @@ const StreakLevelDisplay = () => {
               <View style={styles.modalIconWrap}>
                 <MaterialCommunityIcons name="gift" size={24} color="#FF7A00" />
               </View>
-              <Text style={styles.modalTitle}>เลเวลถัดไป Lv.{userStats.level + 1}</Text>
+              <Text style={styles.modalTitle}>{nextLevelTitle}</Text>
             </View>
-            <Text style={styles.modalSubtitle}>
-              ต้องเก็บอีก <Text style={styles.modalHighlight}>{xpProgress.toNext.toLocaleString('th-TH')} XP</Text>
-            </Text>
+            <Text style={styles.modalSubtitle}>ของขวัญที่จะได้รับ</Text>
             <View style={styles.modalRewardsRow}>
               <View style={[styles.modalRewardChip, styles.modalHeartChip]}>
                 <MaterialCommunityIcons name="heart" size={16} color="#FF4F64" />

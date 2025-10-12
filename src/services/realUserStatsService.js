@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import apiClient from './apiClient';
+import { getXpProgress } from '../utils/leveling';
 
 class RealUserStatsService {
   constructor() {
@@ -138,11 +139,23 @@ class RealUserStatsService {
       const currentStats = await this.getUserStats();
       
       // Merge updates
-      const updatedStats = {
+      const mergedStats = {
         ...currentStats,
         ...updates,
         lastUpdated: new Date().toISOString()
       };
+
+      let updatedStats = mergedStats;
+      if (Number.isFinite(mergedStats.xp)) {
+        const xpSnapshot = getXpProgress(mergedStats.xp, mergedStats.level || currentStats.level || 1);
+        updatedStats = {
+          ...mergedStats,
+          level: xpSnapshot.level,
+          nextLevelXP: xpSnapshot.requirement,
+          xpToNextLevel: xpSnapshot.toNext,
+          levelProgressPercent: xpSnapshot.percent
+        };
+      }
 
       if (this.isOnline) {
         // Update server
@@ -309,11 +322,14 @@ class RealUserStatsService {
       }
     };
 
-    // Calculate level based on XP (100 XP per level)
-    const newLevel = Math.floor(totalXP / 100) + 1;
-    if (newLevel > safeNumber(currentStats.level, 1)) {
-      updates.level = newLevel;
-      console.log(`🎉 Level up! New level: ${newLevel}`);
+    // Calculate level and progression from XP
+    const xpSnapshot = getXpProgress(totalXP, safeNumber(currentStats.level, 1));
+    updates.level = xpSnapshot.level;
+    updates.nextLevelXP = xpSnapshot.requirement;
+    updates.xpToNextLevel = xpSnapshot.toNext;
+    updates.levelProgressPercent = xpSnapshot.percent;
+    if (xpSnapshot.level > safeNumber(currentStats.level, 1)) {
+      console.log(`🎉 Level up! New level: ${xpSnapshot.level}`);
     }
 
     // Calculate streak

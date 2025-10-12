@@ -2,8 +2,9 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { useUser } from './UserContext';
 import { useUserData } from './UserDataContext';
-import realUserStatsService from '../services/realUserStatsService';
 import dailyStreakService from '../services/dailyStreakService';
+import realUserStatsService from '../services/realUserStatsService';
+import { getXpProgress } from '../utils/leveling';
 
 const UnifiedStatsContext = createContext(null);
 
@@ -213,6 +214,8 @@ export const UnifiedStatsProvider = ({ children }) => {
     realUserStatsService.isOnline = isOnline;
   }, []);
 
+  const xpProgress = stats ? getXpProgress(stats.xp || 0, stats.level || 1) : getXpProgress(0, 1);
+
   const value = {
     // Core data
     stats,
@@ -232,7 +235,7 @@ export const UnifiedStatsProvider = ({ children }) => {
     diamonds: stats?.diamonds || 0,
     hearts: stats?.hearts || 5,
     maxHearts: stats?.maxHearts || Math.max(stats?.hearts || 5, 5),
-    level: stats?.level || 1,
+    level: xpProgress.level,
     streak: stats?.streak || 0,
     maxStreak: stats?.maxStreak || 0,
     accuracy: stats?.accuracy || 0,
@@ -247,17 +250,14 @@ export const UnifiedStatsProvider = ({ children }) => {
     progressByLesson: stats?.progressByLesson || {},
     
     // Level progress
-    levelProgress: stats ? {
-      currentLevel: stats.level || 1,
-      currentLevelXP: (stats.xp || 0) % 100,
-      progress: ((stats.xp || 0) % 100) / 100,
-      nextLevelXP: 100
-    } : {
-      currentLevel: 1,
-      currentLevelXP: 0,
-      progress: 0,
-      nextLevelXP: 100
-    }
+    levelProgress: {
+      currentLevel: xpProgress.level,
+      currentLevelXP: xpProgress.withinClamped,
+      progress: xpProgress.ratio,
+      percent: xpProgress.percent,
+      nextLevelXP: xpProgress.requirement,
+      toNext: xpProgress.toNext,
+    },
   };
 
   return (

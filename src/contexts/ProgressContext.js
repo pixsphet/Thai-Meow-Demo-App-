@@ -9,6 +9,7 @@ import React, {
 import { useUser } from './UserContext';
 import { useUnifiedStats } from './UnifiedStatsContext';
 import progressService from '../services/progressServicePerUser';
+import { getXpProgress } from '../utils/leveling';
 
 const ProgressContext = createContext(null);
 
@@ -89,11 +90,11 @@ export const ProgressProvider = ({ children }) => {
 
       if (delta.xp !== undefined) {
         const nextXp = Math.max(0, (base.xp || 0) + Number(delta.xp || 0));
+        const xpSnapshot = getXpProgress(nextXp, base.level || 1);
         updates.xp = nextXp;
-        const computedLevel = Math.floor(nextXp / 100) + 1;
-        if (computedLevel !== base.level) {
-          updates.level = computedLevel;
-        }
+        updates.level = xpSnapshot.level;
+        updates.nextLevelXP = xpSnapshot.requirement;
+        updates.levelProgressPercent = xpSnapshot.percent;
       }
 
       if (delta.diamonds !== undefined) {
@@ -230,15 +231,8 @@ export const ProgressProvider = ({ children }) => {
   );
 
   const getLevelProgressPercentage = useCallback(() => {
-    const safeLevel = getCurrentLevel();
-    const levelBase = (safeLevel - 1) * 100;
-    const nextLevelTarget = safeLevel * 100;
-    const currentXp = getTotalXP();
-    const progress =
-      nextLevelTarget - levelBase === 0
-        ? 0
-        : ((currentXp - levelBase) / (nextLevelTarget - levelBase)) * 100;
-    return clampNumber(progress, { min: 0, max: 100 });
+    const xpSnapshot = getXpProgress(getTotalXP(), getCurrentLevel());
+    return clampNumber(xpSnapshot.percent, { min: 0, max: 100 });
   }, [getCurrentLevel, getTotalXP]);
 
   const getStatistics = useCallback(() => {
@@ -282,22 +276,35 @@ export const ProgressProvider = ({ children }) => {
     ]);
   }, [forceRefresh, loadUserProgress]);
 
-  const userProgress = useMemo(() => ({
-    xp: getTotalXP(),
-    diamonds: Number.isFinite(diamonds) ? diamonds : 0,
-    hearts: Number.isFinite(hearts) ? hearts : 5,
-    maxHearts: Number.isFinite(stats?.maxHearts) ? stats.maxHearts : Number.isFinite(hearts) ? Math.max(hearts, 5) : 5,
-    level: getCurrentLevel(),
-    streak: getCurrentStreak(),
-    maxStreak: Number.isFinite(maxStreak) ? maxStreak : 0,
-    lessonsCompleted: stats?.lessonsCompleted || 0,
-    totalLessons: Object.keys(lessonProgress).length,
-    totalTimeSpent: totalTimeSpent || 0,
-    totalSessions: totalSessions || 0,
-    totalCorrectAnswers: totalCorrectAnswers || 0,
-    totalWrongAnswers: totalWrongAnswers || 0,
-    accuracy: averageAccuracy || 0
-  }), [
+  const userProgress = useMemo(() => {
+    const totalXP = getTotalXP();
+    const currentLevel = getCurrentLevel();
+    const xpSnapshot = getXpProgress(totalXP, currentLevel);
+
+    return {
+      xp: totalXP,
+      diamonds: Number.isFinite(diamonds) ? diamonds : 0,
+      hearts: Number.isFinite(hearts) ? hearts : 5,
+      maxHearts: Number.isFinite(stats?.maxHearts)
+        ? stats.maxHearts
+        : Number.isFinite(hearts)
+        ? Math.max(hearts, 5)
+        : 5,
+      level: xpSnapshot.level,
+      streak: getCurrentStreak(),
+      maxStreak: Number.isFinite(maxStreak) ? maxStreak : 0,
+      lessonsCompleted: stats?.lessonsCompleted || 0,
+      totalLessons: Object.keys(lessonProgress).length,
+      totalTimeSpent: totalTimeSpent || 0,
+      totalSessions: totalSessions || 0,
+      totalCorrectAnswers: totalCorrectAnswers || 0,
+      totalWrongAnswers: totalWrongAnswers || 0,
+      accuracy: averageAccuracy || 0,
+      levelProgress: xpSnapshot,
+      nextLevelXP: xpSnapshot.requirement,
+      xpToNextLevel: xpSnapshot.toNext
+    };
+  }, [
     averageAccuracy,
     diamonds,
     hearts,

@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import apiClient from './apiClient';
 import progressService from './progressServicePerUser';
+import { getXpProgress } from '../utils/leveling';
 
 const clamp = (value, { min = Number.NEGATIVE_INFINITY, max = Number.POSITIVE_INFINITY } = {}) => {
   const numeric = Number(value);
@@ -175,11 +176,13 @@ const userService = {
       const current = statsResult.data || {};
       const xpAmount = Number(amount) || 0;
       const nextXp = Math.max(0, (current.xp || 0) + xpAmount);
-      const nextLevel = Math.floor(nextXp / 100) + 1;
-
+      const xpSnapshot = getXpProgress(nextXp, current.level || 1);
       return this.updateUserStats({
         xp: nextXp,
-        level: nextLevel
+        level: xpSnapshot.level,
+        nextLevelXP: xpSnapshot.requirement,
+        xpToNextLevel: xpSnapshot.toNext,
+        levelProgressPercent: xpSnapshot.percent
       });
     } catch (error) {
       console.error('Error adding XP:', error);

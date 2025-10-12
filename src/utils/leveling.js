@@ -31,10 +31,30 @@ export function getTotalXpBeforeLevel(level) {
   return total;
 }
 
+export function resolveLevelFromXp(totalXp, providedLevel) {
+  const xpValue = toFinite(totalXp);
+  let safeLevel = normalizeLevel(providedLevel);
+  let accumulatedBefore = getTotalXpBeforeLevel(safeLevel);
+
+  if (xpValue < accumulatedBefore) {
+    safeLevel = 1;
+    accumulatedBefore = 0;
+    while (true) {
+      const requirement = getXpRequirementForLevel(safeLevel);
+      if (xpValue < accumulatedBefore + requirement) {
+        break;
+      }
+      accumulatedBefore += requirement;
+      safeLevel += 1;
+    }
+  }
+
+  return { level: safeLevel, accumulatedBefore };
+}
+
 export function getXpProgress(totalXp, level) {
-  const safeLevel = normalizeLevel(level);
+  const { level: safeLevel, accumulatedBefore } = resolveLevelFromXp(totalXp, level);
   const requirement = getXpRequirementForLevel(safeLevel);
-  const accumulatedBefore = getTotalXpBeforeLevel(safeLevel);
   const withinRaw = Math.max(0, toFinite(totalXp) - accumulatedBefore);
   const withinClamped = clamp(withinRaw, 0, requirement);
   const ratio = requirement > 0 ? clamp(withinRaw / requirement, 0, 1) : 0;

@@ -23,24 +23,37 @@ const CustomAlert = ({ title, message, visible, onClose, imageSource }) => {
 
   return (
     <View style={customAlertStyles.overlay}>
-      <View style={customAlertStyles.alertContainer}>
-        {imageSource && (
-          <Image source={imageSource} style={customAlertStyles.alertImage} />
-        )}
-        <Text style={customAlertStyles.alertTitle}>{title}</Text>
-        <Text style={customAlertStyles.alertMessage}>{message}</Text>
-        <TouchableOpacity
-          onPress={onClose}
-          style={customAlertStyles.alertButtonContainer}>
-          <LinearGradient
-            colors={["#FFA500", "#FE8305"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={customAlertStyles.alertButton}
+      <View style={customAlertStyles.cardShadow}>
+        <LinearGradient
+          colors={["#FFFFFF", "#FFEEDD"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={customAlertStyles.alertContainer}
+        >
+          <View style={customAlertStyles.iconWrapper}>
+            {imageSource ? (
+              <Image source={imageSource} style={customAlertStyles.alertImage} />
+            ) : (
+              <FontAwesome name="smile-o" size={34} color="#FF8C00" />
+            )}
+          </View>
+          <Text style={customAlertStyles.alertTitle}>{title}</Text>
+          <Text style={customAlertStyles.alertMessage}>{message}</Text>
+          <TouchableOpacity
+            onPress={onClose}
+            style={customAlertStyles.alertButtonContainer}
+            activeOpacity={0.8}
           >
-            <Text style={customAlertStyles.alertButtonText}>OK</Text>
-          </LinearGradient>
-        </TouchableOpacity>
+            <LinearGradient
+              colors={["#FF9500", "#FF7A00"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={customAlertStyles.alertButton}
+            >
+              <Text style={customAlertStyles.alertButtonText}>โอเค เข้าใจแล้ว</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </LinearGradient>
       </View>
     </View>
   );
@@ -58,45 +71,75 @@ const customAlertStyles = StyleSheet.create({
     alignItems: "center",
     zIndex: 1000,
   },
+  cardShadow: {
+    width: "82%",
+    borderRadius: 28,
+    shadowColor: "rgba(0,0,0,0.3)",
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.4,
+    shadowRadius: 22,
+    elevation: 18,
+  },
   alertContainer: {
-    backgroundColor: "#ffffff",
-    borderRadius: 25,
-    padding: 25,
-    width: "80%",
+    borderRadius: 28,
+    paddingVertical: 30,
+    paddingHorizontal: 24,
     alignItems: "center",
-    elevation: 10,
+    overflow: "hidden",
+  },
+  iconWrapper: {
+    width: 74,
+    height: 74,
+    borderRadius: 37,
+    backgroundColor: "#FFF3E0",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 18,
+    shadowColor: "rgba(255, 122, 0, 0.35)",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.45,
+    shadowRadius: 12,
+    elevation: 8,
   },
   alertImage: {
-    width: 120,
-    height: 120,
-    marginBottom: 15,
+    width: 60,
+    height: 60,
+    resizeMode: "contain",
   },
   alertTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#333333",
-    marginBottom: 10,
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#4A2800",
+    marginBottom: 12,
+    textAlign: "center",
   },
   alertMessage: {
-    fontSize: 16,
-    color: "#808080",
+    fontSize: 15,
+    color: "#5C3B16",
     textAlign: "center",
-    marginBottom: 20,
-  },
-  alertButton: {
-    paddingVertical: 13,
-    alignItems: "center",
-    borderRadius: 25,
-  },
-  alertButtonText: {
-    color: "#ffffff",
-    fontSize: 16,
-    fontWeight: "bold",
+    marginBottom: 28,
+    lineHeight: 22,
   },
   alertButtonContainer: {
     width: "100%",
-    borderRadius: 25,
+    borderRadius: 22,
     overflow: "hidden",
+  },
+  alertButton: {
+    paddingVertical: 14,
+    alignItems: "center",
+    borderRadius: 22,
+    shadowColor: "rgba(255, 122, 0, 0.3)",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 12,
+  },
+  alertButtonText: {
+    color: "#ffffff",
+    fontSize: 17,
+    fontWeight: "700",
+    letterSpacing: 0.4,
   },
 });
 

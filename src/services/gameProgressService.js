@@ -168,6 +168,11 @@ class GameProgressService {
         return response.data;
       }
     } catch (error) {
+      const status = error?.response?.status;
+      if (status === 404) {
+        console.warn('⚠️ Game results endpoint returned 404. Skipping sync for this session.');
+        return null;
+      }
       console.error('❌ Error syncing session to server:', error);
       throw error;
     }
@@ -212,8 +217,10 @@ class GameProgressService {
       
       for (const session of queue) {
         try {
-          await this.syncSessionToServer(session);
-          session.synced = true;
+          const result = await this.syncSessionToServer(session);
+          if (result !== false) {
+            session.synced = true;
+          }
         } catch (error) {
           console.error('❌ Error syncing session from queue:', error);
         }
