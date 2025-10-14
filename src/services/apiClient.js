@@ -12,9 +12,9 @@ const getBaseURL = () => {
     console.log('🔧 [PLATFORM DEBUG] Using Android URL: http://10.0.2.2:3000');
     return 'http://10.0.2.2:3000';
   } else if (Platform.OS === 'ios') {
-    // iOS simulator - use localhost for simulator
-    console.log('🔧 [PLATFORM DEBUG] Using iOS URL: http://localhost:3000');
-    return 'http://localhost:3000';
+    // iOS simulator - use actual IP address for simulator
+    console.log('🔧 [PLATFORM DEBUG] Using iOS URL: http://192.168.1.167:3000');
+    return 'http://192.168.1.167:3000';
   } else {
     // Web and other platforms
     console.log('🔧 [PLATFORM DEBUG] Using Web/Other URL: http://localhost:3000');

@@ -197,11 +197,11 @@ const ProfileScreen = ({ navigation }) => {
     return Number.isFinite(num) ? num : fallback;
   };
 
+  const rawXP = safeNumber(xp, safeNumber(userStats.xp, totalXPFallback || 0));
+  const rawLevel = safeNumber(level, safeNumber(userStats.level, currentLevelFallback || 1));
   const displayHearts = safeNumber(hearts, safeNumber(userStats.hearts, 5));
   const displayDiamonds = safeNumber(diamonds, safeNumber(userStats.diamonds, 0));
   const displayStreak = safeNumber(streak, safeNumber(userStats.streak, 0));
-  const displayXP = safeNumber(xp, safeNumber(userStats.xp, 0));
-  const displayLevel = safeNumber(level, safeNumber(userStats.level, currentLevelFallback || 1));
 
   const learningHours = Number.isFinite(totalTimeSpent)
     ? Math.max(0, Math.round(totalTimeSpent / 3600))
@@ -210,15 +210,17 @@ const ProfileScreen = ({ navigation }) => {
   const displayCompletedLessons = safeNumber(userStats.completedLessons, statistics.completedLessons || 0);
   const displayTotalLessons = safeNumber(userStats.totalLessons, statistics.totalLessons || 0);
 
-  const xpProgress = useMemo(
-    () => getXpProgress(displayXP, displayLevel),
-    [displayXP, displayLevel]
+  const xpSnapshot = useMemo(
+    () => getXpProgress(rawXP, rawLevel),
+    [rawXP, rawLevel]
   );
-  const xpRequirementCurrentLevel = xpProgress.requirement;
-  const xpDisplayWithinLevel = xpProgress.withinClamped;
-  const xpToNextLevel = xpProgress.toNext;
-  const progressRatio = xpProgress.ratio;
-  const progressPercent = xpProgress.percent;
+  const displayLevel = xpSnapshot.level;
+  const displayXP = rawXP;
+  const xpRequirementCurrentLevel = xpSnapshot.requirement;
+  const xpDisplayWithinLevel = xpSnapshot.withinClamped;
+  const xpToNextLevel = xpSnapshot.toNext;
+  const progressRatio = xpSnapshot.ratio;
+  const progressPercent = xpSnapshot.percent;
   const progressWidthPercent = `${Math.min(100, Math.max(0, progressPercent))}%`;
   const xpStatusLabel = `${xpDisplayWithinLevel.toLocaleString('th-TH')} / ${xpRequirementCurrentLevel.toLocaleString('th-TH')} XP`;
   const progressLabelColor = progressRatio > 0.55 ? '#fff' : (theme?.text || '#1b1b1b');
@@ -235,6 +237,7 @@ const ProfileScreen = ({ navigation }) => {
       value: displayHearts,
       subLabel: 'พร้อมใช้งาน',
       animation: require('../assets/animations/Heart.json'),
+      tint: '#FF4F64',
     },
     {
       key: 'diamonds',
@@ -242,6 +245,7 @@ const ProfileScreen = ({ navigation }) => {
       value: displayDiamonds,
       subLabel: 'สะสมทั้งหมด',
       animation: require('../assets/animations/Diamond.json'),
+      tint: '#2196F3',
     },
     {
       key: 'streak',
@@ -249,15 +253,17 @@ const ProfileScreen = ({ navigation }) => {
       value: displayStreak,
       subLabel: 'วันต่อเนื่อง',
       animation: require('../assets/animations/Streak-Fire1.json'),
+      tint: '#FF8C00',
     },
     {
       key: 'xp',
       label: 'XP',
-      value: displayXP,
-      subLabel: `เหลือ ${xpToNextLevel.toLocaleString('th-TH')} XP ถึงเลเวลถัดไป`,
+      value: xpDisplayWithinLevel,
+      subLabel: `ทั้งหมด ${displayXP.toLocaleString('th-TH')} XP`,
       animation: require('../assets/animations/Star.json'),
+      tint: '#34A853',
     },
-  ], [displayHearts, displayDiamonds, displayStreak, displayXP, xpToNextLevel]);
+  ], [displayHearts, displayDiamonds, displayStreak, xpDisplayWithinLevel, displayXP]);
 
   const lastPlayedLabel = lastPlayed
     ? new Date(lastPlayed).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })
@@ -318,13 +324,18 @@ const ProfileScreen = ({ navigation }) => {
     },
   ], [displayCompletedLessons, displayTotalLessons, learningHours, averageAccuracy, totalSessions, statistics.totalGames]);
 
-  const StatCard = ({ label, value, subLabel, animation }) => {
+  const StatCard = ({ label, value, subLabel, animation, tint = '#FF8C00' }) => {
     const displayValue = typeof value === 'number'
       ? value.toLocaleString('th-TH')
       : value;
 
     return (
-      <View style={[styles.statCard, { backgroundColor: theme.surface }]}>
+      <LinearGradient
+        colors={[`${tint}26`, `${tint}10`]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[styles.statCard, { shadowColor: `${tint}40` }]}
+      >
         <View style={styles.statAnimationWrap}>
           <LottieView source={animation} autoPlay loop style={styles.statAnimation} />
         </View>
@@ -333,7 +344,7 @@ const ProfileScreen = ({ navigation }) => {
         {subLabel ? (
           <Text style={[styles.statSubLabel, { color: theme.textSecondary }]}>{subLabel}</Text>
         ) : null}
-      </View>
+      </LinearGradient>
     );
   };
 
@@ -362,7 +373,7 @@ const ProfileScreen = ({ navigation }) => {
         contentContainerStyle={styles.scrollContent}
       >
         <LinearGradient
-          colors={['#FFE0C3', '#FFF7EC']}
+          colors={['#FFE7CE', '#FFFFFF']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.heroGradient}
@@ -444,6 +455,7 @@ const ProfileScreen = ({ navigation }) => {
                 value={stat.value}
                 subLabel={stat.subLabel}
                 animation={stat.animation}
+                tint={stat.tint}
               />
             ))}
           </View>
@@ -453,7 +465,7 @@ const ProfileScreen = ({ navigation }) => {
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: theme.text }]}>ความคืบหน้า</Text>
             <Text style={[styles.sectionSubTitle, { color: theme.textSecondary }]}>
-              XP ปัจจุบัน {displayXP.toLocaleString('th-TH')} • ต้องการเพิ่ม {xpToNextLevel.toLocaleString('th-TH')} XP เพื่อเลเวลถัดไป
+              XP ในเลเวลนี้ {xpDisplayWithinLevel.toLocaleString('th-TH')} / {xpRequirementCurrentLevel.toLocaleString('th-TH')} • ต้องการเพิ่ม {xpToNextLevel.toLocaleString('th-TH')} XP เพื่อเลเวลถัดไป
             </Text>
           </View>
 
@@ -462,12 +474,12 @@ const ProfileScreen = ({ navigation }) => {
               <MaterialCommunityIcons name="star" size={18} color="#fff" />
               <Text style={styles.levelChipText}>Lv.{displayLevel}</Text>
             </View>
-            <View style={[styles.progressBar, { backgroundColor: theme.lightGray || '#ececec' }]}>
-              <View
-                style={[
-                  styles.progressFill,
-                  { width: progressWidthPercent, backgroundColor: '#34A853' },
-                ]}
+            <View style={[styles.progressBar, { backgroundColor: theme.lightGray || '#ececec' }]}> 
+              <LinearGradient
+                colors={['#34A853', '#56C766']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={[styles.progressFill, { width: progressWidthPercent }]}
               />
               <Text style={[styles.progressBarLabel, { color: progressLabelColor }]}>
                 {xpStatusLabel}
@@ -740,6 +752,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     alignItems: 'flex-start',
     gap: 6,
+    backgroundColor: 'transparent',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
