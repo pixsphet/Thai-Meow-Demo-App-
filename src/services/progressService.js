@@ -71,22 +71,27 @@ export const clearAutosnap = async (lessonId) =>
   AsyncStorage.removeItem(await autosaveKey(lessonId));
 
 // Combined save function (local + server)
-export const saveProgress = async (lessonId, payload) => {
+export const saveProgress = async (lessonId, payload = {}) => {
   try {
-    if (!payload) {
+    if (!payload || typeof payload !== 'object') {
       console.warn('⚠️ Cannot save null/undefined payload');
       return { success: false, error: 'Payload is required' };
     }
 
-    // บันทึกใน AsyncStorage ก่อน (local)
-    await saveAutosnap(lessonId, payload);
+    const lessonIdStr = typeof lessonId === 'object' ? lessonId.lessonId || lessonId : lessonId;
+    const payloadWithMeta = {
+      lessonId: String(lessonIdStr),
+      ...payload,
+      updatedAt: Date.now(),
+    };
+
+    await saveAutosnap(lessonId, payloadWithMeta);
     console.log('💾 Saved progress locally');
     
-    // บันทึกใน API (server)
-    await apiClient.post('/progress/session', payload);
+    await apiClient.post('/progress/user/session', payloadWithMeta);
     console.log('🌐 Saved progress to server');
     
-    return { success: true };
+    return { success: true, progress: payloadWithMeta };
   } catch (error) {
     console.error('❌ Error saving progress:', error);
     return { success: false, error: error.message };
@@ -98,12 +103,14 @@ export const restoreProgress = async (lessonId) => {
   try {
     // ลองดึงจาก API ก่อน
     try {
-      const { data } = await apiClient.get('/progress/session', { 
-        params: { lessonId } 
+      const { data } = await apiClient.get('/progress/user/session', { 
+        params: { lessonId }
       });
-      if (data) {
+      const serverProgress = data?.progress || data?.data || null;
+      if (serverProgress) {
         console.log('🌐 Restored progress from server');
-        return data;
+        await saveAutosnap(lessonId, serverProgress);
+        return serverProgress;
       }
     } catch (apiError) {
       console.log('⚠️ API not available, trying local storage');
@@ -131,8 +138,8 @@ export const clearProgress = async (lessonId) => {
     await clearAutosnap(lessonId);
     
     // ลบจาก API
-    await apiClient.delete("/progress/session", { 
-      params: { lessonId } 
+    await apiClient.delete('/progress/user/session', { 
+      params: { lessonId }
     });
     
     console.log('🗑️ Cleared progress');

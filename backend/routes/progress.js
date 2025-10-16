@@ -1,5 +1,6 @@
 const express = require('express');
 const Progress = require('../models/Progress');
+const UserProgress = require('../models/UserProgress');
 const auth = require('../middleware/auth');
 const {
   applyProgressToUser,
@@ -60,6 +61,49 @@ router.post('/finish', auth, async (req, res) => {
   const stats = await getUserStatsSnapshot(userId);
 
   res.json({ ok: true, stats });
+});
+
+// Lesson 2 vowels completion
+router.post('/lesson2_vowels/complete', auth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const {
+      accuracy = 0,
+      score = 0,
+      xpEarned = 0,
+      diamondsEarned = 0,
+      heartsRemaining = 0,
+      timeSpentSec = 0,
+      unlockedNext = false,
+    } = req.body || {};
+
+    const payload = {
+      userId,
+      lessonId: 'lesson2_vowels',
+      accuracy,
+      score,
+      xpEarned,
+      diamondsEarned,
+      heartsRemaining,
+      timeSpentSec,
+      unlockedNext,
+      completedAt: new Date(),
+    };
+
+    await UserProgress.create(payload);
+
+    res.json({
+      success: true,
+      message: 'Lesson 2 vowels progress recorded',
+      data: payload,
+    });
+  } catch (error) {
+    console.error('❌ Error recording lesson2 vowels progress:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to record lesson 2 vowels progress',
+    });
+  }
 });
 
 // ดึงความคืบหน้าทั้งหมดของผู้ใช้

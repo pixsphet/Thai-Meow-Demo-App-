@@ -36,17 +36,29 @@ export function resolveLevelFromXp(totalXp, providedLevel) {
   let safeLevel = normalizeLevel(providedLevel);
   let accumulatedBefore = getTotalXpBeforeLevel(safeLevel);
 
-  if (xpValue < accumulatedBefore) {
-    safeLevel = 1;
-    accumulatedBefore = 0;
-    while (true) {
-      const requirement = getXpRequirementForLevel(safeLevel);
-      if (xpValue < accumulatedBefore + requirement) {
-        break;
-      }
-      accumulatedBefore += requirement;
-      safeLevel += 1;
+  const computeStep = () => {
+    const requirement = getXpRequirementForLevel(safeLevel);
+    if (xpValue < accumulatedBefore) {
+      return { direction: -1, requirement };
     }
+    if (xpValue >= accumulatedBefore + requirement) {
+      return { direction: 1, requirement };
+    }
+    return { direction: 0, requirement };
+  };
+
+  let step = computeStep();
+
+  while (step.direction === -1 && safeLevel > 1) {
+    safeLevel -= 1;
+    accumulatedBefore = getTotalXpBeforeLevel(safeLevel);
+    step = computeStep();
+  }
+
+  while (step.direction === 1) {
+    accumulatedBefore += step.requirement;
+    safeLevel += 1;
+    step = computeStep();
   }
 
   return { level: safeLevel, accumulatedBefore };

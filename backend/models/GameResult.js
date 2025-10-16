@@ -382,8 +382,13 @@ gameResultSchema.methods.calculateRank = async function() {
     gameMode: this.gameMode,
   });
   
-  this.rank = totalResults;
-  this.percentile = Math.round(((totalGames - totalResults + 1) / totalGames) * 100);
+  this.rank = Math.max(1, totalResults); // Ensure rank is at least 1
+  
+  if (totalGames === 0) {
+    this.percentile = 100; // First game gets 100th percentile
+  } else {
+    this.percentile = Math.min(100, Math.max(0, Math.round(((totalGames - totalResults + 1) / totalGames) * 100)));
+  }
   
   return { rank: this.rank, percentile: this.percentile };
 };

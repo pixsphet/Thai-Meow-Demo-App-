@@ -9,6 +9,28 @@ const PROGRESS_KEYS = {
   OFFLINE_QUEUE: 'offline_progress_queue',
 };
 
+const clampPercent = (value, fallback = 0) => {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return fallback;
+  return Math.max(0, Math.min(100, numeric));
+};
+
+const normalizeLessonId = (lessonId) => {
+  if (Number.isFinite(lessonId)) {
+    return Number(lessonId);
+  }
+  if (typeof lessonId === 'string') {
+    const match = lessonId.match(/\d+/);
+    if (match) {
+      const parsed = Number(match[0]);
+      if (Number.isFinite(parsed)) {
+        return parsed;
+      }
+    }
+  }
+  return lessonId;
+};
+
 /**
  * Game Progress Service - Comprehensive tracking and storage
  * Handles per-user progress, level unlocking, and offline sync
@@ -36,6 +58,7 @@ class GameProgressService {
       category,
       score,
       accuracy,
+      accuracyPercent,
       timeSpent,
       questionTypes,
       completedAt,
@@ -50,13 +73,26 @@ class GameProgressService {
       wrongAnswers
     } = sessionData;
 
+    const normalizedAccuracyPercent = clampPercent(
+      Number.isFinite(accuracyPercent)
+        ? accuracyPercent
+        : Number.isFinite(accuracy)
+        ? accuracy * 100
+        : 0
+    );
+    const accuracyRatio = Math.round((normalizedAccuracyPercent / 100) * 1000) / 1000;
+
+    const normalizedLessonId = normalizeLessonId(lessonId);
+
     const session = {
       id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       userId: this.userId,
-      lessonId,
+      lessonId: Number.isFinite(normalizedLessonId) ? normalizedLessonId : lessonId,
+      lessonKey: typeof lessonId === 'string' ? lessonId : `level${lessonId}`,
       category,
       score,
-      accuracy: Math.round(accuracy * 100) / 100,
+      accuracy: accuracyRatio,
+      accuracyPercent: Math.round(normalizedAccuracyPercent * 100) / 100,
       timeSpent,
       questionTypes: questionTypes || {},
       completedAt: completedAt || new Date().toISOString(),
@@ -94,12 +130,12 @@ class GameProgressService {
         level,
         streak,
         maxStreak,
-        accuracy,
+        accuracy: normalizedAccuracyPercent,
         totalTimeSpent: timeSpent
       });
 
       // Check level unlock
-      await this.checkLevelUnlock(lessonId, accuracy);
+      await this.checkLevelUnlock(lessonId, normalizedAccuracyPercent);
 
       console.log('✅ Game session saved:', session.id);
       return session;
@@ -332,14 +368,22 @@ class GameProgressService {
    */
   async checkLevelUnlock(lessonId, accuracy) {
     try {
-      if (accuracy >= 70) {
-        const nextLevel = lessonId + 1;
+      const accuracyPercent = accuracy <= 1 ? accuracy * 100 : accuracy;
+      if (accuracyPercent >= 70) {
+        const baseLessonId = normalizeLessonId(lessonId);
+        const nextLevelNumeric = Number.isFinite(baseLessonId) ? baseLessonId + 1 : baseLessonId;
+        const nextLevelId = Number.isFinite(nextLevelNumeric)
+          ? `level${nextLevelNumeric}`
+          : typeof lessonId === 'string'
+          ? lessonId
+          : `level${lessonId}`;
         const unlockData = {
           userId: this.userId,
-          unlockedLevel: nextLevel,
+          unlockedLevel: nextLevelNumeric,
+          levelId: nextLevelId,
           unlockedAt: new Date().toISOString(),
-          accuracy,
-          lessonId
+          accuracy: accuracyPercent,
+          lessonId: normalizeLessonId(lessonId)
         };
 
         // Save unlock locally
@@ -350,7 +394,7 @@ class GameProgressService {
           await this.syncLevelUnlockToServer(unlockData);
         }
 
-        console.log(`🎉 Level ${nextLevel} unlocked! Accuracy: ${accuracy}%`);
+        console.log(`🎉 Level ${nextLevelNumeric} unlocked! Accuracy: ${accuracyPercent}%`);
         return unlockData;
       }
     } catch (error) {
@@ -365,7 +409,12 @@ class GameProgressService {
     try {
       const key = `${PROGRESS_KEYS.LEVEL_PROGRESS}_${this.userId}`;
       const existingUnlocks = await this.getLevelUnlocks();
-      const updatedUnlocks = [...existingUnlocks, unlockData];
+      const alreadyUnlocked = existingUnlocks.some(
+        (entry) =>
+          entry.unlockedLevel === unlockData.unlockedLevel ||
+          entry.levelId === unlockData.levelId
+      );
+      const updatedUnlocks = alreadyUnlocked ? existingUnlocks : [...existingUnlocks, unlockData];
       
       await AsyncStorage.setItem(key, JSON.stringify(updatedUnlocks));
     } catch (error) {
@@ -418,8 +467,18 @@ class GameProgressService {
 
       // Calculate progress metrics
       const totalSessions = sessions.length;
-      const averageAccuracy = sessions.length > 0 
-        ? sessions.reduce((sum, s) => sum + s.accuracy, 0) / sessions.length 
+      const resolveSessionAccuracy = (session) => {
+        if (Number.isFinite(session.accuracyPercent)) {
+          return session.accuracyPercent;
+        }
+        if (Number.isFinite(session.accuracy)) {
+          return session.accuracy <= 1 ? session.accuracy * 100 : session.accuracy;
+        }
+        return 0;
+      };
+
+      const averageAccuracy = sessions.length > 0
+        ? sessions.reduce((sum, session) => sum + resolveSessionAccuracy(session), 0) / sessions.length
         : 0;
       const totalXP = sessions.reduce((sum, s) => sum + s.xpEarned, 0);
       const totalDiamonds = sessions.reduce((sum, s) => sum + s.diamondsEarned, 0);
@@ -453,7 +512,18 @@ class GameProgressService {
   async getLessonProgress(lessonId) {
     try {
       const sessions = await this.getLocalSessions();
-      const lessonSessions = sessions.filter(s => s.lessonId === lessonId);
+      const normalizedLessonId = normalizeLessonId(lessonId);
+      const lessonSessions = sessions.filter((s) => {
+        if (Number.isFinite(normalizedLessonId)) {
+          if (Number(s.lessonId) === normalizedLessonId) {
+            return true;
+          }
+        }
+        if (typeof lessonId === 'string') {
+          return s.lessonKey === lessonId;
+        }
+        return false;
+      });
       
       if (lessonSessions.length === 0) {
         return {
@@ -465,17 +535,28 @@ class GameProgressService {
         };
       }
 
-      const bestSession = lessonSessions.reduce((best, current) => 
-        current.accuracy > best.accuracy ? current : best
+      const resolveSessionAccuracy = (session) => {
+        if (Number.isFinite(session.accuracyPercent)) {
+          return session.accuracyPercent;
+        }
+        if (Number.isFinite(session.accuracy)) {
+          return session.accuracy <= 1 ? session.accuracy * 100 : session.accuracy;
+        }
+        return 0;
+      };
+
+      const bestSession = lessonSessions.reduce((best, current) =>
+        resolveSessionAccuracy(current) > resolveSessionAccuracy(best) ? current : best
       );
-      
-      const averageAccuracy = lessonSessions.reduce((sum, s) => sum + s.accuracy, 0) / lessonSessions.length;
+
+      const accuracyValues = lessonSessions.map(resolveSessionAccuracy);
+      const averageAccuracy = accuracyValues.reduce((sum, value) => sum + value, 0) / lessonSessions.length;
       const isUnlocked = averageAccuracy >= 70;
 
       return {
         completed: true,
         accuracy: Math.round(averageAccuracy * 100) / 100,
-        bestAccuracy: bestSession.accuracy,
+        bestAccuracy: Math.round(resolveSessionAccuracy(bestSession) * 100) / 100,
         bestScore: bestSession.score,
         attempts: lessonSessions.length,
         lastPlayed: bestSession.completedAt,

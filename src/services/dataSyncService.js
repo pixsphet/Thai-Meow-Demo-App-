@@ -1,6 +1,6 @@
 // src/services/dataSyncService.js
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import apiClient from './apiClient';
+import apiClient, { API_ORIGIN } from './apiClient';
 import realUserStatsService from './realUserStatsService';
 import realProgressService from './realProgressService';
 
@@ -184,7 +184,7 @@ class DataSyncService {
   async checkNetworkStatus() {
     try {
       // Try to connect to our backend first
-      const response = await fetch('http://localhost:3000/api/health', { 
+      const response = await fetch(`${API_ORIGIN}/api/health`, { 
         method: 'GET',
         timeout: 5000
       });

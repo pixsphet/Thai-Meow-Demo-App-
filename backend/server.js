@@ -90,6 +90,7 @@ const friendsRoutes = require('./routes/friends');
 const progressPerUserRoutes = require('./routes/progressPerUser');
 const gameResultRoutes = require('./routes/gameResult');
 const auth = require('./middleware/auth');
+const lesson3Routes = require('./routes/lesson3');
 
 // ==============================
 // 🧩 Routes
@@ -128,6 +129,7 @@ app.use('/api/xp', xpRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/friends', friendsRoutes);
 app.use('/api/game-results', gameResultRoutes);
+app.use('/api', lesson3Routes);
 
 // ตัวอย่าง Route Error (สำหรับ test)
 app.get('/error-test', (req, res, next) => {

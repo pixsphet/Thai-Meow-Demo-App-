@@ -28,6 +28,73 @@ router.get('/consonants', async (req, res) => {
   }
 });
 
+const formatVowelResponse = (vowelDoc) => ({
+  id: vowelDoc._id,
+  thai: vowelDoc.thai,
+  roman: vowelDoc.roman,
+  type: vowelDoc.position || vowelDoc.type || '',
+  example: vowelDoc.example,
+  exampleAudio: vowelDoc.exampleAudio,
+  length: vowelDoc.length || '',
+  pair: vowelDoc.pair || '',
+  meaning: vowelDoc.meaning || '',
+  group: vowelDoc.group || '',
+  imagePath: vowelDoc.imagePath || '',
+  level: vowelDoc.level,
+  lessonKey: vowelDoc.lessonKey || 'vowels_basic',
+  isActive: vowelDoc.isActive
+});
+
+// GET /api/vocab/vowels - Get all Thai vowels
+router.get('/vowels', async (req, res) => {
+  try {
+    console.log('🔤 Fetching Thai vowels from database...');
+
+    const vowels = await Vocab.find({
+      category: 'thai-vowels',
+      isActive: true
+    }).sort({ thai: 1 });
+
+    console.log(`✅ Found ${vowels.length} vowels in database`);
+
+    res.json({
+      success: true,
+      count: vowels.length,
+      data: vowels.map(formatVowelResponse),
+      message: `Successfully fetched ${vowels.length} Thai vowels`
+    });
+  } catch (error) {
+    console.error('❌ Error fetching vowels:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch vowels',
+      message: error.message
+    });
+  }
+});
+
+// Legacy route support /vowels/all
+router.get('/vowels/all', async (req, res) => {
+  try {
+    const vowels = await Vocab.find({
+      category: 'thai-vowels',
+      isActive: true
+    }).sort({ thai: 1 });
+
+    res.json({
+      success: true,
+      vowels: vowels.map(formatVowelResponse)
+    });
+  } catch (error) {
+    console.error('❌ Error fetching vowels:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch vowels',
+      message: error.message
+    });
+  }
+});
+
 // GET /api/vocab/consonants/level/:level - Get consonants by level
 router.get('/consonants/level/:level', async (req, res) => {
   try {

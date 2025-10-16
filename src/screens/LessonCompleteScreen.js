@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -40,38 +40,22 @@ const LessonCompleteScreen = ({ navigation, route }) => {
   const [levelSummary, setLevelSummary] = useState(null);
   const [nextRewards, setNextRewards] = useState(null);
   
-  const fadeAnim = new Animated.Value(0);
-  const scaleAnim = new Animated.Value(0.9);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(0.9)).current;
+  const initialStatsRef = useRef(null);
+  const hasAnimatedRef = useRef(false);
 
   useEffect(() => {
-    // Calculate comprehensive rewards
-    const calculatedRewards = calculateRewards();
-    setRewards(calculatedRewards);
-    
-    // Check for achievements
-    const newAchievements = checkAchievements();
-    setAchievements(newAchievements);
-    
-    // Summarise level progress with unified leveling rules
-    const currentLevel = userProgress?.level || 1;
-    const currentXp = userProgress?.xp || 0;
-    const beforeProgress = getXpProgress(currentXp, currentLevel);
-    const newTotalXp = currentXp + calculatedRewards.xp;
-    const afterProgress = getXpProgress(newTotalXp, beforeProgress.level);
-
-    setLevelSummary({
-      before: beforeProgress,
-      after: afterProgress,
-      totalXp: newTotalXp,
-      xpGained: calculatedRewards.xp
-    });
-    setNextRewards(getLevelRewards(afterProgress.level + 1));
-
-    if (afterProgress.level > beforeProgress.level) {
-      setNewLevel(afterProgress.level);
+    if (!initialStatsRef.current && Number.isFinite(userProgress?.xp)) {
+      initialStatsRef.current = {
+        xp: userProgress.xp || 0,
+        level: userProgress.level || 1
+      };
     }
+  }, [userProgress?.xp, userProgress?.level]);
 
-    // Animate entrance
+  useEffect(() => {
+    if (hasAnimatedRef.current) return;
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -85,11 +69,62 @@ const LessonCompleteScreen = ({ navigation, route }) => {
         useNativeDriver: true,
       }),
     ]).start(() => {
+      hasAnimatedRef.current = true;
       setShowRewards(true);
     });
-  }, []);
+  }, [fadeAnim, scaleAnim]);
 
-  const calculateRewards = () => {
+  const calculatedRewards = useMemo(
+    () => calculateRewards(),
+    [accuracy, xpGained, diamondsGained, score, totalQuestions, timeSpent, userProgress?.streak]
+  );
+
+  const derivedAchievements = useMemo(
+    () => checkAchievements(),
+    [accuracy, timeSpent, totalQuestions, userProgress?.streak]
+  );
+
+  useEffect(() => {
+    if (rewards !== calculatedRewards) {
+      setRewards(calculatedRewards);
+    }
+    if (achievements !== derivedAchievements) {
+      setAchievements(derivedAchievements);
+    }
+
+    const baseline = initialStatsRef.current || {
+      xp: Number.isFinite(userProgress?.xp) ? userProgress.xp : 0,
+      level: Number.isFinite(userProgress?.level) ? userProgress.level : 1
+    };
+
+    const beforeProgress = getXpProgress(baseline.xp, baseline.level);
+    const projectedXp = baseline.xp + calculatedRewards.xp;
+    const resolvedXp =
+      Number.isFinite(userProgress?.xp) && userProgress.xp >= baseline.xp
+        ? userProgress.xp
+        : projectedXp;
+    const afterProgress = getXpProgress(resolvedXp, beforeProgress.level);
+
+    setLevelSummary({
+      before: beforeProgress,
+      after: afterProgress,
+      totalXp: resolvedXp,
+      xpGained: calculatedRewards.xp
+    });
+    setNextRewards(getLevelRewards(afterProgress.level + 1));
+
+    setNewLevel(afterProgress.level > beforeProgress.level ? afterProgress.level : null);
+
+  }, [
+    calculatedRewards,
+    derivedAchievements,
+    rewards,
+    achievements,
+    userProgress?.xp,
+    userProgress?.level
+  ]);
+
+  function calculateRewards() {
     const baseXp = xpGained || score;
     const baseDiamonds = diamondsGained || Math.max(2, Math.floor(score / 50));
     
@@ -133,9 +168,9 @@ const LessonCompleteScreen = ({ navigation, route }) => {
       hearts: heartsBonus,
       streak: streakBonus
     };
-  };
+  }
 
-  const checkAchievements = () => {
+  function checkAchievements() {
     const achievements = [];
     
     // Perfect Score Achievement
@@ -200,7 +235,7 @@ const LessonCompleteScreen = ({ navigation, route }) => {
       console.warn('⚠️ Failed to persist rewards:', error?.message || error);
     }
 
-    navigation.navigate('Home');
+    navigation.navigate('HomeMain');
   };
 
   const handleRetry = () => {

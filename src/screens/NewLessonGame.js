@@ -12,13 +12,12 @@ import {
     Modal,
     Pressable,
 } from 'react-native'; 	
-import { FontAwesome, FontAwesome6 } from '@expo/vector-icons';
+import { FontAwesome } from '@expo/vector-icons';
 import LottieView from 'lottie-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import apiClient from '../services/apiClient';
 import vocabWordService from '../services/vocabWordService';
-import { saveAutosnap, loadAutosnap, clearAutosnap, saveProgress } from '../services/progressService';
+import { saveProgress, restoreProgress, clearProgress } from '../services/progressService';
 import { useProgress } from '../contexts/ProgressContext';
 import vaja9TtsService from '../services/vaja9TtsService';
 import levelUnlockService from '../services/levelUnlockService';
@@ -29,7 +28,10 @@ import gameProgressService from '../services/gameProgressService';
 import userStatsService from '../services/userStatsService';
 import dailyStreakService from '../services/dailyStreakService';
 import { letterImages } from '../assets/letters';
+import { vowelToImage } from '../assets/vowels/map';
 import StreakBadge from '../components/StreakBadge';
+import { getXpProgress } from '../utils/leveling';
+import apiClient from '../services/apiClient';
 
 const { width } = Dimensions.get('window');
 
@@ -57,6 +59,50 @@ const getNeighborChars = (char, pool) => {
   };
   const group = Object.keys(groups).find(g => groups[g].includes(char));
   return pool.filter(c => groups[group]?.includes(c.char) && c.char !== char);
+};
+
+const normalizeConsonantItem = (item = {}) => ({
+  char: item.char || item.thai,
+  meaning: item.meaning || item.en,
+  name: item.name || item.exampleTH || `${item.char || item.thai}-${item.meaning || item.en}`,
+  roman: item.roman
+});
+
+const normalizeVowelItem = (item = {}) => ({
+  char: item.char || item.thai,
+  meaning: item.meaning || item.en,
+  name: item.name || item.nameTH || item.char || item.thai,
+  roman: item.roman,
+  sound: item.sound || item.thai || item.char,
+  imageKey: item.imageKey || item.char || item.thai,
+  imagePath: item.image || item.imagePath,
+  type: item.type || item.position || '',
+  example: item.example,
+  exampleAudio: item.exampleAudio,
+  length: item.length || '',
+  pair: item.pair || '',
+  group: item.group || ''
+});
+
+const resolveVowelImageSource = (vowel = {}) => {
+  const candidates = [
+    vowel.char,
+    vowel.imageKey,
+    typeof vowel.char === 'string' ? vowel.char.replace(/[^ก-๙๐-๙]/g, '') : null,
+    typeof vowel.name === 'string' ? vowel.name.replace('สระ', '').trim() : null
+  ].filter(Boolean);
+
+  for (const key of candidates) {
+    if (key && vowelToImage[key]) {
+      return vowelToImage[key];
+    }
+  }
+
+  if (typeof vowel.imagePath === 'string' && vowel.imagePath.startsWith('http')) {
+    return { uri: vowel.imagePath };
+  }
+
+  return null;
 };
 
 // Question Factory Functions
@@ -192,7 +238,7 @@ const makePictureMatch = (c, pool) => {
 };
 
 // Question Generation
-const generateQuestions = (consonants) => {
+const generateConsonantQuestions = (consonants = []) => {
   const questions = [];
   const pool = consonants; // ใช้พยัญชนะทั้งหมดที่มีใน database
   
@@ -256,6 +302,291 @@ const generateQuestions = (consonants) => {
   console.log(`🎮 Generated ${questionsWithImages.length} questions from ${selectedConsonants.length} selected consonants (${pool.length} total available)`);
   
   return questionsWithImages;
+};
+
+const makeVowelListenQuestion = (vowel, pool) => {
+  const distractors = shuffle(pool.filter(item => item.char !== vowel.char)).slice(0, 3);
+  const choices = shuffle([vowel, ...distractors]).map((item, index) => ({
+    id: index + 1,
+    text: item.char,
+  }));
+
+  return {
+    id: `v_listen_${vowel.char}_${uid()}`,
+    type: 'LISTEN_CHOOSE',
+    instruction: 'ฟังเสียงแล้วเลือกสระที่ได้ยิน',
+    questionText: vowel.name,
+    correctText: vowel.char,
+    audioText: vowel.sound || vowel.name,
+    choices,
+    consonantChar: vowel.char,
+  };
+};
+
+const makeVowelPictureQuestion = (vowel, pool) => {
+  const distractors = shuffle(pool.filter(item => item.char !== vowel.char)).slice(0, 3);
+  const choices = shuffle([vowel, ...distractors]).map((item, index) => ({
+    id: index + 1,
+    text: item.char,
+  }));
+  const imageSource = resolveVowelImageSource(vowel);
+
+  return {
+    id: `v_picture_${vowel.char}_${uid()}`,
+    type: 'PICTURE_MATCH',
+    instruction: 'ดูภาพแล้วเลือกสระที่ตรงกัน',
+    questionText: vowel.name,
+    correctText: vowel.char,
+    choices,
+    consonantChar: vowel.char,
+    imageSource,
+    imageKey: vowel.imageKey || vowel.char,
+  };
+};
+
+const makeVowelMatchQuestion = (vowel, pool) => {
+  const baseSelection = shuffle(pool).slice(0, 4);
+  const hasTarget = baseSelection.some(item => item.char === vowel.char);
+  const selection = hasTarget ? baseSelection : [vowel, ...baseSelection.slice(1)];
+  const uniqueSelection = selection.filter(
+    (item, index, arr) => arr.findIndex(other => other.char === item.char) === index
+  );
+
+  const leftItems = uniqueSelection.map((item, index) => ({
+    id: index + 1,
+    text: (item.roman || item.meaning || item.name || item.char).toUpperCase(),
+    correctMatch: item.char,
+  }));
+
+  const rightItems = shuffle(uniqueSelection).map((item, index) => ({
+    id: index + 1,
+    text: item.char,
+  }));
+
+  return {
+    id: `v_match_${vowel.char}_${uid()}`,
+    type: 'DRAG_MATCH',
+    instruction: 'จับคู่เสียงอ่านกับสระไทยที่ถูกต้อง',
+    questionText: 'ลากเส้นจับคู่โรมันไรซ์เซชันกับสระไทย',
+    correctText: vowel.char,
+    consonantChar: vowel.char,
+    leftItems,
+    rightItems,
+  };
+};
+
+const makeVowelArrangeQuestion = (vowel) => {
+  const correctOrder = [vowel.char, 'อ่านว่า', vowel.name];
+  const distractWords = shuffle(['เสียงสั้น', 'เสียงยาว', 'สระไทย', 'พื้นฐาน', 'คำแม่กกา']).slice(0, 3);
+  const baseWords = correctOrder.map(text => ({ id: uid(), text }));
+  const extraWords = distractWords.map(text => ({ id: uid(), text }));
+
+  return {
+    id: `v_arr_${vowel.char}_${uid()}`,
+    type: 'ARRANGE_SENTENCE',
+    instruction: 'เรียงคำให้เป็นประโยคที่ถูกต้อง',
+    questionText: `${vowel.char} อ่านว่าอะไร`,
+    correctOrder,
+    wordBank: shuffle([...baseWords, ...extraWords]),
+    consonantChar: vowel.char,
+  };
+};
+
+const generateVowelQuestions = (vowels = []) => {
+  const cleaned = vowels.filter(item => item && item.char);
+  if (cleaned.length === 0) {
+    return [];
+  }
+
+  console.log('🎯 Generating questions from', cleaned.length, 'vowels');
+
+  const questions = [];
+  const pool = cleaned;
+
+  const listenSet = shuffle(pool).slice(0, Math.min(12, pool.length));
+  listenSet.forEach(vowel => questions.push(makeVowelListenQuestion(vowel, pool)));
+
+  const pictureSet = shuffle(pool).slice(0, Math.min(10, pool.length));
+  pictureSet.forEach(vowel => questions.push(makeVowelPictureQuestion(vowel, pool)));
+
+  const matchSet = shuffle(pool).slice(0, Math.min(8, pool.length));
+  matchSet.forEach(vowel => questions.push(makeVowelMatchQuestion(vowel, pool)));
+
+  const arrangeSet = shuffle(pool).slice(0, Math.min(4, pool.length));
+  arrangeSet.forEach(vowel => questions.push(makeVowelArrangeQuestion(vowel)));
+
+  return shuffle(questions);
+};
+
+const toPositionLabel = (pos) => {
+  switch ((pos || '').toLowerCase()) {
+    case 'front':
+      return 'หน้า';
+    case 'back':
+      return 'หลัง';
+    case 'top':
+      return 'บน';
+    case 'bottom':
+      return 'ล่าง';
+    default:
+      return 'ไม่ระบุ';
+  }
+};
+
+const selectRandomDistinct = (pool, count, exclude = new Set()) => {
+  const available = pool.filter(v => !exclude.has(v.char));
+  return shuffle(available).slice(0, Math.min(count, available.length));
+};
+
+const generateLesson2VowelQuestions = (vowels = []) => {
+  if (!Array.isArray(vowels) || vowels.length === 0) {
+    return [];
+  }
+
+  const pool = shuffle(vowels.filter(v => v.char));
+  const usedChars = new Set();
+  const questions = [];
+
+  const takeVowel = () => {
+    const available = pool.find(v => !usedChars.has(v.char));
+    return available || pool[0];
+  };
+
+  const getChoices = (target, total = 4) => {
+    const others = vowels.filter(v => v.char !== target.char);
+    return shuffle([target, ...shuffle(others).slice(0, Math.max(0, total - 1))]);
+  };
+
+  // Q1 Listen & Choose
+  const listenTarget = takeVowel();
+  usedChars.add(listenTarget.char);
+  const listenChoices = getChoices(listenTarget);
+  questions.push({
+    id: `lesson2_listen_${listenTarget.char}_${uid()}`,
+    type: 'LISTEN_CHOOSE',
+    instruction: 'ฟังเสียงแล้วเลือกสระที่ถูกต้อง',
+    questionText: 'เลือกสระให้ตรงกับเสียงที่ได้ยิน',
+    correctText: listenTarget.char,
+    audioText: listenTarget.sound || listenTarget.char,
+    choices: listenChoices.map((item, index) => ({
+      id: index + 1,
+      text: item.char
+    })),
+    consonantChar: listenTarget.char,
+  });
+
+  // Q2 Match Example Word (drag match)
+  const matchSet = selectRandomDistinct(vowels, 4);
+  matchSet.forEach(v => usedChars.add(v.char));
+  questions.push({
+    id: `lesson2_match_example_${uid()}`,
+    type: 'DRAG_MATCH',
+    instruction: 'จับคู่คำตัวอย่างกับสระที่ถูกต้อง',
+    questionText: 'จับคู่คำกับสระ',
+    leftItems: matchSet.map((item, index) => ({
+      id: index + 1,
+      text: item.example || `ก${item.char}`,
+      correctMatch: item.char
+    })),
+    rightItems: shuffle(matchSet).map((item, index) => ({
+      id: index + 1,
+      text: item.char
+    })),
+    correctText: matchSet.map(item => item.char).join(','),
+    consonantChar: matchSet[0]?.char
+  });
+
+  // Q3 Arrange short -> long
+  const shortCandidates = vowels.filter(v => v.length === 'short' && v.pair);
+  const pairTarget = shuffle(shortCandidates).find(v => vowels.some(other => other.char === v.pair));
+  if (pairTarget) {
+    usedChars.add(pairTarget.char);
+    usedChars.add(pairTarget.pair);
+    const longVowel = vowels.find(v => v.char === pairTarget.pair);
+    const orderWords = [pairTarget.char, pairTarget.pair];
+    questions.push({
+      id: `lesson2_arrange_${pairTarget.char}_${uid()}`,
+      type: 'ARRANGE_SENTENCE',
+      instruction: 'เรียงเสียงสระจากสั้นไปยาว',
+      questionText: 'ลากเพื่อเรียงลำดับเสียงสั้นก่อนเสียงยาว',
+      correctOrder: orderWords,
+      wordBank: shuffle(orderWords).map(text => ({ id: uid(), text })),
+      consonantChar: pairTarget.char
+    });
+  }
+
+  // Q4 Identify position
+  const positionCandidates = vowels.filter(v => v.type);
+  const positionTarget = shuffle(positionCandidates).find(v => v.type);
+  if (positionTarget) {
+    usedChars.add(positionTarget.char);
+    const positionOptions = ['front', 'back', 'top', 'bottom'].map((key, index) => ({
+      id: index + 1,
+      value: key,
+      text: toPositionLabel(key)
+    }));
+
+    questions.push({
+      id: `lesson2_position_${positionTarget.char}_${uid()}`,
+      type: 'MULTIPLE_CHOICE',
+      instruction: 'เลือกตำแหน่งที่สระอยู่กับพยัญชนะ',
+      questionText: `สระ "${positionTarget.char}" อยู่ตำแหน่งใดเมื่อใช้กับ "${positionTarget.example || 'กะ'}"?`,
+      correctText: (positionTarget.type || '').toLowerCase(),
+      positionValue: (positionTarget.type || '').toLowerCase(),
+      choices: positionOptions,
+      consonantChar: positionTarget.char
+    });
+  }
+
+  // Q5 Picture match
+  const pictureTarget = takeVowel();
+  const pictureChoices = getChoices(pictureTarget);
+  questions.push({
+    id: `lesson2_picture_${pictureTarget.char}_${uid()}`,
+    type: 'PICTURE_MATCH',
+    instruction: 'ฟังเสียงแล้วเลือกภาพสระที่ถูกต้อง',
+    questionText: 'เลือกภาพให้ตรงกับเสียงสระ',
+    correctText: pictureTarget.char,
+    audioText: pictureTarget.sound || pictureTarget.char,
+    choices: pictureChoices.map((item, index) => ({
+      id: index + 1,
+      text: item.char
+    })),
+    consonantChar: pictureTarget.char,
+    imageSource: resolveVowelImageSource(pictureTarget),
+    imageKey: pictureTarget.char
+  });
+
+  while (questions.length < 5) {
+    const fillerTarget = pool[(questions.length + Date.now()) % pool.length] || pool[0];
+    const fillerChoices = getChoices(fillerTarget);
+    questions.push({
+      id: `lesson2_fill_listen_${fillerTarget.char}_${uid()}`,
+      type: 'LISTEN_CHOOSE',
+      instruction: 'ฟังเสียงแล้วเลือกสระที่ถูกต้อง',
+      questionText: 'เลือกสระให้ตรงกับเสียงที่ได้ยิน',
+      correctText: fillerTarget.char,
+      audioText: fillerTarget.sound || fillerTarget.char,
+      choices: fillerChoices.map((item, index) => ({
+        id: index + 1,
+        text: item.char
+      })),
+      consonantChar: fillerTarget.char
+    });
+  }
+
+  return questions.slice(0, 5);
+};
+
+const generateQuestions = (items = [], options = {}) => {
+  const type = options.type || 'consonant';
+  if (type === 'lesson2_vowels') {
+    return generateLesson2VowelQuestions(items);
+  }
+  if (type === 'vowel') {
+    return generateVowelQuestions(items);
+  }
+  return generateConsonantQuestions(items);
 };
 
 // Inline Components
@@ -641,15 +972,23 @@ const NewLessonGame = ({ navigation, route }) => {
         category = 'basic',
         level: levelName = 'Beginner',
         stageTitle: stageTitleParam,
+        generator: generatorParam = 'consonants',
     } = route.params || {};
 
     const currentLessonId = Number(lessonId) || 1;
     const currentCategory = category || 'basic';
     const levelLabel = levelName || 'Beginner';
     const stageTitle = stageTitleParam || `ด่าน ${currentLessonId}`;
+    const generatorType = (generatorParam || '').toLowerCase();
+    const isLesson2Vowels = generatorType === 'lesson2_vowels';
+    const isVowelLesson =
+        generatorType === 'vowels' ||
+        isLesson2Vowels ||
+        (currentCategory || '').toLowerCase().includes('vowel');
+    const pointsPerQuestion = isLesson2Vowels ? 5 : 10;
     
     // Progress context
-    const { applyDelta } = useProgress();
+    const { applyDelta, getTotalXP, getCurrentLevel } = useProgress();
     
     // Use the new user data sync system
     const { updateUserStats, stats: userStats } = useUserData();
@@ -665,11 +1004,37 @@ const NewLessonGame = ({ navigation, route }) => {
     const [isCorrect, setIsCorrect] = useState(null); 
     const [questions, setQuestions] = useState([]);
     const [loading, setLoading] = useState(true);
+    const initialHearts = Number.isFinite(unifiedStats?.hearts) ? unifiedStats.hearts : 5;
     const [score, setScore] = useState(0);
-    const [hearts, setHearts] = useState(5);
+    const [hearts, setHeartsState] = useState(initialHearts);
+    const heartsRef = useRef(initialHearts);
+
+    const updateLocalHearts = React.useCallback((nextHearts) => {
+        const clamped = Math.max(0, nextHearts);
+        heartsRef.current = clamped;
+        setHeartsState(clamped);
+    }, []);
+
+    const syncHearts = React.useCallback(async (nextHearts) => {
+        const clamped = Math.max(0, nextHearts);
+        if (heartsRef.current === clamped) {
+            return;
+        }
+        updateLocalHearts(clamped);
+        try {
+            await updateUnifiedStats({ hearts: clamped });
+        } catch (error) {
+            console.warn('⚠️ Unable to sync hearts state:', error?.message || error);
+        }
+    }, [updateLocalHearts, updateUnifiedStats]);
+
+    useEffect(() => {
+        if (Number.isFinite(unifiedStats?.hearts) && unifiedStats.hearts !== heartsRef.current) {
+            updateLocalHearts(unifiedStats.hearts);
+        }
+    }, [unifiedStats?.hearts, updateLocalHearts]);
     const [perLetter, setPerLetter] = useState({});
-    const [consonantData, setConsonantData] = useState([]);
-    const [vocabularyData, setVocabularyData] = useState([]);
+    const [lessonCharacters, setLessonCharacters] = useState([]);
     const [showSummary, setShowSummary] = useState(false);
     const [summaryData, setSummaryData] = useState({});
     const sessionFinalizedRef = useRef(false);
@@ -685,6 +1050,7 @@ const NewLessonGame = ({ navigation, route }) => {
         timePerQuestion: [],
         questionTypes: {},
         accuracy: 0,
+        accuracyPercent: 0,
         totalTimeSpent: 0,
         streak: 0,
         maxStreak: 0,
@@ -727,12 +1093,28 @@ const NewLessonGame = ({ navigation, route }) => {
 
     const currentQuestion = questions[currentQuestIndex];
 
-    useEffect(() => {
-        if (unifiedStats?.hearts !== undefined) {
-            setHearts(unifiedStats.hearts);
+    const currentAccuracyPercent = (() => {
+        if (Number.isFinite(gameProgress.accuracyPercent)) {
+            return Math.max(0, Math.min(100, Math.round(gameProgress.accuracyPercent)));
         }
-    }, [unifiedStats?.hearts]);
-    
+        if (Number.isFinite(gameProgress.accuracy)) {
+            const accuracyValue = gameProgress.accuracy <= 1
+                ? gameProgress.accuracy * 100
+                : gameProgress.accuracy;
+            return Math.max(0, Math.min(100, Math.round(accuracyValue)));
+        }
+        if (gameProgress.completedQuestions > 0) {
+            return Math.max(
+                0,
+                Math.min(
+                    100,
+                    Math.round((gameProgress.correctAnswers / gameProgress.completedQuestions) * 100)
+                )
+            );
+        }
+        return 0;
+    })();
+
     // Debug logging
     console.log('🔍 Question state:', {
         questionsLength: questions.length,
@@ -763,7 +1145,7 @@ const NewLessonGame = ({ navigation, route }) => {
                 newProgress.correctAnswers += 1;
                 newProgress.streak += 1;
                 newProgress.maxStreak = Math.max(newProgress.maxStreak, newProgress.streak);
-                newProgress.xpEarned += questionResult.xp || 10;
+                newProgress.xpEarned += questionResult.xp ?? pointsPerQuestion;
                 
                 // คำนวณเพชรตาม streak
                 let diamonds = 1; // เพชรพื้นฐาน
@@ -782,7 +1164,11 @@ const NewLessonGame = ({ navigation, route }) => {
             newProgress.questionTypes[questionType] = (newProgress.questionTypes[questionType] || 0) + 1;
             
             // คำนวณความแม่นยำ
-            newProgress.accuracy = (newProgress.correctAnswers / newProgress.completedQuestions) * 100;
+            const accuracyRatio = newProgress.completedQuestions > 0
+                ? newProgress.correctAnswers / newProgress.completedQuestions
+                : 0;
+            newProgress.accuracy = accuracyRatio;
+            newProgress.accuracyPercent = Math.round(accuracyRatio * 100);
             
             // คำนวณเวลาทั้งหมด
             newProgress.totalTimeSpent = currentTime - newProgress.startTime;
@@ -844,72 +1230,67 @@ const NewLessonGame = ({ navigation, route }) => {
         }
     };
 
-    // เซฟความคืบหน้าของเกม
-    const saveGameProgress = async () => {
-        try {
-            const progressData = {
-                lessonId: currentLessonId,
-                category: currentCategory,
-                currentQuestionIndex: currentQuestIndex,
-                questions: questions.map(q => ({
-                    id: q.id,
-                    type: q.type,
-                    instruction: q.instruction,
-                    questionText: q.questionText,
-                    correctText: q.correctText,
-                    correctOrder: q.correctOrder,
-                    leftItems: q.leftItems,
-                    rightItems: q.rightItems,
-                    imageSource: q.imageSource,
-                    consonantChar: q.consonantChar,
-                    consonantChars: q.consonantChars
-                })),
-                answers: answersRef.current,
-                score,
-                hearts,
-                gameProgress,
-                startTime: gameProgress.startTime,
-                lastSaved: Date.now()
-            };
-            
-            const progressKey = getUserScopedKey(`gameProgress_${currentLessonId}_${currentCategory}`);
-            await AsyncStorage.setItem(progressKey, JSON.stringify(progressData));
-            console.log('💾 Game progress saved:', progressKey);
-        } catch (error) {
-            console.error('❌ Error saving game progress:', error);
-        }
-    };
-
-    // โหลดความคืบหน้าของเกม
+    // โหลดความคืบหน้าของเกมจากเซิร์ฟเวอร์/โลคอล
     const loadGameProgress = async () => {
         try {
-            const progressKey = getUserScopedKey(`gameProgress_${currentLessonId}_${currentCategory}`);
-            const progressData = await AsyncStorage.getItem(progressKey);
-            
-            if (progressData) {
-                const parsed = JSON.parse(progressData);
-                
-                // ตรวจสอบว่าเป็นเกมเดียวกันหรือไม่
-                if (parsed.lessonId === currentLessonId && parsed.category === currentCategory) {
-                    setGameSession(prev => ({
-                        ...prev,
-                        ...parsed,
-                        isResumed: true
-                    }));
-                    
-                    // ตั้งค่าข้อมูลเกม
-                    setQuestions(parsed.questions || []);
-                    setCurrentQuestIndex(parsed.currentQuestionIndex || 0);
-                    setScore(parsed.score || 0);
-                    setHearts(parsed.hearts || 5);
-                    setGameProgress(parsed.gameProgress || gameProgress);
-                    answersRef.current = parsed.answers || {};
-                    
-                    console.log('📂 Game progress loaded:', progressKey);
-                    return true;
-                }
+            const saved = await restoreProgress(currentLessonId);
+            if (!saved) {
+                return false;
             }
-            return false;
+
+            const questionType = isLesson2Vowels ? 'lesson2_vowels' : (isVowelLesson ? 'vowel' : 'consonant');
+            const savedGenerator = saved?.generator || saved?.generatorType;
+            const generatorMismatch =
+                (isVowelLesson && savedGenerator !== 'vowel') ||
+                (!isVowelLesson && savedGenerator === 'vowel');
+
+            if (generatorMismatch) {
+                console.log('♻️ Clearing incompatible saved progress for lesson', currentLessonId, {
+                    expected: questionType,
+                    found: savedGenerator || 'unknown'
+                });
+                await clearProgress(currentLessonId);
+                return false;
+            }
+
+            const questionsSnapshot = Array.isArray(saved.questionsSnapshot) && saved.questionsSnapshot.length > 0
+                ? saved.questionsSnapshot
+                : questions;
+
+            const nextIndex = Math.max(
+                0,
+                Math.min(saved.currentIndex ?? saved.currentQuestionIndex ?? 0, Math.max(questionsSnapshot.length - 1, 0))
+            );
+
+            setQuestions(questionsSnapshot);
+            setCurrentQuestIndex(nextIndex);
+            setScore(saved.score || 0);
+            const restoredHearts = Number.isFinite(saved.hearts) ? saved.hearts : 5;
+            syncHearts(restoredHearts);
+            if (saved.perLetter) {
+                setPerLetter(saved.perLetter);
+            }
+            if (saved.answers) {
+                answersRef.current = saved.answers;
+            }
+            if (saved.gameProgress) {
+                setGameProgress(prev => ({ ...prev, ...saved.gameProgress }));
+            }
+
+            setGameSession(prev => ({
+                ...prev,
+                lessonId: currentLessonId,
+                category: currentCategory,
+                currentQuestionIndex: nextIndex,
+                questions: questionsSnapshot,
+                score: saved.score || prev.score,
+                hearts: Number.isFinite(restoredHearts) ? restoredHearts : prev.hearts,
+                answers: saved.answers || prev.answers,
+                isResumed: true,
+            }));
+
+            console.log('📂 Restored game progress at question', nextIndex + 1);
+            return true;
         } catch (error) {
             console.error('❌ Error loading game progress:', error);
             return false;
@@ -919,9 +1300,8 @@ const NewLessonGame = ({ navigation, route }) => {
     // ลบความคืบหน้าของเกม (เมื่อจบเกม)
     const clearGameProgress = async () => {
         try {
-            const progressKey = getUserScopedKey(`gameProgress_${currentLessonId}_${currentCategory}`);
-            await AsyncStorage.removeItem(progressKey);
-            console.log('🗑️ Game progress cleared:', progressKey);
+            await clearProgress(currentLessonId);
+            console.log('🗑️ Game progress cleared for lesson:', currentLessonId);
         } catch (error) {
             console.error('❌ Error clearing game progress:', error);
         }
@@ -961,6 +1341,7 @@ const NewLessonGame = ({ navigation, route }) => {
                     category: 'vowels_basic',
                     level: levelLabel,
                     stageTitle: `ด่าน ${nextLessonNumeric}`,
+                    generator: 'vowels',
                 });
             } else {
                 navigation.replace('NewLessonGame', {
@@ -991,7 +1372,7 @@ const NewLessonGame = ({ navigation, route }) => {
 
     // Load consonant data from API
     useEffect(() => {
-        loadConsonantData();
+        loadLessonCharacters();
         loadUserStats();
         
         // Initialize new services
@@ -999,7 +1380,7 @@ const NewLessonGame = ({ navigation, route }) => {
         
         // โหลดความคืบหน้าของเกม (ถ้ามี)
         loadGameProgress();
-    }, []);
+    }, [isVowelLesson]);
 
     // Initialize new progress tracking services
     const initializeServices = async () => {
@@ -1050,250 +1431,142 @@ const NewLessonGame = ({ navigation, route }) => {
     // Load vocabulary data from API
     useEffect(() => {
         loadVocabularyData();
-    }, [currentLessonId, currentCategory, consonantData]);
+    }, [currentLessonId, currentCategory, lessonCharacters, isVowelLesson, syncHearts]);
 
-    // โหลด snapshot ตอนเข้า
-    useEffect(() => {
-        (async () => {
-            const snap = await loadAutosnap(currentLessonId);
-            if (snap) { /* restore state จาก snap */ }
-            else { /* generate questions ใหม่ */ }
-        })();
-    }, []);
-
-    const loadConsonantData = async () => {
+    const loadLessonCharacters = async () => {
         try {
+            if (isVowelLesson) {
+                console.log('🔤 Loading vowel data for lesson...');
+                const vowels = await vocabWordService.getVowelsWithFallback();
+                if (Array.isArray(vowels) && vowels.length > 0) {
+                    const processedVowels = vowels.map(normalizeVowelItem);
+                    setLessonCharacters(processedVowels);
+                    console.log('✅ Loaded', processedVowels.length, 'vowels for lesson');
+                    return;
+                }
+
+                throw new Error('No vowel data available');
+            }
+
             console.log('🔤 Loading consonant data from database...');
             const consonants = await vocabWordService.getConsonants();
             
             if (consonants && Array.isArray(consonants) && consonants.length > 0) {
-                const processedConsonants = consonants.map(item => ({
-                    char: item.char || item.thai,
-                    meaning: item.meaning || item.en,
-                    name: item.name || item.exampleTH || `${item.char}-${item.meaning}`
-                }));
-                setConsonantData(processedConsonants);
+                const processedConsonants = consonants.map(normalizeConsonantItem);
+                setLessonCharacters(processedConsonants);
                 console.log('✅ Loaded', processedConsonants.length, 'consonants from database');
             } else {
                 throw new Error('No consonant data received from database');
             }
         } catch (error) {
-            console.error('❌ Error loading consonant data from database:', error);
-            // Fallback data - พยัญชนะไทยครบ 44 ตัว
-            const thaiConsonants = [
-                { char: 'ก', meaning: 'ไก่', name: 'กอ ไก่' },
-                { char: 'ข', meaning: 'ไข่', name: 'ขอ ไข่' },
-                { char: 'ฃ', meaning: 'ฃวด', name: 'ฃอ ฃวด' },
-                { char: 'ค', meaning: 'ควาย', name: 'คอ ควาย' },
-                { char: 'ฅ', meaning: 'ฅน', name: 'ฅอ ฅน' },
-                { char: 'ฆ', meaning: 'ระฆัง', name: 'ฆอ ระฆัง' },
-                { char: 'ง', meaning: 'งู', name: 'งอ งู' },
-                { char: 'จ', meaning: 'จาน', name: 'จอ จาน' },
-                { char: 'ฉ', meaning: 'ฉิ่ง', name: 'ฉอ ฉิ่ง' },
-                { char: 'ช', meaning: 'ช้าง', name: 'ชอ ช้าง' },
-                { char: 'ซ', meaning: 'โซ่', name: 'ซอ โซ่' },
-                { char: 'ฌ', meaning: 'เฌอ', name: 'ฌอ เฌอ' },
-                { char: 'ญ', meaning: 'หญิง', name: 'ญอ หญิง' },
-                { char: 'ฎ', meaning: 'ชฎา', name: 'ฎอ ชฎา' },
-                { char: 'ฏ', meaning: 'ปฏัก', name: 'ฏอ ปฏัก' },
-                { char: 'ฐ', meaning: 'ฐาน', name: 'ฐอ ฐาน' },
-                { char: 'ฑ', meaning: 'มณโฑ', name: 'ฑอ มณโฑ' },
-                { char: 'ฒ', meaning: 'ผู้เฒ่า', name: 'ฒอ ผู้เฒ่า' },
-                { char: 'ณ', meaning: 'เณร', name: 'ณอ เณร' },
-                { char: 'ด', meaning: 'เด็ก', name: 'ดอ เด็ก' },
-                { char: 'ต', meaning: 'เต่า', name: 'ตอ เต่า' },
-                { char: 'ถ', meaning: 'ถุง', name: 'ถอ ถุง' },
-                { char: 'ท', meaning: 'ทหาร', name: 'ทอ ทหาร' },
-                { char: 'ธ', meaning: 'ธง', name: 'ธอ ธง' },
-                { char: 'น', meaning: 'หนู', name: 'นอ หนู' },
-                { char: 'บ', meaning: 'ใบไม้', name: 'บอ ใบไม้' },
-                { char: 'ป', meaning: 'ปลา', name: 'ปอ ปลา' },
-                { char: 'ผ', meaning: 'ผึ้ง', name: 'ผอ ผึ้ง' },
-                { char: 'ฝ', meaning: 'ฝา', name: 'ฝอ ฝา' },
-                { char: 'พ', meaning: 'พาน', name: 'พอ พาน' },
-                { char: 'ฟ', meaning: 'ฟัน', name: 'ฟอ ฟัน' },
-                { char: 'ภ', meaning: 'สำเภา', name: 'ภอ สำเภา' },
-                { char: 'ม', meaning: 'ม้า', name: 'มอ ม้า' },
-                { char: 'ย', meaning: 'ยักษ์', name: 'ยอ ยักษ์' },
-                { char: 'ร', meaning: 'เรือ', name: 'รอ เรือ' },
-                { char: 'ล', meaning: 'ลิง', name: 'ลอ ลิง' },
-                { char: 'ว', meaning: 'แหวน', name: 'วอ แหวน' },
-                { char: 'ศ', meaning: 'ศาลา', name: 'ศอ ศาลา' },
-                { char: 'ษ', meaning: 'ฤาษี', name: 'ษอ ฤาษี' },
-                { char: 'ส', meaning: 'เสือ', name: 'สอ เสือ' },
-                { char: 'ห', meaning: 'หีบ', name: 'หอ หีบ' },
-                { char: 'ฬ', meaning: 'จุฬา', name: 'ฬอ จุฬา' },
-                { char: 'อ', meaning: 'อ่าง', name: 'ออ อ่าง' },
-                { char: 'ฮ', meaning: 'นกฮูก', name: 'ฮอ นกฮูก' }
-            ];
-            console.log('🔄 Using fallback consonant data (44 consonants)');
-            setConsonantData(thaiConsonants);
+            console.error('❌ Error loading lesson characters:', error);
+
+            if (isVowelLesson) {
+                const fallbackVowels = await vocabWordService.getVowelsWithFallback();
+                const processedFallback = fallbackVowels.map(normalizeVowelItem);
+                setLessonCharacters(processedFallback);
+            } else {
+                const fallbackConsonants = await vocabWordService.getConsonantsWithFallback();
+                const processedFallback = fallbackConsonants.map(normalizeConsonantItem);
+                setLessonCharacters(processedFallback);
+            }
         }
     };
+
+
+
 
     const loadVocabularyData = async () => {
         try {
             setLoading(true);
             console.log('🎯 Loading vocabulary data for lessonId:', currentLessonId, 'type:', typeof currentLessonId);
 
-        // Try to restore from per-user progress
-        const snap = await loadAutosnap(currentLessonId);
-        if (snap && snap.questionsSnapshot && snap.questionsSnapshot.length > 0) {
-          console.log('✅ Restored from per-user progress:', { 
-            questionsCount: snap.questionsSnapshot.length,
-            currentIndex: snap.currentIndex 
-          });
-          
-          setQuestions(snap.questionsSnapshot);
-          setCurrentQuestIndex(Math.min(snap.currentIndex || 0, snap.questionsSnapshot.length - 1));
-          setHearts(snap.hearts || 5);
-          setScore(snap.score || 0);
-          if (snap.perLetter) {
-            setPerLetter(snap.perLetter);
-          }
-          if (snap.answers) {
-            answersRef.current = snap.answers;
-          }
-          setIsCorrect(null);
-          setUserAnswer(null);
-          setLoading(false);
-          return;
-        }
+            const questionType = isLesson2Vowels ? 'lesson2_vowels' : (isVowelLesson ? 'vowel' : 'consonant');
+            const savedProgress = await restoreProgress(currentLessonId);
+            const savedGenerator = savedProgress?.generator || savedProgress?.generatorType;
+            const generatorMismatch =
+                (isVowelLesson && savedGenerator !== 'vowel') ||
+                (!isVowelLesson && savedGenerator === 'vowel');
 
-            // If no restore data, generate new questions from database
-            console.log('🎯 Generating new questions from database consonants:', consonantData.length);
-            
-            // สำหรับด่านแรก (currentLessonId: 1) ใช้พยัญชนะทั้งหมด 44 ตัวเสมอ
-            if (currentLessonId === 1 || currentLessonId === '1') {
-                console.log('🎯 First stage - using all 44 consonants for lessonId:', currentLessonId);
-                // ข้ามการโหลดจาก database และใช้ fallback data 44 ตัวเลย
-            } else {
-                // สำหรับด่านอื่นๆ ใช้ข้อมูลจาก database
-                let pool = consonantData.length > 0 ? consonantData : [];
-                
-                if (pool.length === 0) {
-                    console.log('⚠️ No consonant data available, loading from database...');
-                    // ถ้าไม่มีข้อมูล consonantData ให้โหลดใหม่
-                    try {
-                        const dbConsonants = await vocabWordService.getConsonants();
-                        if (dbConsonants && Array.isArray(dbConsonants) && dbConsonants.length > 0) {
-                            const processedConsonants = dbConsonants.map(item => ({
-                                char: item.char || item.thai,
-                                meaning: item.meaning || item.en,
-                                name: item.name || item.exampleTH || `${item.char}-${item.meaning}`
-                            }));
-                            setConsonantData(processedConsonants);
-                            console.log('✅ Loaded consonants from database:', processedConsonants.length);
-                            const gameQuestions = generateQuestions(processedConsonants);
-                            console.log('🎮 Generated', gameQuestions.length, 'questions from database');
-                            
-                            setQuestions(gameQuestions);
-                            setCurrentQuestIndex(0);
-                            setIsCorrect(null);
-                            setUserAnswer(null);
-                            setLoading(false);
-                            
-                            // เริ่มไฟสะสมเมื่อโหลดคำถามเสร็จ
-                            await startDailyStreak();
-                            return;
-                        }
-                    } catch (dbError) {
-                        console.error('❌ Error loading from database:', dbError);
-                    }
-                } else {
-                    // ใช้ข้อมูลที่มีอยู่แล้ว
-                    const gameQuestions = generateQuestions(pool);
-                    console.log('🎮 Generated', gameQuestions.length, 'questions from existing data');
-                    
-                    setQuestions(gameQuestions);
-                    setCurrentQuestIndex(0);
-                    setIsCorrect(null);
-                    setUserAnswer(null);
-                    setLoading(false);
-                    
-                    // เริ่มไฟสะสมเมื่อโหลดคำถามเสร็จ
-                    await startDailyStreak();
-                    return;
+            if (generatorMismatch) {
+                console.log('♻️ Ignoring incompatible saved progress for lesson', currentLessonId, {
+                    expected: questionType,
+                    found: savedGenerator || 'unknown'
+                });
+                await clearProgress(currentLessonId);
+            } else if (savedProgress && savedProgress.questionsSnapshot && savedProgress.questionsSnapshot.length > 0) {
+                console.log('✅ Restored lesson data from saved progress:', {
+                    questionsCount: savedProgress.questionsSnapshot.length,
+                    currentIndex: savedProgress.currentIndex,
+                });
+
+                setQuestions(savedProgress.questionsSnapshot);
+                const nextIndex = Math.max(
+                    0,
+                    Math.min(
+                        savedProgress.currentIndex || savedProgress.currentQuestionIndex || 0,
+                        savedProgress.questionsSnapshot.length - 1
+                    )
+                );
+                setCurrentQuestIndex(nextIndex);
+                const restoredHearts = Number.isFinite(savedProgress.hearts) ? savedProgress.hearts : 5;
+                syncHearts(restoredHearts);
+                setScore(savedProgress.score || 0);
+                if (savedProgress.perLetter) {
+                    setPerLetter(savedProgress.perLetter);
                 }
-            }
-            
-            // ถ้าเป็นด่านแรกหรือโหลดจาก database ไม่ได้ ให้ใช้ fallback data
-            if (currentLessonId === 1 || currentLessonId === '1' || consonantData.length === 0) {
-                // ถ้าโหลดจาก database ไม่ได้ ให้ใช้ fallback - พยัญชนะไทยครบ 44 ตัว
-                console.log('🔄 Using fallback consonant data (44 consonants)');
-                const fallbackConsonants = [
-                    { char: 'ก', meaning: 'ไก่', name: 'กอ ไก่' },
-                    { char: 'ข', meaning: 'ไข่', name: 'ขอ ไข่' },
-                    { char: 'ฃ', meaning: 'ฃวด', name: 'ฃอ ฃวด' },
-                    { char: 'ค', meaning: 'ควาย', name: 'คอ ควาย' },
-                    { char: 'ฅ', meaning: 'ฅน', name: 'ฅอ ฅน' },
-                    { char: 'ฆ', meaning: 'ระฆัง', name: 'ฆอ ระฆัง' },
-                    { char: 'ง', meaning: 'งู', name: 'งอ งู' },
-                    { char: 'จ', meaning: 'จาน', name: 'จอ จาน' },
-                    { char: 'ฉ', meaning: 'ฉิ่ง', name: 'ฉอ ฉิ่ง' },
-                    { char: 'ช', meaning: 'ช้าง', name: 'ชอ ช้าง' },
-                    { char: 'ซ', meaning: 'โซ่', name: 'ซอ โซ่' },
-                    { char: 'ฌ', meaning: 'เฌอ', name: 'ฌอ เฌอ' },
-                    { char: 'ญ', meaning: 'หญิง', name: 'ญอ หญิง' },
-                    { char: 'ฎ', meaning: 'ชฎา', name: 'ฎอ ชฎา' },
-                    { char: 'ฏ', meaning: 'ปฏัก', name: 'ฏอ ปฏัก' },
-                    { char: 'ฐ', meaning: 'ฐาน', name: 'ฐอ ฐาน' },
-                    { char: 'ฑ', meaning: 'มณโฑ', name: 'ฑอ มณโฑ' },
-                    { char: 'ฒ', meaning: 'ผู้เฒ่า', name: 'ฒอ ผู้เฒ่า' },
-                    { char: 'ณ', meaning: 'เณร', name: 'ณอ เณร' },
-                    { char: 'ด', meaning: 'เด็ก', name: 'ดอ เด็ก' },
-                    { char: 'ต', meaning: 'เต่า', name: 'ตอ เต่า' },
-                    { char: 'ถ', meaning: 'ถุง', name: 'ถอ ถุง' },
-                    { char: 'ท', meaning: 'ทหาร', name: 'ทอ ทหาร' },
-                    { char: 'ธ', meaning: 'ธง', name: 'ธอ ธง' },
-                    { char: 'น', meaning: 'หนู', name: 'นอ หนู' },
-                    { char: 'บ', meaning: 'ใบไม้', name: 'บอ ใบไม้' },
-                    { char: 'ป', meaning: 'ปลา', name: 'ปอ ปลา' },
-                    { char: 'ผ', meaning: 'ผึ้ง', name: 'ผอ ผึ้ง' },
-                    { char: 'ฝ', meaning: 'ฝา', name: 'ฝอ ฝา' },
-                    { char: 'พ', meaning: 'พาน', name: 'พอ พาน' },
-                    { char: 'ฟ', meaning: 'ฟัน', name: 'ฟอ ฟัน' },
-                    { char: 'ภ', meaning: 'สำเภา', name: 'ภอ สำเภา' },
-                    { char: 'ม', meaning: 'ม้า', name: 'มอ ม้า' },
-                    { char: 'ย', meaning: 'ยักษ์', name: 'ยอ ยักษ์' },
-                    { char: 'ร', meaning: 'เรือ', name: 'รอ เรือ' },
-                    { char: 'ล', meaning: 'ลิง', name: 'ลอ ลิง' },
-                    { char: 'ว', meaning: 'แหวน', name: 'วอ แหวน' },
-                    { char: 'ศ', meaning: 'ศาลา', name: 'ศอ ศาลา' },
-                    { char: 'ษ', meaning: 'ฤาษี', name: 'ษอ ฤาษี' },
-                    { char: 'ส', meaning: 'เสือ', name: 'สอ เสือ' },
-                    { char: 'ห', meaning: 'หีบ', name: 'หอ หีบ' },
-                    { char: 'ฬ', meaning: 'จุฬา', name: 'ฬอ จุฬา' },
-                    { char: 'อ', meaning: 'อ่าง', name: 'ออ อ่าง' },
-                    { char: 'ฮ', meaning: 'นกฮูก', name: 'ฮอ นกฮูก' }
-                ];
-                const gameQuestions = generateQuestions(fallbackConsonants);
-                console.log('🎮 Generated fallback questions (44 consonants):', gameQuestions.length);
-                
-                setQuestions(gameQuestions);
-                setCurrentQuestIndex(0);
+                if (savedProgress.answers) {
+                    answersRef.current = savedProgress.answers;
+                }
                 setIsCorrect(null);
                 setUserAnswer(null);
                 setLoading(false);
-                
-                // เริ่มไฟสะสมเมื่อโหลดคำถามเสร็จ
-                await startDailyStreak();
                 return;
             }
 
-            // Generate questions using factory functions from database data
-            const gameQuestions = generateQuestions(pool);
-            console.log('🎮 Generated', gameQuestions.length, 'questions from database');
+            let pool = Array.isArray(lessonCharacters) ? [...lessonCharacters] : [];
+
+            if (pool.length === 0) {
+                if (isVowelLesson) {
+                    const vowels = await vocabWordService.getVowelsWithFallback();
+                    pool = vowels.map(normalizeVowelItem);
+                    setLessonCharacters(pool);
+                } else {
+                    const consonants = await vocabWordService.getConsonantsWithFallback();
+                    pool = consonants.map(normalizeConsonantItem);
+                    setLessonCharacters(pool);
+                }
+            }
+
+            if (!pool || pool.length === 0) {
+                throw new Error('No lesson characters available to generate questions');
+            }
+
+            if (!isVowelLesson && (currentLessonId === 1 || currentLessonId === '1')) {
+                const fallbackConsonants = await vocabWordService.getConsonantsWithFallback();
+                pool = fallbackConsonants.map(normalizeConsonantItem);
+                setLessonCharacters(pool);
+                console.log('🎯 First stage - ensuring full consonant set:', pool.length);
+            }
+
+            const gameQuestions = generateQuestions(pool, { type: questionType });
+
+            if (!Array.isArray(gameQuestions) || gameQuestions.length === 0) {
+                throw new Error(`No ${questionType} questions generated`);
+            }
 
             setQuestions(gameQuestions);
             setCurrentQuestIndex(0);
             setIsCorrect(null);
             setUserAnswer(null);
-            
-            // เริ่มไฟสะสมเมื่อโหลดคำถามเสร็จ
+            setScore(0);
+            syncHearts(5);
+            setPerLetter({});
+            answersRef.current = {};
+            setLoading(false);
+
             await startDailyStreak();
-            
-            // อัปเดตข้อมูลความคืบหน้าเมื่อเริ่มเกม
+
             setGameProgress(prev => ({
                 ...prev,
                 startTime: Date.now(),
@@ -1304,6 +1577,7 @@ const NewLessonGame = ({ navigation, route }) => {
                 timePerQuestion: [],
                 questionTypes: {},
                 accuracy: 0,
+                accuracyPercent: 0,
                 totalTimeSpent: 0,
                 streak: 0,
                 maxStreak: 0,
@@ -1312,10 +1586,10 @@ const NewLessonGame = ({ navigation, route }) => {
                 achievements: []
             }));
 
-            // Save the questions snapshot for future restore
             await saveProgress({
                 lessonId: currentLessonId,
                 category: currentCategory,
+                generator: questionType,
                 currentIndex: 0,
                 total: gameQuestions.length,
                 hearts: 5,
@@ -1329,93 +1603,115 @@ const NewLessonGame = ({ navigation, route }) => {
 
         } catch (error) {
             console.error('❌ Error loading vocabulary data:', error);
-            // Use fallback data on error - พยัญชนะไทยครบ 44 ตัว
-            const fallbackConsonants = [
-                { char: 'ก', meaning: 'ไก่', name: 'กอ ไก่' },
-                { char: 'ข', meaning: 'ไข่', name: 'ขอ ไข่' },
-                { char: 'ฃ', meaning: 'ฃวด', name: 'ฃอ ฃวด' },
-                { char: 'ค', meaning: 'ควาย', name: 'คอ ควาย' },
-                { char: 'ฅ', meaning: 'ฅน', name: 'ฅอ ฅน' },
-                { char: 'ฆ', meaning: 'ระฆัง', name: 'ฆอ ระฆัง' },
-                { char: 'ง', meaning: 'งู', name: 'งอ งู' },
-                { char: 'จ', meaning: 'จาน', name: 'จอ จาน' },
-                { char: 'ฉ', meaning: 'ฉิ่ง', name: 'ฉอ ฉิ่ง' },
-                { char: 'ช', meaning: 'ช้าง', name: 'ชอ ช้าง' },
-                { char: 'ซ', meaning: 'โซ่', name: 'ซอ โซ่' },
-                { char: 'ฌ', meaning: 'เฌอ', name: 'ฌอ เฌอ' },
-                { char: 'ญ', meaning: 'หญิง', name: 'ญอ หญิง' },
-                { char: 'ฎ', meaning: 'ชฎา', name: 'ฎอ ชฎา' },
-                { char: 'ฏ', meaning: 'ปฏัก', name: 'ฏอ ปฏัก' },
-                { char: 'ฐ', meaning: 'ฐาน', name: 'ฐอ ฐาน' },
-                { char: 'ฑ', meaning: 'มณโฑ', name: 'ฑอ มณโฑ' },
-                { char: 'ฒ', meaning: 'ผู้เฒ่า', name: 'ฒอ ผู้เฒ่า' },
-                { char: 'ณ', meaning: 'เณร', name: 'ณอ เณร' },
-                { char: 'ด', meaning: 'เด็ก', name: 'ดอ เด็ก' },
-                { char: 'ต', meaning: 'เต่า', name: 'ตอ เต่า' },
-                { char: 'ถ', meaning: 'ถุง', name: 'ถอ ถุง' },
-                { char: 'ท', meaning: 'ทหาร', name: 'ทอ ทหาร' },
-                { char: 'ธ', meaning: 'ธง', name: 'ธอ ธง' },
-                { char: 'น', meaning: 'หนู', name: 'นอ หนู' },
-                { char: 'บ', meaning: 'ใบไม้', name: 'บอ ใบไม้' },
-                { char: 'ป', meaning: 'ปลา', name: 'ปอ ปลา' },
-                { char: 'ผ', meaning: 'ผึ้ง', name: 'ผอ ผึ้ง' },
-                { char: 'ฝ', meaning: 'ฝา', name: 'ฝอ ฝา' },
-                { char: 'พ', meaning: 'พาน', name: 'พอ พาน' },
-                { char: 'ฟ', meaning: 'ฟัน', name: 'ฟอ ฟัน' },
-                { char: 'ภ', meaning: 'สำเภา', name: 'ภอ สำเภา' },
-                { char: 'ม', meaning: 'ม้า', name: 'มอ ม้า' },
-                { char: 'ย', meaning: 'ยักษ์', name: 'ยอ ยักษ์' },
-                { char: 'ร', meaning: 'เรือ', name: 'รอ เรือ' },
-                { char: 'ล', meaning: 'ลิง', name: 'ลอ ลิง' },
-                { char: 'ว', meaning: 'แหวน', name: 'วอ แหวน' },
-                { char: 'ศ', meaning: 'ศาลา', name: 'ศอ ศาลา' },
-                { char: 'ษ', meaning: 'ฤาษี', name: 'ษอ ฤาษี' },
-                { char: 'ส', meaning: 'เสือ', name: 'สอ เสือ' },
-                { char: 'ห', meaning: 'หีบ', name: 'หอ หีบ' },
-                { char: 'ฬ', meaning: 'จุฬา', name: 'ฬอ จุฬา' },
-                { char: 'อ', meaning: 'อ่าง', name: 'ออ อ่าง' },
-                { char: 'ฮ', meaning: 'นกฮูก', name: 'ฮอ นกฮูก' }
-            ];
-            const gameQuestions = generateQuestions(fallbackConsonants);
-            console.log('🎮 Generated fallback questions after error (44 consonants):', gameQuestions.length);
-            
-            setQuestions(gameQuestions);
-            setCurrentQuestIndex(0);
-            setIsCorrect(null);
-            setUserAnswer(null);
-            
-            // เริ่มไฟสะสมเมื่อโหลดคำถามเสร็จ
-            await startDailyStreak();
-        } finally {
-            setLoading(false);
+            try {
+                const fallbackPoolSource = isVowelLesson
+                    ? await vocabWordService.getVowelsWithFallback()
+                    : await vocabWordService.getConsonantsWithFallback();
+
+                const fallbackPool = fallbackPoolSource.map(
+                    isVowelLesson ? normalizeVowelItem : normalizeConsonantItem
+                );
+
+                const fallbackQuestions = generateQuestions(fallbackPool, {
+                    type: isVowelLesson ? 'vowel' : 'consonant'
+                });
+
+                if (!fallbackQuestions.length) {
+                    throw new Error('Fallback question generation failed');
+                }
+
+                setLessonCharacters(fallbackPool);
+                setQuestions(fallbackQuestions);
+                setCurrentQuestIndex(0);
+                setIsCorrect(null);
+                setUserAnswer(null);
+                setScore(0);
+                syncHearts(5);
+                setPerLetter({});
+                answersRef.current = {};
+                setLoading(false);
+
+                await startDailyStreak();
+
+                setGameProgress(prev => ({
+                    ...prev,
+                    startTime: Date.now(),
+                    totalQuestions: fallbackQuestions.length,
+                    completedQuestions: 0,
+                    correctAnswers: 0,
+                    wrongAnswers: 0,
+                    timePerQuestion: [],
+                    questionTypes: {},
+                    accuracy: 0,
+                    accuracyPercent: 0,
+                    totalTimeSpent: 0,
+                    streak: 0,
+                    maxStreak: 0,
+                    xpEarned: 0,
+                    level: 1,
+                    achievements: []
+                }));
+
+                await saveProgress({
+                    lessonId: currentLessonId,
+                    category: currentCategory,
+                    generator: isVowelLesson ? 'vowels' : 'consonants',
+                    currentIndex: 0,
+                    total: fallbackQuestions.length,
+                    hearts: 5,
+                    score: 0,
+                    xp: 0,
+                    perLetter: {},
+                    answers: {},
+                    questionsSnapshot: fallbackQuestions,
+                    updatedAt: Date.now()
+                });
+            } catch (fallbackError) {
+                console.error('❌ Unable to recover lesson with fallback data:', fallbackError);
+                setLoading(false);
+            }
         }
     };
 
+
         // ---- Auto Save functions ----
-        const snapshot = () => ({
-            lessonId: currentLessonId, 
-            category: currentCategory,
-            questions, currentIndex: currentQuestIndex,
-            hearts, score, perLetter, answers: answersRef.current,
-            gameProgress: gameProgress, // เพิ่มข้อมูลความคืบหน้า
-        });
+        const snapshot = () => {
+            const totalQuestions = questions.length;
+            const currentIndex = Math.max(0, Math.min(currentQuestIndex, Math.max(totalQuestions - 1, 0)));
+            const progressPercent = totalQuestions > 0
+                ? Math.round((currentIndex / totalQuestions) * 100)
+                : 0;
+            const accuracyPercent = Number.isFinite(gameProgress.accuracy)
+                ? gameProgress.accuracy
+                : 0;
+
+            return {
+                lessonId: currentLessonId,
+                category: currentCategory,
+                currentIndex,
+                currentQuestionIndex: currentIndex,
+                total: totalQuestions,
+                hearts,
+                score,
+                xp: gameProgress.xpEarned || score || 0,
+                diamondsEarned: gameProgress.diamondsEarned || 0,
+                progress: progressPercent,
+                accuracy: accuracyPercent,
+                completed: totalQuestions > 0 && currentIndex >= totalQuestions,
+                perLetter,
+                answers: { ...answersRef.current },
+                questionsSnapshot: questions,
+                gameProgress,
+                updatedAt: Date.now()
+            };
+        };
 
         const autosave = async () => {
-            await saveAutosnap(currentLessonId, snapshot());
-            // sync server progress ราย user (JWT ทำให้รู้ว่า user ไหน)
-            await apiClient.post('/progress/user/session', {
-                ...snapshot(),
-                total: questions.length,
-                updatedAt: Date.now()
-            });
-            
-            // บันทึกข้อมูลความคืบหน้าลงใน AsyncStorage
             try {
-                const progressKey = getUserScopedKey(`gameProgress_${currentLessonId}_${Date.now()}`);
-                await AsyncStorage.setItem(progressKey, JSON.stringify(gameProgress));
-                console.log('📊 Game progress saved:', progressKey);
+                const snap = snapshot();
+                await saveProgress(currentLessonId, snap);
             } catch (error) {
-                console.error('❌ Error saving game progress:', error);
+                console.error('❌ Error autosaving progress:', error);
             }
         };
 
@@ -1423,7 +1719,6 @@ const NewLessonGame = ({ navigation, route }) => {
     useEffect(() => {
         if (questions.length) {
             autosave();
-            saveGameProgress(); // เซฟความคืบหน้าทุกครั้งที่มีการเปลี่ยนแปลง
         }
     }, [currentQuestIndex, score, hearts, questions.length, gameProgress]);
 
@@ -1512,7 +1807,12 @@ const NewLessonGame = ({ navigation, route }) => {
                         <Text style={styles.instructionText}>{currentQuestion.instruction}</Text>
                         {!!currentQuestion.imageSource && (
                             <View style={{ width: 220, height: 220, marginBottom: 14, borderRadius: 16, overflow: 'hidden', alignSelf: 'center' }}>
-                                <Image source={currentQuestion.imageSource} style={{ width: '100%', height: '100%' }} resizeMode="contain" />
+                                <Image
+                                    key={currentQuestion.imageKey || currentQuestion.id}
+                                    source={currentQuestion.imageSource}
+                                    style={{ width: '100%', height: '100%' }}
+                                    resizeMode="contain"
+                                />
                             </View>
                         )}
                         {!!currentQuestion.questionText && <Text style={styles.questionText}>{currentQuestion.questionText}</Text>}
@@ -1532,6 +1832,37 @@ const NewLessonGame = ({ navigation, route }) => {
                                     <Text style={styles.choiceText}>{choice.text}</Text>
                                 </TouchableOpacity>
                             ))}
+                        </View>
+                    </View>
+                );
+            case 'MULTIPLE_CHOICE':
+                return (
+                    <View style={styles.questionContainer}>
+                        <Text style={styles.instructionText}>{currentQuestion.instruction}</Text>
+                        {!!currentQuestion.questionText && (
+                            <Text style={[styles.questionText, { marginBottom: 20 }]}>{currentQuestion.questionText}</Text>
+                        )}
+                        <View style={styles.choicesContainer}>
+                            {currentQuestion.choices?.map(choice => {
+                                const isSelected = userAnswer === choice.value || userAnswer === choice.text;
+                                const isCorrectChoice = isCorrect !== null && choice.value === currentQuestion.positionValue;
+                                const isWrongChoice = isCorrect !== null && isSelected && !isCorrect;
+                                return (
+                                    <TouchableOpacity
+                                        key={choice.id}
+                                        style={[
+                                            styles.choiceButton,
+                                            isSelected && styles.selectedChoice,
+                                            isCorrectChoice && styles.correctChoice,
+                                            isWrongChoice && styles.wrongChoice
+                                        ]}
+                                        onPress={() => setUserAnswer(choice.value || choice.text)}
+                                        disabled={isCorrect !== null}
+                                    >
+                                        <Text style={styles.choiceText}>{choice.text}</Text>
+                                    </TouchableOpacity>
+                                );
+                            })}
                         </View>
                     </View>
                 );
@@ -1558,6 +1889,7 @@ const NewLessonGame = ({ navigation, route }) => {
             case 'MATCH_PICTURE':
             case 'LISTEN_CHOOSE':
             case 'PICTURE_MATCH':
+            case 'MULTIPLE_CHOICE':
             case 'MATCH_LETTER':
             case 'FILL_BLANK':
                 correct = userAnswer === currentQuestion.correctText;
@@ -1580,11 +1912,24 @@ const NewLessonGame = ({ navigation, route }) => {
                 break;
         }
         
+        // เก็บคำตอบสำหรับการคำนวณสถิติย้อนหลัง
+        answersRef.current[currentQuestIndex] = {
+            questionId: currentQuestion.id ?? currentQuestIndex,
+            answer: userAnswer,
+            correct,
+            answeredAt: Date.now(),
+            questionType: currentQuestion.type
+        };
+
+        const xpReward = correct
+            ? (isLesson2Vowels ? 20 : pointsPerQuestion)
+            : 0;
+
         // อัปเดตความคืบหน้า
         updateGameProgress({
             isCorrect: correct,
             questionType: currentQuestion.type,
-            xp: correct ? 10 : 0
+            xp: xpReward
         });
 
         setIsCorrect(correct);
@@ -1608,6 +1953,7 @@ const NewLessonGame = ({ navigation, route }) => {
                         const accuracyPercent = questions.length > 0
                           ? Math.round((finalProgress.correctAnswers / questions.length) * 100)
                           : 0;
+                        const accuracyRatio = accuracyPercent / 100;
                         const timeSpentSeconds = Math.round(finalProgress.totalTimeSpent / 1000);
 
                         const gameResults = {
@@ -1617,7 +1963,7 @@ const NewLessonGame = ({ navigation, route }) => {
                             timeSpent: timeSpentSeconds,
                             xpEarned: combinedXP,
                             diamondsEarned: combinedDiamonds,
-                            heartsRemaining: hearts,
+                            heartsRemaining: heartsRef.current,
                             streakReward: dailyStreak.rewards,
                             gameType: 'NewLessonGame',
                             completedAt: new Date().toISOString()
@@ -1627,11 +1973,12 @@ const NewLessonGame = ({ navigation, route }) => {
                             lessonId: currentLessonId,
                             category: currentCategory,
                             score,
-                            accuracy: accuracyPercent / 100,
+                            accuracy: accuracyRatio,
+                            accuracyPercent,
                             timeSpent: timeSpentSeconds,
                             questionTypes: finalProgress.questionTypes || {},
                             completedAt: gameResults.completedAt,
-                            heartsRemaining: hearts,
+                            heartsRemaining: heartsRef.current,
                             diamondsEarned: combinedDiamonds,
                             xpEarned: combinedXP,
                             streak: finalProgress.streak || 0,
@@ -1641,6 +1988,22 @@ const NewLessonGame = ({ navigation, route }) => {
                             correctAnswers: finalProgress.correctAnswers,
                             wrongAnswers: finalProgress.wrongAnswers
                         };
+
+                        if (isLesson2Vowels) {
+                            try {
+                                await apiClient.post('/progress/lesson2_vowels/complete', {
+                                    accuracy: accuracyPercent,
+                                    score,
+                                    xpEarned: combinedXP,
+                                    diamondsEarned: combinedDiamonds,
+                                    heartsRemaining: hearts,
+                                    timeSpentSec: timeSpentSeconds,
+                                    unlockedNext: accuracyPercent >= 70
+                                });
+                            } catch (progressError) {
+                                console.warn('⚠️ Unable to record lesson2 vowels progress', progressError?.message);
+                            }
+                        }
 
                         try {
                             const savedSession = await gameProgressService.saveGameSession(sessionPayload);
@@ -1657,6 +2020,9 @@ const NewLessonGame = ({ navigation, route }) => {
                             ...sessionPayload,
                             gameType: 'NewLessonGame'
                         });
+                        if (Number.isFinite(updatedUnified?.hearts)) {
+                            updateLocalHearts(updatedUnified.hearts);
+                        }
 
                         // Persist last game results in unified stats + userData context
                         await updateUnifiedStats({ lastGameResults: gameResults });
@@ -1686,14 +2052,31 @@ const NewLessonGame = ({ navigation, route }) => {
                         clearGameProgress();
                         sessionFinalizedRef.current = true;
 
+                        const summaryTotalXP = Number.isFinite(updatedUnified?.xp)
+                          ? updatedUnified.xp
+                          : Number.isFinite(unifiedStats?.xp)
+                          ? unifiedStats.xp
+                          : getTotalXP();
+                        const summaryLevel = Number.isFinite(updatedUnified?.level)
+                          ? updatedUnified.level
+                          : Number.isFinite(unifiedStats?.level)
+                          ? unifiedStats.level
+                          : getCurrentLevel();
+                        const xpSnapshot = getXpProgress(summaryTotalXP, summaryLevel || 1);
+
                         setSummaryData({
                             ...gameResults,
-                            newLevel: updatedUnified?.level || legacyStats.currentLevel,
-                            totalXP: updatedUnified?.xp ?? legacyStats.totalXP,
-                            totalDiamonds: updatedUnified?.diamonds ?? legacyStats.totalDiamonds,
-                            levelProgress: updatedUnified
-                              ? ((updatedUnified.xp || 0) % 100) / 100
-                              : legacyStats.levelProgress
+                            totalXP: summaryTotalXP,
+                            totalDiamonds: Number.isFinite(updatedUnified?.diamonds)
+                              ? updatedUnified.diamonds
+                              : Number.isFinite(unifiedStats?.diamonds)
+                              ? unifiedStats.diamonds
+                              : legacyStats.totalDiamonds,
+                            newLevel: xpSnapshot.level,
+                            levelProgressPercent: xpSnapshot.percent,
+                            currentLevelXP: xpSnapshot.withinClamped,
+                            nextLevelRequirement: xpSnapshot.requirement,
+                            xpToNextLevel: xpSnapshot.toNext
                         });
                         setShowSummary(true);
                     } catch (err) {
@@ -1705,9 +2088,12 @@ const NewLessonGame = ({ navigation, route }) => {
             });
         }
 
-        setScore(s => s + (correct ? 10 : 0));
-        if (!correct) setHearts(h => Math.max(0, h - 1));
-    }, [currentQuestion, userAnswer]);
+        setScore(s => s + (correct ? pointsPerQuestion : 0));
+        if (!correct) {
+            const nextHearts = Math.max(0, heartsRef.current - 1);
+            syncHearts(nextHearts);
+        }
+    }, [currentQuestion, userAnswer, syncHearts, updateLocalHearts]);
 
     // Update letter mastery
     const updateLetterMastery = (char, correct) => {
@@ -1724,22 +2110,33 @@ const NewLessonGame = ({ navigation, route }) => {
 
     // Finish lesson
     const finishLesson = React.useCallback(async (timeSpentSec = 0) => {
-        await clearAutosnap(currentLessonId);
+        await clearProgress(currentLessonId);
         
         // Calculate rewards and performance metrics
-        const xpGained = score;
-        const diamondsGained = Math.max(2, Math.floor(score / 50));
-        const accuracy = questions.length > 0 ? Math.round((score / (questions.length * 10)) * 100) : 0;
+        const diamondsFromProgress = Math.max(gameProgress.diamondsEarned || 0, 0);
+        const xpGained = isLesson2Vowels ? score * 4 : score;
+        const diamondsGained = isLesson2Vowels
+            ? Math.max(diamondsFromProgress, 3)
+            : Math.max(2, Math.floor(score / 50));
+        const maxScore = questions.length > 0 ? questions.length * pointsPerQuestion : pointsPerQuestion;
+        const accuracy = questions.length > 0 ? Math.round((score / maxScore) * 100) : 0;
         const correctAnswers = gameProgress.correctAnswers;
         const wrongAnswers = gameProgress.wrongAnswers;
         const totalQuestions = questions.length;
         
         // Create comprehensive session data
+        const accuracyRatio = accuracy / 100;
+
         const sessionData = {
-            lessonId: currentLessonId,
+            userId: user?.id,
+            lessonId: isLesson2Vowels ? 'lesson2_vowels' : currentLessonId,
+            lessonKey: isLesson2Vowels ? 'lesson2_vowels' : `level${currentLessonId}`,
             category: currentCategory,
+            gameMode: 'matching', // Default game mode
             score: score,
-            accuracy: accuracy / 100, // Convert to decimal
+            maxScore: maxScore,
+            accuracy: accuracyRatio, // Keep ratio for compatibility
+            accuracyPercent: accuracy,
             timeSpent: timeSpentSec,
             questionTypes: gameProgress.questionTypes || {},
             completedAt: new Date().toISOString(),
@@ -1964,7 +2361,9 @@ const NewLessonGame = ({ navigation, route }) => {
                                     loop
                                     style={styles.userStatAnimation}
                                 />
-                                <Text style={styles.userStatText}>{summaryData.totalXP} XP</Text>
+                                <Text style={styles.userStatText}>
+                                    {summaryData.totalXP?.toLocaleString('th-TH') || 0} XP
+                                </Text>
                             </View>
                             <View style={styles.userStatItem}>
                                 <LottieView
@@ -1973,7 +2372,9 @@ const NewLessonGame = ({ navigation, route }) => {
                                     loop
                                     style={styles.userStatAnimation}
                                 />
-                                <Text style={styles.userStatText}>{summaryData.totalDiamonds} เพชร</Text>
+                                <Text style={styles.userStatText}>
+                                    {summaryData.totalDiamonds?.toLocaleString('th-TH') || 0} เพชร
+                                </Text>
                             </View>
                             <View style={styles.userStatItem}>
                                 <LottieView
@@ -1991,6 +2392,9 @@ const NewLessonGame = ({ navigation, route }) => {
                             <Text style={styles.levelProgressText}>
                                 ความคืบหน้า Level {summaryData.newLevel}
                             </Text>
+                            <Text style={styles.levelProgressSubtext}>
+                                XP สะสม {summaryData.totalXP?.toLocaleString('th-TH') || 0} • เหลือ {summaryData.xpToNextLevel?.toLocaleString('th-TH') ?? 0} XP ถึง Lv.{(summaryData.newLevel || 0) + 1}
+                            </Text>
                             <View style={styles.levelProgressBar}>
                                 <View style={styles.levelProgressTrack}>
                                     <LinearGradient
@@ -1999,12 +2403,12 @@ const NewLessonGame = ({ navigation, route }) => {
                                         end={{ x: 1, y: 0 }}
                                         style={[
                                             styles.levelProgressFill,
-                                            { width: `${summaryData.levelProgress * 100}%` }
+                                            { width: `${summaryData.levelProgressPercent || 0}%` }
                                         ]}
                                     />
                                 </View>
                                 <Text style={styles.levelProgressPercent}>
-                                    {Math.round(summaryData.levelProgress * 100)}%
+                                    {Math.round(summaryData.levelProgressPercent || 0)}%
                                 </Text>
                             </View>
                         </View>
@@ -2042,8 +2446,7 @@ const NewLessonGame = ({ navigation, route }) => {
                 <TouchableOpacity 
                     style={styles.backButton} 
                     onPress={async () => {
-                        // เซฟความคืบหน้าก่อนออก
-                        await saveGameProgress();
+                        await autosave();
                         navigation.goBack();
                     }}
                 >
@@ -2094,7 +2497,7 @@ const NewLessonGame = ({ navigation, route }) => {
                         </View>
                         <View style={styles.progressStatItem}>
                             <FontAwesome name="bullseye" size={12} color="#4ECDC4" />
-                            <Text style={styles.progressStatText}>{gameProgress.accuracy.toFixed(0)}%</Text>
+                            <Text style={styles.progressStatText}>{currentAccuracyPercent}%</Text>
                         </View>
                         <View style={styles.progressStatItem}>
                             <FontAwesome name="fire" size={12} color="#FF8C00" />
@@ -2737,6 +3140,12 @@ const styles = StyleSheet.create({
         color: '#666',
         marginBottom: 10,
         textAlign: 'center',
+    },
+    levelProgressSubtext: {
+        fontSize: 13,
+        color: '#7A8696',
+        textAlign: 'center',
+        marginBottom: 12,
     },
     levelProgressBar: {
         flexDirection: 'row',

@@ -35,6 +35,51 @@ export const fetchConsonants = async () => {
 };
 
 /**
+ * Service for fetching vowel data
+ */
+export const fetchVowels = async () => {
+  try {
+    console.log('🔄 Fetching vowels from API...');
+    const response = await apiClient.get('/vocab/vowels');
+
+    const payload = Array.isArray(response.data?.data)
+      ? response.data.data
+      : Array.isArray(response.data?.vowels)
+        ? response.data.vowels
+        : response.data;
+
+    if (payload && Array.isArray(payload)) {
+      console.log(`✅ Successfully loaded ${payload.length} vowels`);
+
+      return payload.map(item => ({
+        char: item.thai,
+        name: item.nameTH || item.thai,
+        meaning: item.en,
+        roman: item.roman,
+        image: item.imagePath,
+        level: item.level || 'Beginner',
+        lessonKey: item.lessonKey || 'vowels_basic',
+        sound: item.thai,
+        imageKey: item.imagePath
+          ? item.imagePath.split('/').pop()?.replace(/\.[^.]+$/, '')
+          : item.thai,
+        type: item.type || item.position || '',
+        example: item.example,
+        exampleAudio: item.exampleAudio,
+        length: item.length || '',
+        pair: item.pair || '',
+        group: item.group || '',
+      }));
+    }
+
+    throw new Error('Invalid data format received from API');
+  } catch (error) {
+    console.error('❌ Error fetching vowels:', error);
+    throw error;
+  }
+};
+
+/**
  * Get consonants with fallback data if API fails
  */
 export const getConsonantsWithFallback = async () => {
@@ -43,6 +88,64 @@ export const getConsonantsWithFallback = async () => {
   } catch (error) {
     console.warn('⚠️ Using fallback consonants data');
     return getFallbackConsonants();
+  }
+};
+
+/**
+ * Fallback vowels data (32 Thai vowels)
+ */
+const getFallbackVowels = () => {
+  const fallbackVowels = [
+    // Pair 1: อะ / อา
+    { char: 'อะ', name: 'สระอะ', meaning: 'เสียงสระอะ', roman: 'a', length: 'short', pair: 'อา', type: 'back', example: 'กะ', group: 'สระเสียงสั้น' },
+    { char: 'อา', name: 'สระอา', meaning: 'เสียงสระอา', roman: 'aa', length: 'long', pair: 'อะ', type: 'back', example: 'กา', group: 'สระเสียงยาว' },
+    // Pair 2: อิ / อี
+    { char: 'อิ', name: 'สระอิ', meaning: 'เสียงสระอิ', roman: 'i', length: 'short', pair: 'อี', type: 'top', example: 'กิ', group: 'สระเสียงสั้น' },
+    { char: 'อี', name: 'สระอี', meaning: 'เสียงสระอี', roman: 'ii', length: 'long', pair: 'อิ', type: 'top', example: 'กี', group: 'สระเสียงยาว' },
+    // Pair 3: อุ / อู
+    { char: 'อุ', name: 'สระอุ', meaning: 'เสียงสระอุ', roman: 'u', length: 'short', pair: 'อู', type: 'bottom', example: 'กุ', group: 'สระเสียงสั้น' },
+    { char: 'อู', name: 'สระอู', meaning: 'เสียงสระอู', roman: 'uu', length: 'long', pair: 'อุ', type: 'bottom', example: 'กู', group: 'สระเสียงยาว' },
+    // Pair 4: เอะ / เอ
+    { char: 'เอะ', name: 'สระเอะ', meaning: 'เสียงสระเอะ', roman: 'e', length: 'short', pair: 'เอ', type: 'front', example: 'เกะ', group: 'สระเสียงสั้น' },
+    { char: 'เอ', name: 'สระเอ', meaning: 'เสียงสระเอ', roman: 'e', length: 'long', pair: 'เอะ', type: 'front', example: 'เก', group: 'สระเสียงยาว' },
+    // Pair 5: แอะ / แอ
+    { char: 'แอะ', name: 'สระแอะ', meaning: 'เสียงสระแอะ', roman: 'ae', length: 'short', pair: 'แอ', type: 'front', example: 'แกะ', group: 'สระเสียงสั้น' },
+    { char: 'แอ', name: 'สระแอ', meaning: 'เสียงสระแอ', roman: 'ae', length: 'long', pair: 'แอะ', type: 'front', example: 'แก', group: 'สระเสียงยาว' },
+    // Pair 6: โอะ / โอ
+    { char: 'โอะ', name: 'สระโอะ', meaning: 'เสียงสระโอะ', roman: 'o', length: 'short', pair: 'โอ', type: 'front', example: 'โกะ', group: 'สระเสียงสั้น' },
+    { char: 'โอ', name: 'สระโอ', meaning: 'เสียงสระโอ', roman: 'o', length: 'long', pair: 'โอะ', type: 'front', example: 'โก', group: 'สระเสียงยาว' },
+  ];
+
+  return fallbackVowels.map(item => ({
+    ...item,
+    sound: item.sound || item.char,
+    imageKey: item.imageKey || item.char,
+    image: (item.imageKey || item.char) ? `vowels/${item.imageKey || item.char}.jpg` : null,
+    example: item.example,
+    exampleAudio: item.exampleAudio || '',
+    type: item.type,
+    length: item.length,
+    pair: item.pair || '',
+    group: item.group || '',
+    level: 'Beginner',
+    lessonKey: 'vowels_basic'
+  }));
+};
+
+/**
+ * Get vowels with fallback data if API fails
+ */
+export const getVowelsWithFallback = async () => {
+  try {
+    const vowels = await fetchVowels();
+    if (!vowels || vowels.length === 0) {
+      console.warn('⚠️ Vowel API returned empty dataset, using fallback');
+      return getFallbackVowels();
+    }
+    return vowels;
+  } catch (error) {
+    console.warn('⚠️ Using fallback vowels data');
+    return getFallbackVowels();
   }
 };
 
@@ -128,11 +231,15 @@ export const getConsonantDisplayName = (consonant) => {
 
 // Alias for compatibility
 export const getConsonants = fetchConsonants;
+export const getVowels = fetchVowels;
 
 export default {
   fetchConsonants,
   getConsonants,
   getConsonantsWithFallback,
   getConsonantImagePath,
-  getConsonantDisplayName
+  getConsonantDisplayName,
+  fetchVowels,
+  getVowels,
+  getVowelsWithFallback
 };

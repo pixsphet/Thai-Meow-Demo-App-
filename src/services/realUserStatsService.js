@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import apiClient from './apiClient';
+import apiClient, { API_ORIGIN } from './apiClient';
 import { getXpProgress } from '../utils/leveling';
 
 class RealUserStatsService {
@@ -31,7 +31,7 @@ class RealUserStatsService {
     this.lastNetworkCheck = now;
     try {
       // Try to connect to our own backend first
-      const response = await fetch('http://localhost:3000/api/health', { 
+      const response = await fetch(`${API_ORIGIN}/api/health`, { 
         method: 'GET',
         timeout: 5000
       });
@@ -139,10 +139,31 @@ class RealUserStatsService {
       const currentStats = await this.getUserStats();
       
       // Merge updates
-      const mergedStats = {
+      let mergedStats = {
         ...currentStats,
         ...updates,
         lastUpdated: new Date().toISOString()
+      };
+
+      const currentMaxHearts = Number.isFinite(mergedStats.maxHearts)
+        ? mergedStats.maxHearts
+        : Math.max(
+            Number.isFinite(mergedStats.hearts) ? mergedStats.hearts : (currentStats.hearts || 5),
+            Number.isFinite(currentStats.maxHearts) ? currentStats.maxHearts : 5,
+            5
+          );
+      const clampedHearts = Math.max(
+        0,
+        Math.min(
+          Number.isFinite(mergedStats.hearts) ? mergedStats.hearts : currentStats.hearts || currentMaxHearts,
+          currentMaxHearts
+        )
+      );
+
+      mergedStats = {
+        ...mergedStats,
+        maxHearts: currentMaxHearts,
+        hearts: clampedHearts
       };
 
       let updatedStats = mergedStats;
@@ -246,6 +267,7 @@ class RealUserStatsService {
       xp: 0,
       diamonds: 0,
       hearts: 5,
+      maxHearts: 5,
       level: 1,
       streak: 0,
       maxStreak: 0,
@@ -274,9 +296,14 @@ class RealUserStatsService {
 
     const xpEarned = safeNumber(gameResults.xpEarned);
     const diamondsEarned = safeNumber(gameResults.diamondsEarned);
-    const heartsRemaining = gameResults.heartsRemaining !== undefined
-      ? safeNumber(gameResults.heartsRemaining, currentStats.hearts || 5)
-      : (currentStats.hearts || 5);
+    const baseMaxHearts = safeNumber(
+      currentStats.maxHearts,
+      Math.max(safeNumber(currentStats.hearts, 5), 5)
+    );
+    const rawHeartsRemaining = gameResults.heartsRemaining !== undefined
+      ? safeNumber(gameResults.heartsRemaining, currentStats.hearts || baseMaxHearts)
+      : safeNumber(currentStats.hearts, baseMaxHearts);
+    const heartsRemaining = Math.max(0, Math.min(rawHeartsRemaining, baseMaxHearts));
     const timeSpent = safeNumber(gameResults.timeSpent);
     const correctAnswers = safeNumber(gameResults.correctAnswers);
     const wrongAnswers = safeNumber(gameResults.wrongAnswers);
@@ -297,10 +324,11 @@ class RealUserStatsService {
       ? Math.round((aggregateCorrect / totalQuestionsAnswered) * 100)
       : (currentStats.averageAccuracy || accuracyPercent);
 
-    const updates = {
+    let updates = {
       xp: totalXP,
       diamonds: totalDiamonds,
       hearts: heartsRemaining,
+      maxHearts: baseMaxHearts,
       accuracy: accuracyPercent,
       totalTimeSpent: aggregateTime,
       totalSessions,
@@ -328,8 +356,20 @@ class RealUserStatsService {
     updates.nextLevelXP = xpSnapshot.requirement;
     updates.xpToNextLevel = xpSnapshot.toNext;
     updates.levelProgressPercent = xpSnapshot.percent;
-    if (xpSnapshot.level > safeNumber(currentStats.level, 1)) {
-      console.log(`🎉 Level up! New level: ${xpSnapshot.level}`);
+    const previousLevel = safeNumber(currentStats.level, 1);
+    const levelDiff = xpSnapshot.level - previousLevel;
+    if (levelDiff > 0) {
+      console.log(`🎉 Level up! New level: ${xpSnapshot.level} (was ${previousLevel})`);
+      const boostedMaxHearts = baseMaxHearts + levelDiff;
+      const boostedHearts = Math.min(
+        boostedMaxHearts,
+        Math.max(0, heartsRemaining + levelDiff)
+      );
+      updates = {
+        ...updates,
+        hearts: boostedHearts,
+        maxHearts: boostedMaxHearts
+      };
     }
 
     // Calculate streak

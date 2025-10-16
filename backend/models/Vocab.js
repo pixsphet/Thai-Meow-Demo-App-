@@ -45,6 +45,41 @@ const VocabSchema = new mongoose.Schema({
     default: '',
     trim: true
   },
+  example: {
+    type: String,
+    default: '',
+    trim: true
+  },
+  exampleAudio: {
+    type: String,
+    default: '',
+    trim: true
+  },
+  length: {
+    type: String,
+    enum: ['short', 'long', 'diphthong', 'special', ''],
+    default: ''
+  },
+  pair: {
+    type: String,
+    default: '',
+    trim: true
+  },
+  meaning: {
+    type: String,
+    default: '',
+    trim: true
+  },
+  group: {
+    type: String,
+    default: '',
+    trim: true
+  },
+  position: {
+    type: String,
+    enum: ['front', 'back', 'top', 'bottom', '', null],
+    default: ''
+  },
   // Additional fields for game logic
   difficulty: {
     type: Number,

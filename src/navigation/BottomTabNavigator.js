@@ -3,7 +3,6 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
 
 // Screens
 import HomeScreen from '../screens/HomeScreen';
@@ -19,11 +18,10 @@ import GameModeSelector from '../components/GameModeSelector';
 import LevelStage1 from '../screens/LevelStage1';
 import LevelStage2 from '../screens/LevelStage2';
 import LevelStage3 from '../screens/LevelStage3';
-import { ThaiVowelsGame } from '../screens/Beginner/Stage2-Vowels';
+import ThaiVowelGame from '../screens/ThaiVowelGame';
 import ThaiTonesGame from '../screens/ThaiTonesGame';
+import Lesson3Game from '../screens/Lesson3Game';
 
-// Components
-// import CustomTabBar from '../components/CustomTabBar';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -99,7 +97,7 @@ const MainStackNavigator = () => {
       />
       <Stack.Screen 
         name="BeginnerVowelsStage" 
-        component={ThaiVowelsGame} 
+        component={ThaiVowelGame} 
         options={{ headerShown: false }}
       />
       <Stack.Screen 
@@ -110,6 +108,11 @@ const MainStackNavigator = () => {
       <Stack.Screen 
         name="ThaiTones" 
         component={ThaiTonesGame} 
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="Lesson3Game" 
+        component={Lesson3Game} 
         options={{ headerShown: false }}
       />
     </Stack.Navigator>

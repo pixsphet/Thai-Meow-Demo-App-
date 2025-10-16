@@ -12,7 +12,7 @@ router.get('/stats', auth, getCurrentUserStats);
 // /api/user/stats - Update current user stats (from JWT)
 router.post('/stats', auth, updateCurrentUserStats);
 
-// /api/user/profile - Update user profile
+// /api/user/profile - Update user profile  
 router.put('/profile', auth, updateUserProfile);
 
 // /api/user/unlock-level - Unlock a level for user

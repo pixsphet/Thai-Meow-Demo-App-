@@ -432,50 +432,6 @@ const ProgressScreen = ({ navigation }) => {
           )}
         </View>
 
-        {/* Quick Actions */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>เริ่มเรียน</Text>
-          <View style={styles.quickActions}>
-            <TouchableOpacity 
-              style={styles.quickActionButton}
-              onPress={() => navigation.navigate('ConsonantLearn')}
-            >
-              <LinearGradient
-                colors={['#FF6B6B', '#FF8E8E']}
-                style={styles.quickActionGradient}
-              >
-                <MaterialCommunityIcons name="alphabetical" size={24} color="white" />
-                <Text style={styles.quickActionText}>พยัญชนะ</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={styles.quickActionButton}
-              onPress={() => navigation.navigate('BeginnerVowelsStage')}
-            >
-              <LinearGradient
-                colors={['#4ECDC4', '#6BCF7F']}
-                style={styles.quickActionGradient}
-              >
-                <MaterialCommunityIcons name="format-letter-case" size={24} color="white" />
-                <Text style={styles.quickActionText}>สระ</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={styles.quickActionButton}
-              onPress={() => navigation.navigate('ThaiTones')}
-            >
-              <LinearGradient
-                colors={['#FF9800', '#FFB74D']}
-                style={styles.quickActionGradient}
-              >
-                <MaterialCommunityIcons name="music-note" size={24} color="white" />
-                <Text style={styles.quickActionText}>วรรณยุกต์</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
-        </View>
       </ScrollView>
       
       {/* Custom Tab Bar - Same as HomeScreen */}
@@ -783,26 +739,6 @@ const styles = StyleSheet.create({
   emptyStateText: {
     fontSize: 16,
     marginTop: 10,
-  },
-  quickActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  quickActionButton: {
-    flex: 1,
-    marginHorizontal: 5,
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  quickActionGradient: {
-    padding: 15,
-    alignItems: 'center',
-  },
-  quickActionText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginTop: 5,
   },
   loadingContainer: {
     flex: 1,
