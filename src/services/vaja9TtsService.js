@@ -95,43 +95,49 @@ const playViaVajaX = async (text, options = {}) => {
     throw new Error('No audio data returned from backend');
   }
 
-  let fileUri;
-
   if (ttsData.audioUrl) {
-    // Download from URL
-    console.log('📥 [TTS] Downloading audio from URL:', ttsData.audioUrl);
-    fileUri = `${FileSystem.cacheDirectory}tts-${Date.now()}.wav`;
+    // Play directly from URL (real-time, no waiting for download)
+    console.log('🎵 [TTS] Playing audio directly from URL (real-time):', ttsData.audioUrl);
     
     try {
-      const result = await FileSystem.downloadAsync(ttsData.audioUrl, fileUri);
-      console.log('✅ [TTS] Audio downloaded:', result.uri);
+      const sound = new Audio.Sound();
+      await sound.loadAsync({ uri: ttsData.audioUrl });
+      await sound.playAsync();
+
+      currentPlayback = { sound, fileUri: null };
+
+      sound.setOnPlaybackStatusUpdate(async (status) => {
+        if (status.didJustFinish || status.isLoaded === false) {
+          await releaseCurrentPlayback();
+        }
+      });
     } catch (error) {
-      console.error('❌ [TTS] Failed to download audio from URL:', error?.message);
-      throw new Error(`Failed to download audio: ${error?.message}`);
+      console.error('❌ [TTS] Failed to play audio from URL:', error?.message);
+      throw new Error(`Failed to play audio: ${error?.message}`);
     }
   } else {
-    // Legacy: Use base64
-    console.log('📝 [TTS] Using base64 audio data');
+    // Legacy: Use base64 (fallback)
+    console.log('📝 [TTS] Using base64 audio data (fallback)');
     const extension = resolveFileExtension(ttsData.mimeType);
-    fileUri = `${FileSystem.cacheDirectory}tts-${Date.now()}.${extension}`;
+    const fileUri = `${FileSystem.cacheDirectory}tts-${Date.now()}.${extension}`;
     const encoding = FileSystem.EncodingType?.Base64 || 'base64';
     
     await FileSystem.writeAsStringAsync(fileUri, ttsData.audioBase64, {
       encoding,
     });
+
+    const sound = new Audio.Sound();
+    await sound.loadAsync({ uri: fileUri });
+    await sound.playAsync();
+
+    currentPlayback = { sound, fileUri };
+
+    sound.setOnPlaybackStatusUpdate(async (status) => {
+      if (status.didJustFinish || status.isLoaded === false) {
+        await releaseCurrentPlayback();
+      }
+    });
   }
-
-  const sound = new Audio.Sound();
-  await sound.loadAsync({ uri: fileUri });
-  await sound.playAsync();
-
-  currentPlayback = { sound, fileUri };
-
-  sound.setOnPlaybackStatusUpdate(async (status) => {
-    if (status.didJustFinish || status.isLoaded === false) {
-      await releaseCurrentPlayback();
-    }
-  });
 };
 
 const speakWithExpo = async (text, options = {}) => {
