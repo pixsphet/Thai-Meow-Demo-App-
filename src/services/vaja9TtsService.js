@@ -34,9 +34,11 @@ const loadAudioCache = async () => {
 const saveAudioCache = async () => {
   try {
     const cacheObj = Object.fromEntries(audioCache);
+    console.log('💾 [TTS] Saving cache to AsyncStorage...', Object.keys(cacheObj).length, 'items');
     await AsyncStorage.setItem(TTS_CACHE_KEY, JSON.stringify(cacheObj));
+    console.log('✅ [TTS] Cache saved successfully!');
   } catch (error) {
-    console.warn('⚠️ [TTS] Failed to save cache:', error?.message);
+    console.error('❌ [TTS] Failed to save cache:', error?.message);
   }
 };
 
@@ -122,16 +124,19 @@ const resolveFileExtension = (mimeType) => {
 
 const playViaVajaX = async (text, options = {}) => {
   const cacheKey = `${text}:${options.speaker || 'default'}`;
+  console.log('🔍 [TTS] Checking cache for:', cacheKey, '| Cache size:', audioCache.size);
   
   // Check if audio URL is already cached
   if (audioCache.has(cacheKey)) {
     console.log('⚡ [TTS] Playing from cache (instant!):', cacheKey);
     const cachedUrl = audioCache.get(cacheKey);
+    console.log('⚡ [TTS] Cached URL:', cachedUrl);
     
     try {
       await configureAudioSession();
       const sound = new Audio.Sound();
       await sound.loadAsync({ uri: cachedUrl });
+      console.log('✅ [TTS] Cache audio loaded, playing...');
       await sound.playAsync();
 
       currentPlayback = { sound, fileUri: null };
@@ -149,6 +154,7 @@ const playViaVajaX = async (text, options = {}) => {
     }
   }
 
+  console.log('📝 [TTS] Cache miss, need to request from API');
   const payload = {
     text,
     speaker: options.speaker,
