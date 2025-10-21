@@ -111,10 +111,10 @@ const HomeScreen = ({ navigation }) => {
   const languageLevels = [
     {
       id: 'thai-consonants',
-      level: 'พยัญชนะไทย ก-ฮ',
-      description: 'เรียนรู้พยัญชนะพื้นฐาน 44 ตัว พร้อมภาพประกอบและเสียงอ่าน',
+      level: 'หมวดการเรียน พยัญชนะ สระ และ วรรณยุกต์ เริ่มต้น',
+      description: 'สำรวจบทเรียนพื้นฐานสำหรับพยัญชนะ สระ และวรรณยุกต์ พร้อมภาพและเสียงประกอบ',
       color: '#FF8C00', // สีส้มหลัก
-        image: require('../assets/images/Grumpy Cat-Photoroom.png'),
+      image: require('../assets/images/Grumpy Cat.png'),
       stageCount: 44,
       completedStages: 0,
     },
@@ -123,7 +123,7 @@ const HomeScreen = ({ navigation }) => {
       level: 'Level 1 - Beginner',
       description: 'เรียนรู้คำศัพท์พื้นฐาน การออกเสียง และประโยคง่ายๆ',
       color: '#FFA500', // สีส้มอ่อน
-        image: require('../assets/images/Grumpy Cat-Photoroom.png'),
+      image: require('../assets/images/Catsmile.png'),
       stageCount: 10,
       completedStages: 0,
     },
@@ -132,7 +132,7 @@ const HomeScreen = ({ navigation }) => {
       level: 'Level 2 - Intermediate',
       description: 'พัฒนาทักษะการพูด ฟัง อ่าน เขียน สำหรับการใช้ในชีวิตประจำวัน',
       color: '#FF6B35', // สีส้มแดง
-      image: require('../assets/images/happy.png'),
+      image: require('../assets/images/Catsmile1.png'),
       stageCount: 10,
       completedStages: 0,
     },
@@ -141,7 +141,7 @@ const HomeScreen = ({ navigation }) => {
       level: 'Level 3 - Advanced',
       description: 'สำหรับผู้เชี่ยวชาญในสำนวน ไวยากรณ์ และการสนทนาที่ซับซ้อน',
       color: '#E67300', // สีส้มเข้ม
-      image: require('../assets/images/catcry-Photoroom.png'),
+      image: require('../assets/images/happy.png'),
       stageCount: 10,
       completedStages: 0,
     },
@@ -153,7 +153,12 @@ const HomeScreen = ({ navigation }) => {
       // Navigate ไปหน้า level selection สำหรับแต่ละ level
       switch (levelId) {
         case 'thai-consonants':
-          navigation.navigate('ConsonantLearn', { levelId });
+          navigation.navigate('ConsonantLearn', {
+            lessonId: 1,
+            category: 'thai-consonants',
+            level: 'Beginner',
+            stageTitle: 'พยัญชนะพื้นฐาน ก-ฮ',
+          });
           break;
         case 'beginner':
           navigation.navigate('LevelStage1', { levelId, level: 'Beginner' });
@@ -213,13 +218,14 @@ const HomeScreen = ({ navigation }) => {
       shadowRadius: 10,
       shadowOffset: { width: 0, height: 2 },
       borderTopWidth: 0,
-      height: 68,
+      height: 72,
       borderRadius: 18,
       paddingBottom: 8,
       paddingTop: 8,
+      paddingHorizontal: 4,
       overflow: 'hidden',
       flexDirection: 'row',
-      justifyContent: 'space-around',
+      justifyContent: 'space-between',
       alignItems: 'center',
     };
 
@@ -229,6 +235,12 @@ const HomeScreen = ({ navigation }) => {
         label: 'หน้าแรก',
         icon: 'home',
         screen: 'HomeMain',
+      },
+      {
+        name: 'Minigame',
+        label: 'เกม',
+        icon: 'gamepad',
+        screen: 'Minigame',
       },
       {
         name: 'Progress',
@@ -259,20 +271,23 @@ const HomeScreen = ({ navigation }) => {
               flex: 1,
               alignItems: 'center',
               justifyContent: 'center',
-              paddingVertical: 8,
+              paddingVertical: 6,
+              paddingHorizontal: 2,
+              minWidth: 60,
             }}
             onPress={() => navigation.navigate(item.screen)}
           >
           <FontAwesome 
             name={item.icon} 
-            size={24} 
+            size={22} 
             color={item.name === 'Home' ? '#FF8000' : '#666'}
           />
           <Text style={{
-            fontSize: 12,
+            fontSize: 11,
             fontWeight: '500',
             color: item.name === 'Home' ? '#FF8000' : '#666',
-            marginTop: 4,
+            marginTop: 3,
+            textAlign: 'center',
           }}>
               {item.label}
             </Text>
@@ -314,6 +329,12 @@ const HomeScreen = ({ navigation }) => {
                 />
               </View>
               <Text style={styles.badgeValue}>{statsLoading ? '...' : hearts}</Text>
+              <TouchableOpacity 
+                style={styles.addButton}
+                onPress={() => navigation.navigate('GemShop')}
+              >
+                <Text style={styles.addButtonText}>+</Text>
+              </TouchableOpacity>
             </View>
 
             {/* Diamonds */}
@@ -327,6 +348,12 @@ const HomeScreen = ({ navigation }) => {
                 />
               </View>
               <Text style={styles.badgeValue}>{statsLoading ? '...' : diamonds}</Text>
+              <TouchableOpacity 
+                style={styles.addButton}
+                onPress={() => navigation.navigate('GemShop')}
+              >
+                <Text style={styles.addButtonText}>+</Text>
+              </TouchableOpacity>
             </View>
 
             {/* Data Sync Indicator - Small Icon */}
@@ -415,6 +442,132 @@ const HomeScreen = ({ navigation }) => {
         </View>
 
         {/* Quick Actions removed per request */}
+
+        {/* Test Section */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>🧪 ทดสอบระบบ</Text>
+          
+          <TouchableOpacity
+            style={[styles.minigameCard, { backgroundColor: '#FFF5E5', marginBottom: 15 }]}
+            onPress={() => navigation.navigate('TestConsonantGame')}
+          >
+            <View style={styles.minigameContent}>
+              <View style={styles.minigameIconContainer}>
+                <Text style={styles.testIcon}>ก</Text>
+              </View>
+              <View style={styles.minigameText}>
+                <Text style={[styles.minigameTitle, { color: '#333' }]}>
+                  ทดสอบ ConsonantStage1Game
+                </Text>
+                <Text style={[styles.minigameSubtitle, { color: '#666' }]}>
+                  พยัญชนะ ก-ฮ • 12 คำถาม
+                </Text>
+                <View style={styles.minigameFeatures}>
+                  <Text style={[styles.minigameFeature, { color: '#666' }]}>
+                    🎧 ฟังเสียง • 🖼️ ดูรูป • 🧩 จับคู่ • 📝 เติมคำ • 🔤 เรียงคำ
+                  </Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={24} color="#666" />
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        {/* Minigames Section */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>🎮 เกมสนุก ๆ</Text>
+          
+          {/* Lesson3Game Test Button */}
+         <TouchableOpacity
+           style={[styles.minigameCard, { backgroundColor: '#FFE4E1', marginBottom: 15 }]}
+           onPress={() => navigation.navigate('Lesson3Game', {
+             lessonId: 3,
+             category: 'greetings',
+             level: 'Beginner',
+             stageTitle: 'คำทักทาย 10 คำ'
+           })}
+         >
+           <View style={styles.minigameContent}>
+             <View style={styles.minigameIconContainer}>
+               <Text style={styles.testIcon}>👋</Text>
+             </View>
+             <View style={styles.minigameText}>
+               <Text style={[styles.minigameTitle, { color: '#333' }]}>
+                 ทดสอบ Lesson3Game
+               </Text>
+               <Text style={[styles.minigameSubtitle, { color: '#666' }]}>
+                 คำทักทาย 10 คำ • 15 คำถาม
+               </Text>
+               <View style={styles.minigameFeatures}>
+                 <Text style={[styles.minigameFeature, { color: '#666' }]}>
+                   🎧 ฟังเสียง • 🖼️ ดูรูป • 🧩 จับคู่
+                 </Text>
+               </View>
+             </View>
+             <Ionicons name="chevron-forward" size={24} color="#666" />
+           </View>
+         </TouchableOpacity>
+
+         <TouchableOpacity
+           style={[styles.minigameCard, { backgroundColor: '#E3F2FD', marginBottom: 15 }]}
+           onPress={() => navigation.navigate('Lesson4Game', {
+             lessonId: 4,
+             category: 'time',
+             level: 'Beginner',
+             stageTitle: 'เวลา & ตารางชีวิตประจำวัน'
+           })}
+         >
+           <View style={styles.minigameContent}>
+             <View style={styles.minigameIconContainer}>
+               <Text style={styles.testIcon}>⏰</Text>
+             </View>
+             <View style={styles.minigameText}>
+               <Text style={[styles.minigameTitle, { color: '#333' }]}>
+                 ทดสอบ Lesson4Game
+               </Text>
+               <Text style={[styles.minigameSubtitle, { color: '#666' }]}>
+                 เวลา & กิจวัตร 14 คำ • 21 คำถาม
+               </Text>
+               <View style={styles.minigameFeatures}>
+                 <Text style={[styles.minigameFeature, { color: '#666' }]}>
+                   🎧 ฟังเสียง • 🖼️ ดูรูป • 🧩 จับคู่ • 📝 เติมคำ
+                 </Text>
+               </View>
+             </View>
+             <Ionicons name="chevron-forward" size={24} color="#666" />
+           </View>
+         </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.minigameCard, { backgroundColor: theme.card }]}
+            onPress={() => navigation.navigate('Minigame')}
+          >
+            <View style={styles.minigameContent}>
+              <View style={styles.minigameIconContainer}>
+                <LottieView
+                  source={require('../assets/animations/GameCat.json')}
+                  autoPlay
+                  loop
+                  style={styles.minigameAnimation}
+                />
+              </View>
+              <View style={styles.minigameText}>
+                <Text style={[styles.minigameTitle, { color: theme.text }]}>
+                  Mini Games
+                </Text>
+                <Text style={[styles.minigameSubtitle, { color: theme.textSecondary }]}>
+                  เล่นเกมสนุก ๆ เพื่อฝึกภาษาไทย
+                </Text>
+                <View style={styles.minigameFeatures}>
+                  <Text style={[styles.minigameFeature, { color: theme.textSecondary }]}>
+                    🔍 Word Finder • 🧩 Word Scramble
+                  </Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={24} color={theme.textSecondary} />
+            </View>
+          </TouchableOpacity>
+        </View>
 
         {/* Daily Challenge */}
         <View style={styles.section}>
@@ -617,6 +770,58 @@ const styles = StyleSheet.create({
     opacity: 0.9,
     textAlign: 'center',
   },
+  minigameCard: {
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    borderWidth: 2,
+    borderColor: '#8b5cf6',
+  },
+  minigameContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  minigameIconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  testIcon: {
+    fontSize: 30,
+  },
+  minigameAnimation: {
+    width: 40,
+    height: 40,
+  },
+  minigameText: {
+    flex: 1,
+  },
+  minigameTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#8b5cf6',
+  },
+  minigameSubtitle: {
+    fontSize: 14,
+    marginTop: 4,
+    marginBottom: 8,
+  },
+  minigameFeatures: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  minigameFeature: {
+    fontSize: 12,
+    fontStyle: 'italic',
+  },
   dailyChallenge: {
     borderRadius: 16,
     padding: 20,
@@ -788,6 +993,29 @@ const styles = StyleSheet.create({
   tipDescription: {
     fontSize: 14,
     lineHeight: 20,
+  },
+  // Add Button Styles
+  addButton: {
+    position: 'absolute',
+    top: -5,
+    right: -5,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#FF6B6B',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#FF6B6B',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  addButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+    lineHeight: 16,
   },
 });
 

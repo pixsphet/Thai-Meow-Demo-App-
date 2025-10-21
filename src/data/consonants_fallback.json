@@ -1,0 +1,362 @@
+[
+  {
+    "id": "ก",
+    "char": "ก",
+    "name": "กอ-ไก่",
+    "roman": "Ko Kai",
+    "meaningTH": "ไก่",
+    "meaningEN": "chicken",
+    "image": "ก",
+    "audioText": "กอ-ไก่"
+  },
+  {
+    "id": "ข",
+    "char": "ข",
+    "name": "ขอ-ไข่",
+    "roman": "Kho Khai",
+    "meaningTH": "ไข่",
+    "meaningEN": "egg",
+    "image": "ข",
+    "audioText": "ขอ-ไข่"
+  },
+  {
+    "id": "ค",
+    "char": "ค",
+    "name": "คอ-ควาย",
+    "roman": "Kho Khwai",
+    "meaningTH": "ควาย",
+    "meaningEN": "buffalo",
+    "image": "ค",
+    "audioText": "คอ-ควาย"
+  },
+  {
+    "id": "ฆ",
+    "char": "ฆ",
+    "name": "ฆอ-ระฆัง",
+    "roman": "Kho Rakhang",
+    "meaningTH": "ระฆัง",
+    "meaningEN": "bell",
+    "image": "ฆ",
+    "audioText": "ฆอ-ระฆัง"
+  },
+  {
+    "id": "ง",
+    "char": "ง",
+    "name": "งอ-งู",
+    "roman": "Ngo Ngu",
+    "meaningTH": "งู",
+    "meaningEN": "snake",
+    "image": "ง",
+    "audioText": "งอ-งู"
+  },
+  {
+    "id": "จ",
+    "char": "จ",
+    "name": "จอ-จาน",
+    "roman": "Jo Jan",
+    "meaningTH": "จาน",
+    "meaningEN": "plate",
+    "image": "จ",
+    "audioText": "จอ-จาน"
+  },
+  {
+    "id": "ฉ",
+    "char": "ฉ",
+    "name": "ฉอ-ฉิ่ง",
+    "roman": "Cho Ching",
+    "meaningTH": "ฉิ่ง",
+    "meaningEN": "cymbals",
+    "image": "ฉ",
+    "audioText": "ฉอ-ฉิ่ง"
+  },
+  {
+    "id": "ช",
+    "char": "ช",
+    "name": "ชอ-ช้าง",
+    "roman": "Cho Chang",
+    "meaningTH": "ช้าง",
+    "meaningEN": "elephant",
+    "image": "ช",
+    "audioText": "ชอ-ช้าง"
+  },
+  {
+    "id": "ซ",
+    "char": "ซ",
+    "name": "ซอ-โซ่",
+    "roman": "So So",
+    "meaningTH": "โซ่",
+    "meaningEN": "chain",
+    "image": "ซ",
+    "audioText": "ซอ-โซ่"
+  },
+  {
+    "id": "ฌ",
+    "char": "ฌ",
+    "name": "ฌอ-เฌอ",
+    "roman": "Cho Choe",
+    "meaningTH": "เฌอ",
+    "meaningEN": "tree",
+    "image": "ฌ",
+    "audioText": "ฌอ-เฌอ"
+  },
+  {
+    "id": "ญ",
+    "char": "ญ",
+    "name": "ญอ-หญิง",
+    "roman": "Yo Ying",
+    "meaningTH": "หญิง",
+    "meaningEN": "woman",
+    "image": "ญ",
+    "audioText": "ญอ-หญิง"
+  },
+  {
+    "id": "ด",
+    "char": "ด",
+    "name": "ดอ-เด็ก",
+    "roman": "Do Dek",
+    "meaningTH": "เด็ก",
+    "meaningEN": "child",
+    "image": "ด",
+    "audioText": "ดอ-เด็ก"
+  },
+  {
+    "id": "ต",
+    "char": "ต",
+    "name": "ตอ-เต่า",
+    "roman": "To Tao",
+    "meaningTH": "เต่า",
+    "meaningEN": "turtle",
+    "image": "ต",
+    "audioText": "ตอ-เต่า"
+  },
+  {
+    "id": "ถ",
+    "char": "ถ",
+    "name": "ถอ-ถุง",
+    "roman": "Tho Thung",
+    "meaningTH": "ถุง",
+    "meaningEN": "bag",
+    "image": "ถ",
+    "audioText": "ถอ-ถุง"
+  },
+  {
+    "id": "ท",
+    "char": "ท",
+    "name": "ทอ-ทหาร",
+    "roman": "Tho Thahan",
+    "meaningTH": "ทหาร",
+    "meaningEN": "soldier",
+    "image": "ท",
+    "audioText": "ทอ-ทหาร"
+  },
+  {
+    "id": "ธ",
+    "char": "ธ",
+    "name": "ธอ-ธง",
+    "roman": "Tho Thong",
+    "meaningTH": "ธง",
+    "meaningEN": "flag",
+    "image": "ธ",
+    "audioText": "ธอ-ธง"
+  },
+  {
+    "id": "น",
+    "char": "น",
+    "name": "นอ-หนู",
+    "roman": "No Nu",
+    "meaningTH": "หนู",
+    "meaningEN": "mouse",
+    "image": "น",
+    "audioText": "นอ-หนู"
+  },
+  {
+    "id": "บ",
+    "char": "บ",
+    "name": "บอ-ใบไม้",
+    "roman": "Bo Baimai",
+    "meaningTH": "ใบไม้",
+    "meaningEN": "leaf",
+    "image": "บ",
+    "audioText": "บอ-ใบไม้"
+  },
+  {
+    "id": "ป",
+    "char": "ป",
+    "name": "ปอ-ปลา",
+    "roman": "Po Pla",
+    "meaningTH": "ปลา",
+    "meaningEN": "fish",
+    "image": "ป",
+    "audioText": "ปอ-ปลา"
+  },
+  {
+    "id": "ผ",
+    "char": "ผ",
+    "name": "ผอ-ผึ้ง",
+    "roman": "Pho Phueng",
+    "meaningTH": "ผึ้ง",
+    "meaningEN": "bee",
+    "image": "ผ",
+    "audioText": "ผอ-ผึ้ง"
+  },
+  {
+    "id": "ฝ",
+    "char": "ฝ",
+    "name": "ฝอ-ฝา",
+    "roman": "Fo Fa",
+    "meaningTH": "ฝา",
+    "meaningEN": "lid",
+    "image": "ฝ",
+    "audioText": "ฝอ-ฝา"
+  },
+  {
+    "id": "พ",
+    "char": "พ",
+    "name": "พอ-พาน",
+    "roman": "Pho Phan",
+    "meaningTH": "พาน",
+    "meaningEN": "tray",
+    "image": "พ",
+    "audioText": "พอ-พาน"
+  },
+  {
+    "id": "ฟ",
+    "char": "ฟ",
+    "name": "ฟอ-ฟัน",
+    "roman": "Fo Fan",
+    "meaningTH": "ฟัน",
+    "meaningEN": "tooth",
+    "image": "ฟ",
+    "audioText": "ฟอ-ฟัน"
+  },
+  {
+    "id": "ภ",
+    "char": "ภ",
+    "name": "ภอ-สำเภา",
+    "roman": "Pho Samphao",
+    "meaningTH": "สำเภา",
+    "meaningEN": "junk",
+    "image": "ภ",
+    "audioText": "ภอ-สำเภา"
+  },
+  {
+    "id": "ม",
+    "char": "ม",
+    "name": "มอ-ม้า",
+    "roman": "Mo Ma",
+    "meaningTH": "ม้า",
+    "meaningEN": "horse",
+    "image": "ม",
+    "audioText": "มอ-ม้า"
+  },
+  {
+    "id": "ย",
+    "char": "ย",
+    "name": "ยอ-ยักษ์",
+    "roman": "Yo Yak",
+    "meaningTH": "ยักษ์",
+    "meaningEN": "giant",
+    "image": "ย",
+    "audioText": "ยอ-ยักษ์"
+  },
+  {
+    "id": "ร",
+    "char": "ร",
+    "name": "รอ-เรือ",
+    "roman": "Ro Ruea",
+    "meaningTH": "เรือ",
+    "meaningEN": "boat",
+    "image": "ร",
+    "audioText": "รอ-เรือ"
+  },
+  {
+    "id": "ล",
+    "char": "ล",
+    "name": "ลอ-ลิง",
+    "roman": "Lo Ling",
+    "meaningTH": "ลิง",
+    "meaningEN": "monkey",
+    "image": "ล",
+    "audioText": "ลอ-ลิง"
+  },
+  {
+    "id": "ว",
+    "char": "ว",
+    "name": "วอ-แหวน",
+    "roman": "Wo Waen",
+    "meaningTH": "แหวน",
+    "meaningEN": "ring",
+    "image": "ว",
+    "audioText": "วอ-แหวน"
+  },
+  {
+    "id": "ศ",
+    "char": "ศ",
+    "name": "ศอ-ศาลา",
+    "roman": "So Sala",
+    "meaningTH": "ศาลา",
+    "meaningEN": "pavilion",
+    "image": "ศ",
+    "audioText": "ศอ-ศาลา"
+  },
+  {
+    "id": "ษ",
+    "char": "ษ",
+    "name": "ษอ-ฤาษี",
+    "roman": "So Ruessi",
+    "meaningTH": "ฤาษี",
+    "meaningEN": "hermit",
+    "image": "ษ",
+    "audioText": "ษอ-ฤาษี"
+  },
+  {
+    "id": "ส",
+    "char": "ส",
+    "name": "สอ-เสือ",
+    "roman": "So Suea",
+    "meaningTH": "เสือ",
+    "meaningEN": "tiger",
+    "image": "ส",
+    "audioText": "สอ-เสือ"
+  },
+  {
+    "id": "ห",
+    "char": "ห",
+    "name": "หอ-หีบ",
+    "roman": "Ho Hip",
+    "meaningTH": "หีบ",
+    "meaningEN": "box",
+    "image": "ห",
+    "audioText": "หอ-หีบ"
+  },
+  {
+    "id": "ฬ",
+    "char": "ฬ",
+    "name": "ฬอ-จุฬา",
+    "roman": "Lo Chula",
+    "meaningTH": "จุฬา",
+    "meaningEN": "kite",
+    "image": "ฬ",
+    "audioText": "ฬอ-จุฬา"
+  },
+  {
+    "id": "อ",
+    "char": "อ",
+    "name": "ออ-อ่าง",
+    "roman": "O Ang",
+    "meaningTH": "อ่าง",
+    "meaningEN": "basin",
+    "image": "อ",
+    "audioText": "ออ-อ่าง"
+  },
+  {
+    "id": "ฮ",
+    "char": "ฮ",
+    "name": "ฮอ-นกฮูก",
+    "roman": "Ho Nok Huk",
+    "meaningTH": "นกฮูก",
+    "meaningEN": "owl",
+    "image": "ฮ",
+    "audioText": "ฮอ-นกฮูก"
+  }
+]

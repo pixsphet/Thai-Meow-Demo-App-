@@ -1,8 +1,46 @@
 import apiClient from './apiClient';
+import fallbackVowelsData from '../data/vowels_fallback.json';
 
 /**
  * Service for fetching vocabulary data, specifically consonants
  */
+
+/**
+ * Service for fetching greetings vocabulary
+ */
+export const fetchGreetings = async () => {
+  try {
+    console.log('🔄 Fetching greetings from API...');
+    const response = await apiClient.get('/greetings');
+    
+    const payload = Array.isArray(response.data?.data) ? response.data.data : response.data;
+    if (payload && Array.isArray(payload)) {
+      console.log(`✅ Successfully loaded ${payload.length} greetings`);
+      
+      // Transform data for game use
+      const greetings = payload.map(item => ({
+        thai: item.thai,
+        roman: item.roman,
+        meaning: item.meaning,
+        example: item.example,
+        tts: item.tts,
+        emoji: item.emoji,
+        category: item.category,
+        lesson: item.lesson,
+        level: item.level,
+        type: item.type,
+        image: item.imagePath
+      }));
+      
+      return greetings;
+    } else {
+      throw new Error('Invalid data format received from API');
+    }
+  } catch (error) {
+    console.error('❌ Error fetching greetings:', error);
+    throw error;
+  }
+};
 export const fetchConsonants = async () => {
   try {
     console.log('🔄 Fetching consonants from API...');
@@ -94,43 +132,24 @@ export const getConsonantsWithFallback = async () => {
 /**
  * Fallback vowels data (32 Thai vowels)
  */
-const getFallbackVowels = () => {
-  const fallbackVowels = [
-    // Pair 1: อะ / อา
-    { char: 'อะ', name: 'สระอะ', meaning: 'เสียงสระอะ', roman: 'a', length: 'short', pair: 'อา', type: 'back', example: 'กะ', group: 'สระเสียงสั้น' },
-    { char: 'อา', name: 'สระอา', meaning: 'เสียงสระอา', roman: 'aa', length: 'long', pair: 'อะ', type: 'back', example: 'กา', group: 'สระเสียงยาว' },
-    // Pair 2: อิ / อี
-    { char: 'อิ', name: 'สระอิ', meaning: 'เสียงสระอิ', roman: 'i', length: 'short', pair: 'อี', type: 'top', example: 'กิ', group: 'สระเสียงสั้น' },
-    { char: 'อี', name: 'สระอี', meaning: 'เสียงสระอี', roman: 'ii', length: 'long', pair: 'อิ', type: 'top', example: 'กี', group: 'สระเสียงยาว' },
-    // Pair 3: อุ / อู
-    { char: 'อุ', name: 'สระอุ', meaning: 'เสียงสระอุ', roman: 'u', length: 'short', pair: 'อู', type: 'bottom', example: 'กุ', group: 'สระเสียงสั้น' },
-    { char: 'อู', name: 'สระอู', meaning: 'เสียงสระอู', roman: 'uu', length: 'long', pair: 'อุ', type: 'bottom', example: 'กู', group: 'สระเสียงยาว' },
-    // Pair 4: เอะ / เอ
-    { char: 'เอะ', name: 'สระเอะ', meaning: 'เสียงสระเอะ', roman: 'e', length: 'short', pair: 'เอ', type: 'front', example: 'เกะ', group: 'สระเสียงสั้น' },
-    { char: 'เอ', name: 'สระเอ', meaning: 'เสียงสระเอ', roman: 'e', length: 'long', pair: 'เอะ', type: 'front', example: 'เก', group: 'สระเสียงยาว' },
-    // Pair 5: แอะ / แอ
-    { char: 'แอะ', name: 'สระแอะ', meaning: 'เสียงสระแอะ', roman: 'ae', length: 'short', pair: 'แอ', type: 'front', example: 'แกะ', group: 'สระเสียงสั้น' },
-    { char: 'แอ', name: 'สระแอ', meaning: 'เสียงสระแอ', roman: 'ae', length: 'long', pair: 'แอะ', type: 'front', example: 'แก', group: 'สระเสียงยาว' },
-    // Pair 6: โอะ / โอ
-    { char: 'โอะ', name: 'สระโอะ', meaning: 'เสียงสระโอะ', roman: 'o', length: 'short', pair: 'โอ', type: 'front', example: 'โกะ', group: 'สระเสียงสั้น' },
-    { char: 'โอ', name: 'สระโอ', meaning: 'เสียงสระโอ', roman: 'o', length: 'long', pair: 'โอะ', type: 'front', example: 'โก', group: 'สระเสียงยาว' },
-  ];
-
-  return fallbackVowels.map(item => ({
-    ...item,
-    sound: item.sound || item.char,
-    imageKey: item.imageKey || item.char,
-    image: (item.imageKey || item.char) ? `vowels/${item.imageKey || item.char}.jpg` : null,
-    example: item.example,
+const getFallbackVowels = () =>
+  fallbackVowelsData.map((item) => ({
+    char: item.thai,
+    name: item.nameTH || item.thai,
+    meaning: item.meaningTH || item.meaningEN || '',
+    roman: item.roman,
+    sound: item.audioText || item.thai,
+    imageKey: item.image || item.thai,
+    image: item.image || item.thai,
+    example: item.exampleTH || item.example || '',
     exampleAudio: item.exampleAudio || '',
-    type: item.type,
-    length: item.length,
+    type: item.type || item.position || '',
+    length: item.length || '',
     pair: item.pair || '',
     group: item.group || '',
-    level: 'Beginner',
-    lessonKey: 'vowels_basic'
+    level: item.level || 'Beginner',
+    lessonKey: item.lessonKey || 'vowels_basic',
   }));
-};
 
 /**
  * Get vowels with fallback data if API fails
@@ -209,6 +228,33 @@ const getFallbackConsonants = () => {
 };
 
 /**
+ * Fallback greetings data
+ */
+const getGreetingsFallback = () => {
+  const fallbackData = [
+    { thai: "สวัสดี", roman: "sa-wat-dee", meaning: "hello", example: "สวัสดีครับ / สวัสดีค่ะ", tts: "สวัสดี", emoji: "👋" },
+    { thai: "ขอบคุณ", roman: "khob-khun", meaning: "thank you", example: "ขอบคุณมากครับ / ขอบคุณค่ะ", tts: "ขอบคุณ", emoji: "🙏" },
+    { thai: "ขอโทษ", roman: "kho-thot", meaning: "sorry / excuse me", example: "ขอโทษครับ / ขอโทษค่ะ", tts: "ขอโทษ", emoji: "😔" },
+    { thai: "ลาก่อน", roman: "la-korn", meaning: "goodbye", example: "ลาก่อน แล้วพบกันใหม่", tts: "ลาก่อน", emoji: "👋" },
+    { thai: "ฝันดี", roman: "fan-dee", meaning: "good night", example: "ฝันดีนะครับ / ฝันดีค่ะ", tts: "ฝันดี", emoji: "🌙" },
+    { thai: "สบายดีไหม", roman: "sa-bai-dee-mai", meaning: "how are you?", example: "สบายดีไหมครับ / สบายดีไหมคะ", tts: "สบายดีไหม", emoji: "🙂" },
+    { thai: "ยินดีที่ได้รู้จัก", roman: "yin-dee-tee-dai-roo-jak", meaning: "nice to meet you", example: "ยินดีที่ได้รู้จักครับ / ค่ะ", tts: "ยินดีที่ได้รู้จัก", emoji: "🤝" },
+    { thai: "ขอให้โชคดี", roman: "kho-hai-chok-dee", meaning: "good luck", example: "ขอให้โชคดีนะ", tts: "ขอให้โชคดี", emoji: "🍀" },
+    { thai: "ขอให้มีความสุข", roman: "kho-hai-mee-khwam-suk", meaning: "be happy / have a nice day", example: "ขอให้มีความสุขทุกวัน", tts: "ขอให้มีความสุข", emoji: "😊" },
+    { thai: "ยินดีต้อนรับ", roman: "yin-dee-ton-rub", meaning: "welcome", example: "ยินดีต้อนรับสู่ประเทศไทย", tts: "ยินดีต้อนรับ", emoji: "🏠" }
+  ];
+
+  return fallbackData.map(item => ({
+    ...item,
+    category: 'greetings',
+    lesson: 3,
+    level: 'Beginner',
+    type: 'greeting',
+    image: `/src/assets/greetings/${item.thai}.png`
+  }));
+};
+
+/**
  * Get image path for consonant
  */
 export const getConsonantImagePath = (consonant) => {
@@ -229,9 +275,22 @@ export const getConsonantDisplayName = (consonant) => {
   return consonant.name || consonant.exampleTH || `${consonant.char}-${consonant.meaning}`;
 };
 
+/**
+ * Get greetings with fallback
+ */
+export const getGreetingsWithFallback = async () => {
+  try {
+    return await fetchGreetings();
+  } catch (error) {
+    console.warn('⚠️ Using fallback greetings data:', error.message);
+    return getGreetingsFallback();
+  }
+};
+
 // Alias for compatibility
 export const getConsonants = fetchConsonants;
 export const getVowels = fetchVowels;
+export const getGreetings = fetchGreetings;
 
 export default {
   fetchConsonants,
@@ -241,5 +300,8 @@ export default {
   getConsonantDisplayName,
   fetchVowels,
   getVowels,
-  getVowelsWithFallback
+  getVowelsWithFallback,
+  fetchGreetings,
+  getGreetings,
+  getGreetingsWithFallback
 };

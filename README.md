@@ -50,11 +50,10 @@ Thai-Meow/
 - **Achievements** - Unlockable badges and rewards
 - **Level System** - Progressive difficulty unlock
 
-### 4. AI Voice Integration
-- **Vaja9 TTS** - Primary Thai text-to-speech service
-- **AI For Thai** - High-quality pronunciation
-- **Expo Speech** - Fallback TTS service
-- **Emotion Support** - Happy, neutral, sad, excited tones
+### 4. Voice Integration
+- **VajaX (AI for Thai)** - Cloud Thai neural text-to-speech with configurable speakers/styles
+- **Expo Speech** - On-device Thai text-to-speech playback
+- **Custom Voices** - Configure voice parameters for tailored pronunciation
 
 ### 5. Progress Tracking
 - **Real-time Sync** - Progress synced with MongoDB
@@ -113,7 +112,7 @@ Thai-Meow/
    cp backend/config.env.example backend/config.env
    # Add your MongoDB Atlas connection string
    ```
-
+   - Set `VAJAX_API_KEY` (and optionally `VAJAX_SPEAKER`, `VAJAX_STYLE`) in `backend/config.env`
 3. **Start the application**
    ```bash
    # Start backend server
@@ -146,6 +145,9 @@ Thai-Meow/
 - `GET /api/vocab/consonants` - Get Thai consonants
 - `GET /api/vocab/vowels` - Get Thai vowels
 - `GET /api/vocab/search/:term` - Search vocabulary
+
+### Voice
+- `POST /api/tts/speak` - Generate speech audio via VajaX (backend proxy)
 
 ## 🎨 UI/UX Features
 

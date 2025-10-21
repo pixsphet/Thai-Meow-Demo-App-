@@ -4,17 +4,25 @@ class DailyStreakService {
     constructor() {
         this.userId = 'guest';
         this.listeners = new Set();
+        this.cache = new Map(); // เพิ่ม cache เพื่อลดการเรียก AsyncStorage
+        this.isInitialized = false;
     }
 
     setUser(userId) {
-        this.userId = userId || 'guest';
+        const newUserId = userId || 'guest';
+        if (this.userId !== newUserId) {
+            this.userId = newUserId;
+            this.cache.clear(); // ล้าง cache เมื่อเปลี่ยน user
+            this.isInitialized = false;
+            console.log('🔄 DailyStreakService: User changed to', newUserId);
+        }
     }
 
     getKey(key) {
         return `${key}:${this.userId}`;
     }
 
-    // ตรวจสอบและอัปเดตไฟสะสม
+    // ตรวจสอบและอัปเดตไฟสะสม (ปรับปรุงแล้ว)
     async updateStreak() {
         try {
             const today = this.getTodayString();
@@ -24,10 +32,16 @@ class DailyStreakService {
             let newStreak = currentStreak;
             let isNewStreak = false;
 
+            // Validation
+            if (!today || !this.isValidDateString(today)) {
+                throw new Error('Invalid today date');
+            }
+
             console.log('🔥 Streak check:', {
                 today,
                 lastPlayDate,
-                currentStreak
+                currentStreak,
+                userId: this.userId
             });
 
             // ถ้าเป็นวันแรกที่เล่น
@@ -74,10 +88,27 @@ class DailyStreakService {
             });
             this.notifyListeners(snapshot);
 
+            // อัปเดต cache
+            this.cache.set('currentStreak', newStreak);
+            this.cache.set('lastPlayDate', updatedLastPlayDate ?? today);
+            this.cache.set('maxStreak', maxStreak);
+
             return { streak: newStreak, isNewStreak, maxStreak };
         } catch (error) {
             console.error('❌ Error updating streak:', error);
-            return { streak: 0, isNewStreak: false };
+            
+            // Fallback: พยายามกู้คืนข้อมูลพื้นฐาน
+            try {
+                const fallbackStreak = await this.getCurrentStreak();
+                return { 
+                    streak: this.isValidStreak(fallbackStreak) ? fallbackStreak : 0, 
+                    isNewStreak: false,
+                    maxStreak: 0
+                };
+            } catch (fallbackError) {
+                console.error('❌ Fallback failed:', fallbackError);
+                return { streak: 0, isNewStreak: false, maxStreak: 0 };
+            }
         }
     }
 
@@ -93,23 +124,33 @@ class DailyStreakService {
         }
     }
 
-    // ดึงไฟสะสมปัจจุบัน
+    // ดึงไฟสะสมปัจจุบัน (พร้อม cache)
     async getCurrentStreak() {
         try {
+            const cacheKey = 'currentStreak';
+            if (this.cache.has(cacheKey)) {
+                return this.cache.get(cacheKey);
+            }
+            
             const streak = await AsyncStorage.getItem(this.getKey('dailyStreak'));
-            return streak ? parseInt(streak) : 0;
+            const result = streak ? parseInt(streak) : 0;
+            this.cache.set(cacheKey, result);
+            return result;
         } catch (error) {
             console.error('❌ Error getting current streak:', error);
             return 0;
         }
     }
 
-    // ตั้งค่าไฟสะสม
+    // ตั้งค่าไฟสะสม (พร้อม cache)
     async setStreak(streak) {
         try {
             await AsyncStorage.setItem(this.getKey('dailyStreak'), streak.toString());
+            this.cache.set('currentStreak', streak); // อัปเดต cache
+            console.log('🔥 Streak updated:', streak);
         } catch (error) {
             console.error('❌ Error setting streak:', error);
+            throw error; // throw error เพื่อให้ caller จัดการได้
         }
     }
 
@@ -199,6 +240,18 @@ class DailyStreakService {
         const d2 = new Date(date2);
         const diffTime = Math.abs(d2 - d1);
         return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    }
+
+    // ตรวจสอบความถูกต้องของ date string
+    isValidDateString(dateString) {
+        if (!dateString || typeof dateString !== 'string') return false;
+        const date = new Date(dateString);
+        return date instanceof Date && !isNaN(date) && dateString.match(/^\d{4}-\d{2}-\d{2}$/);
+    }
+
+    // ตรวจสอบความถูกต้องของ streak value
+    isValidStreak(streak) {
+        return typeof streak === 'number' && streak >= 0 && Number.isInteger(streak);
     }
 
     // ตรวจสอบว่าเล่นวันนี้แล้วหรือยัง
@@ -320,14 +373,18 @@ class DailyStreakService {
                 overrides.maxStreak !== undefined ? overrides.maxStreak : this.getMaxStreak()
             ]);
 
-            return {
+            const snapshot = {
                 userId: this.userId,
-                streak,
-                maxStreak,
-                lastPlayDate,
+                streak: this.isValidStreak(streak) ? streak : 0,
+                maxStreak: this.isValidStreak(maxStreak) ? maxStreak : 0,
+                lastPlayDate: this.isValidDateString(lastPlayDate) ? lastPlayDate : null,
                 isNewStreak: overrides.isNewStreak ?? false,
-                updatedAt: new Date().toISOString()
+                updatedAt: new Date().toISOString(),
+                cacheSize: this.cache.size,
+                isHealthy: this.isServiceHealthy()
             };
+
+            return snapshot;
         } catch (error) {
             console.error('❌ Error building streak snapshot:', error);
             return {
@@ -336,9 +393,37 @@ class DailyStreakService {
                 maxStreak: overrides.maxStreak ?? 0,
                 lastPlayDate: overrides.lastPlayDate ?? null,
                 isNewStreak: overrides.isNewStreak ?? false,
-                updatedAt: new Date().toISOString()
+                updatedAt: new Date().toISOString(),
+                cacheSize: this.cache.size,
+                isHealthy: false,
+                error: error.message
             };
         }
+    }
+
+    // ตรวจสอบสุขภาพของ service
+    isServiceHealthy() {
+        try {
+            return this.userId && 
+                   this.cache instanceof Map && 
+                   this.listeners instanceof Set &&
+                   typeof this.getTodayString() === 'string';
+        } catch (error) {
+            console.error('❌ Service health check failed:', error);
+            return false;
+        }
+    }
+
+    // รับข้อมูลสถิติของ service
+    getServiceStats() {
+        return {
+            userId: this.userId,
+            cacheSize: this.cache.size,
+            listenersCount: this.listeners.size,
+            isHealthy: this.isServiceHealthy(),
+            isInitialized: this.isInitialized,
+            cacheKeys: Array.from(this.cache.keys())
+        };
     }
 }
 

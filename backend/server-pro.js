@@ -73,6 +73,7 @@ const progressPerUserRoutes = require('./routes/progressPerUser');
 const gameResultRoutes = require('./routes/gameResult');
 const auth = require('./middleware/auth');
 const lesson3Routes = require('./routes/lesson3');
+const ttsRoutes = require('./routes/tts');
 
 app.use('/api/user', userRoutes);
 app.use('/api/auth', authRoutes);
@@ -82,6 +83,7 @@ app.use('/api/progress', progressRoutes); // Legacy routes (no auth)
 app.use('/api/progress/user', auth, progressPerUserRoutes); // Per-user progress routes (with auth)
 app.use('/api/game-results', gameResultRoutes);
 app.use('/api', lesson3Routes);
+app.use('/api/tts', ttsRoutes);
 
 // Health Check Endpoint
 app.get('/api/health', (req, res) => {

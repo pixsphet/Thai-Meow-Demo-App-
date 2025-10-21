@@ -97,10 +97,10 @@ const thaiVowels = [
 
 // ข้อมูลวรรณยุกต์ไทย
 const thaiTones = [
-  { id: 'mai-ek', char: '่', name: 'ไม้เอก', meaning: 'Low Tone', roman: 'mai ek', category: 'thai-tones', image: charToImage['่'] },
-  { id: 'mai-tho', char: '้', name: 'ไม้โท', meaning: 'Falling Tone', roman: 'mai tho', category: 'thai-tones', image: charToImage['้'] },
-  { id: 'mai-tri', char: '๊', name: 'ไม้ตรี', meaning: 'High Tone', roman: 'mai tri', category: 'thai-tones', image: charToImage['๊'] },
-  { id: 'mai-chattawa', char: '๋', name: 'ไม้จัตวา', meaning: 'Rising Tone', roman: 'mai chattawa', category: 'thai-tones', image: charToImage['๋'] },
+  { id: 'mai-ek', char: '่', name: 'ไม้เอก', meaning: 'Low Tone', roman: 'mai ek', category: 'thai-tones', image: require('../assets/tones/ไม้เอก.png') },
+  { id: 'mai-tho', char: '้', name: 'ไม้โท', meaning: 'Falling Tone', roman: 'mai tho', category: 'thai-tones', image: require('../assets/tones/ไม้โท.png') },
+  { id: 'mai-tri', char: '๊', name: 'ไม้ตรี', meaning: 'High Tone', roman: 'mai tri', category: 'thai-tones', image: require('../assets/tones/ไม้ตรี.png') },
+  { id: 'mai-chattawa', char: '๋', name: 'ไม้จัตวา', meaning: 'Rising Tone', roman: 'mai chattawa', category: 'thai-tones', image: require('../assets/tones/ไม้จัตวา.png') },
 ];
 
 const LearnCard = ({ item, onSpeak, seen, category }) => {
@@ -300,60 +300,29 @@ const ConsonantLearnScreen = ({ navigation }) => {
     };
 
     return (
-      <View style={styles.section}>
-        <View style={[styles.sectionHeader, { backgroundColor: '#45B7D1' }]}> 
-          <Text style={styles.sectionTitle}>วรรณยุกต์</Text>
-          <Text style={styles.sectionCount}>{toneItems.length} เสียง</Text>
-        </View>
-        <View style={styles.tonesContainer}>
-          <Image source={tonesImage} style={styles.tonesImage} resizeMode="cover" />
-          {/* 2x2 hotspots perfectly aligned */}
-          <TouchableOpacity
-            style={[styles.toneHotspot, styles.tl]}
-            activeOpacity={0.9}
-            onPress={() => onTonePress(toneItems[0])}
-          >
-            <View style={[styles.toneChip, { backgroundColor: toneItems[0].color }]}>
-              <Text style={styles.toneBadge}>{toneItems[0].char}</Text>
-              <Text style={styles.toneChipText}>{toneItems[0].name}</Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.toneHotspot, styles.tr]}
-            activeOpacity={0.9}
-            onPress={() => onTonePress(toneItems[1])}
-          >
-            <View style={[styles.toneChip, { backgroundColor: toneItems[1].color }]}>
-              <Text style={styles.toneBadge}>{toneItems[1].char}</Text>
-              <Text style={styles.toneChipText}>{toneItems[1].name}</Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.toneHotspot, styles.bl]}
-            activeOpacity={0.9}
-            onPress={() => onTonePress(toneItems[2])}
-          >
-            <View style={[styles.toneChip, { backgroundColor: toneItems[2].color }]}>
-              <Text style={styles.toneBadge}>{toneItems[2].char}</Text>
-              <Text style={styles.toneChipText}>{toneItems[2].name}</Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.toneHotspot, styles.br]}
-            activeOpacity={0.9}
-            onPress={() => onTonePress(toneItems[3])}
-          >
-            <View style={[styles.toneChip, { backgroundColor: toneItems[3].color }]}>
-              <Text style={styles.toneBadge}>{toneItems[3].char}</Text>
-              <Text style={styles.toneChipText}>{toneItems[3].name}</Text>
-            </View>
-          </TouchableOpacity>
+    <View style={styles.section}>
+      <View style={[styles.sectionHeader, { backgroundColor: '#45B7D1' }]}> 
+        <Text style={styles.sectionTitle}>วรรณยุกต์</Text>
+        <Text style={styles.sectionCount}>{toneItems.length} เสียง</Text>
+      </View>
+      <View style={styles.tonesContainer}>
+        <Image source={tonesImage} style={styles.tonesImage} resizeMode="contain" />
+        <View style={styles.toneChipsGrid}>
+          {toneItems.map((tone) => (
+            <TouchableOpacity
+              key={tone.id}
+              activeOpacity={0.9}
+              onPress={() => onTonePress(tone)}
+              style={[styles.toneButton, { backgroundColor: tone.color }]}
+            >
+              <Text style={styles.toneButtonChar}>{tone.char}</Text>
+              <Text style={styles.toneButtonLabel}>{tone.name}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
       </View>
-    );
+    </View>
+  );
   };
 
   return (
@@ -565,9 +534,7 @@ const styles = StyleSheet.create({
 
   /* Tones Section */
   tonesContainer: {
-    position: 'relative',
     width: '100%',
-    aspectRatio: 3/2,
     borderRadius: 16,
     overflow: 'hidden',
     backgroundColor: '#fff',
@@ -578,50 +545,44 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 4 },
     elevation: 4,
+    padding: 16,
+    alignItems: 'center',
   },
   tonesImage: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
+    width: '80%',
+    aspectRatio: 3 / 2,
+    marginBottom: 16,
+  },
+  toneChipsGrid: {
     width: '100%',
-    height: '100%',
-    transform: [{ scale: 1.04 }],
-  },
-  toneHotspot: {
-    position: 'absolute',
-    width: '46%',
-    height: '46%',
-    borderRadius: 12,
-    alignItems: 'flex-start',
-    justifyContent: 'flex-start',
-  },
-  tl: { left: '3%', top: '3%' },
-  tr: { right: '3%', top: '3%' },
-  bl: { left: '3%', bottom: '3%' },
-  br: { right: '3%', bottom: '3%' },
-  toneChip: {
-    margin: 8,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 12,
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    rowGap: 12,
+  },
+  toneButton: {
+    flexBasis: '48%',
+    paddingVertical: 14,
+    borderRadius: 16,
     alignItems: 'center',
-    backgroundColor: '#FFFFFFD0',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
   },
-  toneBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    textAlign: 'center',
-    textAlignVertical: 'center',
-    color: '#fff',
-    backgroundColor: '#00000033',
-    marginRight: 8,
+  toneButtonChar: {
+    fontSize: 32,
     fontWeight: '800',
+    color: '#fff',
   },
-  toneChipText: {
-    color: '#1f2d3d',
+  toneButtonLabel: {
+    marginTop: 6,
+    fontSize: 16,
     fontWeight: '700',
+    color: '#1f2d3d',
   },
 
 });

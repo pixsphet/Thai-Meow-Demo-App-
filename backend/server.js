@@ -91,6 +91,8 @@ const progressPerUserRoutes = require('./routes/progressPerUser');
 const gameResultRoutes = require('./routes/gameResult');
 const auth = require('./middleware/auth');
 const lesson3Routes = require('./routes/lesson3');
+const greetingsRoutes = require('./routes/greetings');
+const ttsRoutes = require('./routes/tts');
 
 // ==============================
 // 🧩 Routes
@@ -130,6 +132,8 @@ app.use('/api/user', userRoutes);
 app.use('/api/friends', friendsRoutes);
 app.use('/api/game-results', gameResultRoutes);
 app.use('/api', lesson3Routes);
+app.use('/api/greetings', greetingsRoutes);
+app.use('/api/tts', ttsRoutes);
 
 // ตัวอย่าง Route Error (สำหรับ test)
 app.get('/error-test', (req, res, next) => {

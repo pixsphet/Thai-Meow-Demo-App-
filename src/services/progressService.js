@@ -131,6 +131,38 @@ export const restoreProgress = async (lessonId) => {
   }
 };
 
+// Local-only save (for quick saves without server sync)
+export const saveLocal = async (userId, lessonId, data) => {
+  try {
+    const key = `progress:local:${userId}:${lessonId}`;
+    await AsyncStorage.setItem(key, JSON.stringify({
+      ...data,
+      savedAt: Date.now(),
+    }));
+    console.log('💾 Saved to local storage only');
+    return { success: true };
+  } catch (error) {
+    console.error('❌ Error saving locally:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Local-only load
+export const loadLocal = async (userId, lessonId) => {
+  try {
+    const key = `progress:local:${userId}:${lessonId}`;
+    const raw = await AsyncStorage.getItem(key);
+    if (raw) {
+      console.log('💾 Loaded from local storage');
+      return JSON.parse(raw);
+    }
+    return null;
+  } catch (error) {
+    console.error('❌ Error loading from local storage:', error);
+    return null;
+  }
+};
+
 // Clear progress (both local and server)
 export const clearProgress = async (lessonId) => {
   try {
@@ -170,5 +202,7 @@ export default {
   saveProgress,
   restoreProgress,
   clearProgress,
+  saveLocal,
+  loadLocal,
   fetchUserProgress
 };

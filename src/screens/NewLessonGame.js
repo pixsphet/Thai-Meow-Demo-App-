@@ -9,8 +9,6 @@ import {
     Dimensions, 
     Image,
     ScrollView,
-    Modal,
-    Pressable,
 } from 'react-native'; 	
 import { FontAwesome } from '@expo/vector-icons';
 import LottieView from 'lottie-react-native';
@@ -30,7 +28,6 @@ import dailyStreakService from '../services/dailyStreakService';
 import { letterImages } from '../assets/letters';
 import { vowelToImage } from '../assets/vowels/map';
 import StreakBadge from '../components/StreakBadge';
-import { getXpProgress } from '../utils/leveling';
 import apiClient from '../services/apiClient';
 
 const { width } = Dimensions.get('window');
@@ -967,12 +964,18 @@ const DragMatchComponent = ({ data, onAnswerChange, userAnswer, isAnswered, isCo
 
 // Main Lesson Screen - ด่านที่ 1 สำหรับ LevelStage1
 const NewLessonGame = ({ navigation, route }) => {
+    const fallbackReplayRoute = route?.name || 'NewLessonGame';
+
     const {
         lessonId = 1,
         category = 'basic',
         level: levelName = 'Beginner',
         stageTitle: stageTitleParam,
         generator: generatorParam = 'consonants',
+        nextStageMeta: incomingNextStageMeta = null,
+        stageSelectRoute = 'LevelStage1',
+        replayRoute = fallbackReplayRoute,
+        replayParams: incomingReplayParams,
     } = route.params || {};
 
     const currentLessonId = Number(lessonId) || 1;
@@ -986,9 +989,66 @@ const NewLessonGame = ({ navigation, route }) => {
         isLesson2Vowels ||
         (currentCategory || '').toLowerCase().includes('vowel');
     const pointsPerQuestion = isLesson2Vowels ? 5 : 10;
+    const resolvedNextStageMeta = React.useMemo(() => {
+        if (incomingNextStageMeta) {
+            return incomingNextStageMeta;
+        }
+
+        try {
+            const nextLevelKey = levelUnlockService.getNextLevel(`level${currentLessonId}`);
+            const nextLessonNumeric = nextLevelKey
+                ? parseInt(String(nextLevelKey).replace('level', ''), 10)
+                : currentLessonId + 1;
+
+            if (!Number.isFinite(nextLessonNumeric)) {
+                return null;
+            }
+
+            const baseParams = {
+                lessonId: nextLessonNumeric,
+                category: currentCategory,
+                level: levelLabel,
+                stageTitle: `ด่าน ${nextLessonNumeric}`,
+            };
+
+            if (
+                nextLessonNumeric === 2 &&
+                typeof levelLabel === 'string' &&
+                levelLabel.toLowerCase().includes('beginner')
+            ) {
+                return {
+                    route: 'BeginnerVowelsStage',
+                    params: {
+                        ...baseParams,
+                        category: 'vowels_basic',
+                        generator: 'vowels',
+                    },
+                };
+            }
+
+            return {
+                route: 'NewLessonGame',
+                params: baseParams,
+            };
+        } catch (error) {
+            console.warn('⚠️ Unable to resolve next stage meta:', error?.message || error);
+            return null;
+        }
+    }, [incomingNextStageMeta, currentLessonId, currentCategory, levelLabel]);
+    const resolvedReplayParams = React.useMemo(
+        () => ({
+            lessonId,
+            category,
+            level: levelName,
+            stageTitle,
+            generator: generatorParam,
+            ...(incomingReplayParams || {})
+        }),
+        [lessonId, category, levelName, stageTitle, generatorParam, incomingReplayParams]
+    );
     
     // Progress context
-    const { applyDelta, getTotalXP, getCurrentLevel } = useProgress();
+    const { applyDelta } = useProgress();
     
     // Use the new user data sync system
     const { updateUserStats, stats: userStats } = useUserData();
@@ -1035,8 +1095,6 @@ const NewLessonGame = ({ navigation, route }) => {
     }, [unifiedStats?.hearts, updateLocalHearts]);
     const [perLetter, setPerLetter] = useState({});
     const [lessonCharacters, setLessonCharacters] = useState([]);
-    const [showSummary, setShowSummary] = useState(false);
-    const [summaryData, setSummaryData] = useState({});
     const sessionFinalizedRef = useRef(false);
     
     // ข้อมูลความคืบหน้าแบบละเอียด
@@ -1306,55 +1364,6 @@ const NewLessonGame = ({ navigation, route }) => {
             console.error('❌ Error clearing game progress:', error);
         }
     };
-
-    const getLevelStageScreen = React.useCallback(() => {
-        const normalized = (levelLabel || '').toLowerCase();
-        if (normalized.includes('intermediate')) return 'LevelStage2';
-        if (normalized.includes('advanced')) return 'LevelStage3';
-        return 'LevelStage1';
-    }, [levelLabel]);
-
-    const handleReplayLesson = React.useCallback(async () => {
-        await clearGameProgress();
-        navigation.replace('NewLessonGame', {
-            lessonId: currentLessonId,
-            category: currentCategory,
-            level: levelLabel,
-            stageTitle,
-        });
-    }, [clearGameProgress, navigation, currentLessonId, currentCategory, levelLabel, stageTitle]);
-
-    const handleNavigateHome = React.useCallback(async () => {
-        await clearGameProgress();
-        navigation.navigate('HomeMain');
-    }, [clearGameProgress, navigation]);
-
-    const handleGoToNextStage = React.useCallback(async () => {
-        await clearGameProgress();
-        const nextLevelKey = levelUnlockService.getNextLevel(`level${currentLessonId}`);
-        const nextLessonNumeric = nextLevelKey ? parseInt(nextLevelKey.replace('level', ''), 10) : null;
-
-        if (nextLessonNumeric) {
-            if (nextLessonNumeric === 2 && (levelLabel || '').toLowerCase().includes('beginner')) {
-                navigation.replace('BeginnerVowelsStage', {
-                    lessonId: nextLessonNumeric,
-                    category: 'vowels_basic',
-                    level: levelLabel,
-                    stageTitle: `ด่าน ${nextLessonNumeric}`,
-                    generator: 'vowels',
-                });
-            } else {
-                navigation.replace('NewLessonGame', {
-                    lessonId: nextLessonNumeric,
-                    category: currentCategory,
-                    level: levelLabel,
-                    stageTitle: `ด่าน ${nextLessonNumeric}`,
-                });
-            }
-        } else {
-            navigation.navigate(getLevelStageScreen());
-        }
-    }, [clearGameProgress, currentLessonId, currentCategory, levelLabel, navigation, getLevelStageScreen]);
 
     // โหลดข้อมูลผู้ใช้ (legacy)
     const loadUserStats = async () => {
@@ -1948,137 +1957,22 @@ const NewLessonGame = ({ navigation, route }) => {
                 
                 (async () => {
                     try {
-                        const combinedXP = finalProgress.xpEarned + dailyStreak.rewards.xp;
-                        const combinedDiamonds = finalProgress.diamondsEarned + dailyStreak.rewards.diamonds;
+                        const combinedXP = (finalProgress.xpEarned || 0) + (streakRewards.xp || 0);
+                        const combinedDiamonds = (finalProgress.diamondsEarned || 0) + (streakRewards.diamonds || 0);
                         const accuracyPercent = questions.length > 0
                           ? Math.round((finalProgress.correctAnswers / questions.length) * 100)
                           : 0;
                         const accuracyRatio = accuracyPercent / 100;
-                        const timeSpentSeconds = Math.round(finalProgress.totalTimeSpent / 1000);
+                        const timeSpentSeconds = Math.round((finalProgress.totalTimeSpent || 0) / 1000);
 
-                        const gameResults = {
-                            correct: finalProgress.correctAnswers,
-                            total: questions.length,
-                            accuracy: accuracyPercent,
-                            timeSpent: timeSpentSeconds,
-                            xpEarned: combinedXP,
-                            diamondsEarned: combinedDiamonds,
-                            heartsRemaining: heartsRef.current,
-                            streakReward: dailyStreak.rewards,
-                            gameType: 'NewLessonGame',
-                            completedAt: new Date().toISOString()
-                        };
-
-                        const sessionPayload = {
-                            lessonId: currentLessonId,
-                            category: currentCategory,
-                            score,
-                            accuracy: accuracyRatio,
+                        await finalizeLesson({
+                            finalProgress,
                             accuracyPercent,
-                            timeSpent: timeSpentSeconds,
-                            questionTypes: finalProgress.questionTypes || {},
-                            completedAt: gameResults.completedAt,
-                            heartsRemaining: heartsRef.current,
-                            diamondsEarned: combinedDiamonds,
-                            xpEarned: combinedXP,
-                            streak: finalProgress.streak || 0,
-                            maxStreak: finalProgress.maxStreak || 0,
-                            level: unifiedStats?.level || 1,
-                            totalQuestions: questions.length,
-                            correctAnswers: finalProgress.correctAnswers,
-                            wrongAnswers: finalProgress.wrongAnswers
-                        };
-
-                        if (isLesson2Vowels) {
-                            try {
-                                await apiClient.post('/progress/lesson2_vowels/complete', {
-                                    accuracy: accuracyPercent,
-                                    score,
-                                    xpEarned: combinedXP,
-                                    diamondsEarned: combinedDiamonds,
-                                    heartsRemaining: hearts,
-                                    timeSpentSec: timeSpentSeconds,
-                                    unlockedNext: accuracyPercent >= 70
-                                });
-                            } catch (progressError) {
-                                console.warn('⚠️ Unable to record lesson2 vowels progress', progressError?.message);
-                            }
-                        }
-
-                        try {
-                            const savedSession = await gameProgressService.saveGameSession(sessionPayload);
-                            console.log('✅ Game session saved:', savedSession.id);
-                        } catch (saveError) {
-                            console.error('❌ Error saving game session:', saveError);
-                        }
-
-                        // Update legacy local stats for backward compatibility
-                        const legacyStats = await updateUserStatsLegacy(finalProgress.xpEarned, finalProgress.diamondsEarned);
-
-                        // Update unified stats (adds totals, level, etc.)
-                        const updatedUnified = await updateUnifiedFromGameSession({
-                            ...sessionPayload,
-                            gameType: 'NewLessonGame'
+                            accuracyRatio,
+                            timeSpentSeconds,
+                            combinedXP,
+                            combinedDiamonds,
                         });
-                        if (Number.isFinite(updatedUnified?.hearts)) {
-                            updateLocalHearts(updatedUnified.hearts);
-                        }
-
-                        // Persist last game results in unified stats + userData context
-                        await updateUnifiedStats({ lastGameResults: gameResults });
-                        await updateUserStats({ lastGameResults: gameResults });
-
-                        // Apply rewards to progress context
-                        await applyDelta({ 
-                            xp: combinedXP, 
-                            diamonds: combinedDiamonds, 
-                            finishedLesson: true, 
-                            timeSpentSec: timeSpentSeconds 
-                        });
-
-                        // Check and unlock next level based on accuracy
-                        const currentLevelId = `level${currentLessonId}`;
-                        const unlockResult = await levelUnlockService.checkAndUnlockNextLevel(currentLevelId, {
-                            accuracy: accuracyPercent,
-                            score,
-                            attempts: 1
-                        });
-
-                        if (unlockResult) {
-                            console.log('🎉 Next level unlocked!', unlockResult);
-                        }
-
-                        // ลบความคืบหน้าของเกมเมื่อจบ
-                        clearGameProgress();
-                        sessionFinalizedRef.current = true;
-
-                        const summaryTotalXP = Number.isFinite(updatedUnified?.xp)
-                          ? updatedUnified.xp
-                          : Number.isFinite(unifiedStats?.xp)
-                          ? unifiedStats.xp
-                          : getTotalXP();
-                        const summaryLevel = Number.isFinite(updatedUnified?.level)
-                          ? updatedUnified.level
-                          : Number.isFinite(unifiedStats?.level)
-                          ? unifiedStats.level
-                          : getCurrentLevel();
-                        const xpSnapshot = getXpProgress(summaryTotalXP, summaryLevel || 1);
-
-                        setSummaryData({
-                            ...gameResults,
-                            totalXP: summaryTotalXP,
-                            totalDiamonds: Number.isFinite(updatedUnified?.diamonds)
-                              ? updatedUnified.diamonds
-                              : Number.isFinite(unifiedStats?.diamonds)
-                              ? unifiedStats.diamonds
-                              : legacyStats.totalDiamonds,
-                            newLevel: xpSnapshot.level,
-                            levelProgressPercent: xpSnapshot.percent,
-                            currentLevelXP: xpSnapshot.withinClamped,
-                            nextLevelRequirement: xpSnapshot.requirement,
-                            xpToNextLevel: xpSnapshot.toNext
-                        });
-                        setShowSummary(true);
                     } catch (err) {
                         console.error('❌ Error finalizing game summary:', err);
                     }
@@ -2108,108 +2002,258 @@ const NewLessonGame = ({ navigation, route }) => {
         }));
     };
 
-    // Finish lesson
-    const finishLesson = React.useCallback(async (timeSpentSec = 0) => {
-        await clearProgress(currentLessonId);
-        
-        // Calculate rewards and performance metrics
-        const diamondsFromProgress = Math.max(gameProgress.diamondsEarned || 0, 0);
-        const xpGained = isLesson2Vowels ? score * 4 : score;
-        const diamondsGained = isLesson2Vowels
-            ? Math.max(diamondsFromProgress, 3)
-            : Math.max(2, Math.floor(score / 50));
-        const maxScore = questions.length > 0 ? questions.length * pointsPerQuestion : pointsPerQuestion;
-        const accuracy = questions.length > 0 ? Math.round((score / maxScore) * 100) : 0;
-        const correctAnswers = gameProgress.correctAnswers;
-        const wrongAnswers = gameProgress.wrongAnswers;
-        const totalQuestions = questions.length;
-        
-        // Create comprehensive session data
-        const accuracyRatio = accuracy / 100;
+    const finalizeLesson = React.useCallback(
+        async ({
+            finalProgress,
+            accuracyPercent,
+            accuracyRatio,
+            timeSpentSeconds,
+            combinedXP,
+            combinedDiamonds,
+        }) => {
+            if (sessionFinalizedRef.current) {
+                return;
+            }
 
-        const sessionData = {
-            userId: user?.id,
-            lessonId: isLesson2Vowels ? 'lesson2_vowels' : currentLessonId,
-            lessonKey: isLesson2Vowels ? 'lesson2_vowels' : `level${currentLessonId}`,
-            category: currentCategory,
-            gameMode: 'matching', // Default game mode
-            score: score,
-            maxScore: maxScore,
-            accuracy: accuracyRatio, // Keep ratio for compatibility
-            accuracyPercent: accuracy,
-            timeSpent: timeSpentSec,
-            questionTypes: gameProgress.questionTypes || {},
-            completedAt: new Date().toISOString(),
-            heartsRemaining: hearts,
-            diamondsEarned: diamondsGained,
-            xpEarned: xpGained,
-            streak: gameProgress.streak || 0,
-            maxStreak: gameProgress.maxStreak || 0,
-            level: Math.floor((userStats?.xp || 0 + xpGained) / 100) + 1,
-            totalQuestions: totalQuestions,
-            correctAnswers: correctAnswers,
-            wrongAnswers: wrongAnswers
-        };
+            sessionFinalizedRef.current = true;
 
-        if (!sessionFinalizedRef.current) {
+            const streakRewards = dailyStreak?.rewards || { xp: 0, diamonds: 0 };
+
+            const resolvedProgress = finalProgress || gameProgress;
+            const totalQuestions = questions.length;
+            const correctAnswers = Number.isFinite(resolvedProgress?.correctAnswers)
+                ? resolvedProgress.correctAnswers
+                : Object.values(answersRef.current || {}).filter((entry) => entry?.correct).length;
+            const wrongAnswers = Math.max(0, totalQuestions - correctAnswers);
+            const heartsRemaining = heartsRef.current;
+            const streakValue = Number.isFinite(resolvedProgress?.streak)
+                ? resolvedProgress.streak
+                : 0;
+            const maxStreakValue = Number.isFinite(resolvedProgress?.maxStreak)
+                ? resolvedProgress.maxStreak
+                : Math.max(streakValue, 0);
+            const questionTypeCounts = resolvedProgress?.questionTypes || {};
+            const completedAt = new Date().toISOString();
+
+            const gameResults = {
+                correct: correctAnswers,
+                total: totalQuestions,
+                accuracy: accuracyPercent,
+                timeSpent: timeSpentSeconds,
+                xpEarned: combinedXP,
+                diamondsEarned: combinedDiamonds,
+                heartsRemaining,
+                streakReward: streakRewards,
+                gameType: 'NewLessonGame',
+                completedAt,
+            };
+
+            const sessionPayload = {
+                lessonId: isLesson2Vowels ? 'lesson2_vowels' : currentLessonId,
+                lessonKey: isLesson2Vowels ? 'lesson2_vowels' : `level${currentLessonId}`,
+                category: currentCategory,
+                gameMode: generatorType || 'new_lesson',
+                score,
+                maxScore: totalQuestions > 0 ? totalQuestions * pointsPerQuestion : pointsPerQuestion,
+                accuracy: accuracyRatio,
+                accuracyPercent,
+                timeSpent: timeSpentSeconds,
+                questionTypes: questionTypeCounts,
+                completedAt,
+                heartsRemaining,
+                diamondsEarned: combinedDiamonds,
+                xpEarned: combinedXP,
+                streak: streakValue,
+                maxStreak: maxStreakValue,
+                level: unifiedStats?.level || 1,
+                totalQuestions,
+                correctAnswers,
+                wrongAnswers,
+            };
+
             try {
-                const savedSession = await gameProgressService.saveGameSession(sessionData);
-                console.log('✅ Game session saved (fallback path):', savedSession.id);
-
-                await updateUnifiedFromGameSession({
-                    ...sessionData,
-                    gameType: 'NewLessonGame'
-                });
-
-                await updateUnifiedStats({
-                    lastGameResults: {
-                        correct: correctAnswers,
-                        total: totalQuestions,
-                        accuracy,
-                        timeSpent: timeSpentSec,
-                        xpEarned: xpGained,
-                        diamondsEarned: diamondsGained,
-                        heartsRemaining: hearts,
-                        gameType: 'NewLessonGame',
-                        completedAt: new Date().toISOString()
+                if (isLesson2Vowels) {
+                    try {
+                        await apiClient.post('/progress/lesson2_vowels/complete', {
+                            accuracy: accuracyPercent,
+                            score,
+                            xpEarned: combinedXP,
+                            diamondsEarned: combinedDiamonds,
+                            heartsRemaining,
+                            timeSpentSec: timeSpentSeconds,
+                            unlockedNext: accuracyPercent >= 70,
+                        });
+                    } catch (progressError) {
+                        console.warn('⚠️ Unable to record lesson2 vowels progress', progressError?.message);
                     }
-                });
-
-                await applyDelta({ 
-                    xp: xpGained, 
-                    diamonds: diamondsGained, 
-                    finishedLesson: true, 
-                    timeSpentSec 
-                });
-
-                const currentLevelId = `level${currentLessonId}`;
-                const unlockResult = await levelUnlockService.checkAndUnlockNextLevel(currentLevelId, {
-                    accuracy,
-                    score,
-                    attempts: 1
-                });
-
-                if (unlockResult) {
-                    console.log('🎉 Next level unlocked!', unlockResult);
                 }
 
-                sessionFinalizedRef.current = true;
-            } catch (error) {
-                console.error('❌ Error saving game progress (fallback):', error);
+                try {
+                    const savedSession = await gameProgressService.saveGameSession(sessionPayload);
+                    console.log('✅ Game session saved:', savedSession.id);
+                } catch (saveError) {
+                    console.error('❌ Error saving game session:', saveError);
+                }
+
+                await updateUserStatsLegacy(
+                    resolvedProgress?.xpEarned ?? combinedXP,
+                    resolvedProgress?.diamondsEarned ?? combinedDiamonds
+                );
+
+                let updatedUnified = null;
+                try {
+                    updatedUnified = await updateUnifiedFromGameSession({
+                        ...sessionPayload,
+                        gameType: 'NewLessonGame',
+                    });
+                    if (Number.isFinite(updatedUnified?.hearts)) {
+                        updateLocalHearts(updatedUnified.hearts);
+                    }
+                } catch (unifiedError) {
+                    console.warn('⚠️ Unable to update unified session stats:', unifiedError?.message || unifiedError);
+                }
+
+                try {
+                    await updateUnifiedStats({ lastGameResults: gameResults });
+                } catch (unifiedLastError) {
+                    console.warn('⚠️ Unable to persist last game results in unified stats:', unifiedLastError?.message);
+                }
+
+                try {
+                    await updateUserStats({ lastGameResults: gameResults });
+                } catch (userDataError) {
+                    console.warn('⚠️ Unable to persist last game results in user data:', userDataError?.message);
+                }
+
+                const progressDelta = {
+                    xp: combinedXP,
+                    diamonds: combinedDiamonds,
+                    finishedLesson: true,
+                    timeSpentSec: timeSpentSeconds,
+                    totalCorrectAnswers: correctAnswers,
+                    totalWrongAnswers: wrongAnswers,
+                    lastGameResults: gameResults,
+                };
+
+                if (Number.isFinite(unifiedStats?.hearts)) {
+                    const heartDelta = heartsRemaining - unifiedStats.hearts;
+                    if (heartDelta !== 0) {
+                        progressDelta.hearts = heartDelta;
+                    }
+                }
+
+                try {
+                    await applyDelta(progressDelta);
+                } catch (deltaError) {
+                    console.warn('⚠️ Unable to apply unified delta:', deltaError?.message || deltaError);
+                }
+
+                let unlockResult = null;
+                try {
+                    const currentLevelId = `level${currentLessonId}`;
+                    unlockResult = await levelUnlockService.checkAndUnlockNextLevel(currentLevelId, {
+                        accuracy: accuracyPercent,
+                        score,
+                        attempts: 1,
+                    });
+                } catch (unlockError) {
+                    console.warn('⚠️ Unable to evaluate unlock progression:', unlockError?.message || unlockError);
+                }
+
+                await clearGameProgress();
+
+                const nextStageUnlocked = Boolean(unlockResult?.unlocked || unlockResult?.nextLevel);
+
+                navigation.replace('LessonComplete', {
+                    lessonId: currentLessonId,
+                    stageTitle,
+                    score: correctAnswers,
+                    totalQuestions,
+                    timeSpent: timeSpentSeconds,
+                    accuracyPercent,
+                    accuracyRatio,
+                    xpGained: combinedXP,
+                    diamondsGained: combinedDiamonds,
+                    heartsRemaining,
+                    streak: streakValue,
+                    maxStreak: maxStreakValue,
+                    isUnlocked: accuracyPercent >= 70,
+                    nextStageUnlocked,
+                    nextStageMeta: resolvedNextStageMeta,
+                    stageSelectRoute,
+                    replayRoute,
+                    replayParams: resolvedReplayParams,
+                    questionTypeCounts,
+                });
+            } catch (err) {
+                console.error('❌ Error finalizing lesson:', err);
+                sessionFinalizedRef.current = false;
             }
-        }
-        
-        // Navigate to completion screen with all data
-        navigation.replace('LessonComplete', { 
-            score, 
-            totalQuestions: questions.length,
-            timeSpent: timeSpentSec,
-            accuracy,
-            xpGained,
-            diamondsGained,
-            sessionData: sessionData
-        });
-    }, [currentLessonId, score, questions.length, updateUserStats, gameProgress, hearts, userStats]);
+        },
+        [
+            applyDelta,
+            answersRef,
+            clearGameProgress,
+            clearProgress,
+            currentCategory,
+            currentLessonId,
+            dailyStreak,
+            gameProgress,
+            generatorType,
+            isLesson2Vowels,
+            navigation,
+            pointsPerQuestion,
+            questions.length,
+            resolvedNextStageMeta,
+            resolvedReplayParams,
+            stageSelectRoute,
+            stageTitle,
+            unifiedStats,
+            updateLocalHearts,
+            updateUnifiedFromGameSession,
+            updateUnifiedStats,
+            updateUserStats,
+            updateUserStatsLegacy,
+        ]
+    );
+
+    // Finish lesson
+    const finishLesson = React.useCallback(
+        async (timeSpentSec = 0) => {
+            const streakRewards = dailyStreak?.rewards || { xp: 0, diamonds: 0 };
+            const baseXp = isLesson2Vowels ? score * 4 : score;
+            const diamondsFromProgress = Math.max(gameProgress.diamondsEarned || 0, 0);
+            const diamondsGained = isLesson2Vowels
+                ? Math.max(diamondsFromProgress, 3)
+                : Math.max(2, Math.floor(score / 50));
+            const totalQuestions = questions.length;
+            const maxScore = totalQuestions > 0 ? totalQuestions * pointsPerQuestion : pointsPerQuestion;
+            const accuracyPercent = totalQuestions > 0 ? Math.round((score / maxScore) * 100) : 0;
+            const accuracyRatio = accuracyPercent / 100;
+
+            await finalizeLesson({
+                finalProgress: {
+                    ...gameProgress,
+                    correctAnswers: gameProgress.correctAnswers,
+                    wrongAnswers: gameProgress.wrongAnswers,
+                },
+                accuracyPercent,
+                accuracyRatio,
+                timeSpentSeconds: timeSpentSec,
+                combinedXP: baseXp + (streakRewards.xp || 0),
+                combinedDiamonds: diamondsGained + (streakRewards.diamonds || 0),
+            });
+        },
+        [
+            dailyStreak,
+            finalizeLesson,
+            gameProgress,
+            isLesson2Vowels,
+            pointsPerQuestion,
+            questions.length,
+            score,
+        ]
+    );
 
     // Handle continue
     const handleContinue = React.useCallback(async () => {
@@ -2274,170 +2318,7 @@ const NewLessonGame = ({ navigation, route }) => {
         );
     }
 
-    if (showSummary) {
-        return (
-            <SafeAreaView style={styles.container}>
-                <View style={styles.summaryContainer}>
-                    <Text style={styles.summaryTitle}>🎉 เสร็จสิ้น!</Text>
-                    
-                    {/* สถิติเกม */}
-                    <View style={styles.gameStatsContainer}>
-                        <Text style={styles.gameStatsTitle}>ผลการเล่น</Text>
-                        <View style={styles.gameStatsRow}>
-                            <Text style={styles.gameStatsText}>
-                                ตอบถูก {summaryData.correct} จาก {summaryData.total} ข้อ
-                            </Text>
-                        </View>
-                        <View style={styles.gameStatsRow}>
-                            <Text style={styles.gameStatsText}>
-                                ความแม่นยำ: {summaryData.accuracy}%
-                            </Text>
-                        </View>
-                        <View style={styles.gameStatsRow}>
-                            <Text style={styles.gameStatsText}>
-                                เวลาที่ใช้: {summaryData.timeSpent} วินาที
-                            </Text>
-                        </View>
-                    </View>
 
-                    {/* รางวัลที่ได้รับ */}
-                    <View style={styles.rewardsContainer}>
-                        <Text style={styles.rewardsTitle}>รางวัลที่ได้รับ</Text>
-                        <View style={styles.rewardsRow}>
-                            <View style={styles.rewardItem}>
-                                <LottieView
-                                    source={require('../assets/animations/Star.json')}
-                                    autoPlay
-                                    loop
-                                    style={styles.rewardAnimation}
-                                />
-                                <Text style={styles.rewardText}>+{summaryData.xpEarned} XP</Text>
-                            </View>
-                            <View style={styles.rewardItem}>
-                                <LottieView
-                                    source={require('../assets/animations/Diamond.json')}
-                                    autoPlay
-                                    loop
-                                    style={styles.rewardAnimation}
-                                />
-                                <Text style={styles.rewardText}>+{summaryData.diamondsEarned} เพชร</Text>
-                            </View>
-                        </View>
-                        
-                        {/* รางวัลไฟสะสม */}
-                        {dailyStreak.rewards.xp > 0 && (
-                            <View style={styles.streakRewardContainer}>
-                                <LottieView
-                                    source={require('../assets/animations/Streak-Fire1.json')}
-                                    autoPlay
-                                    loop
-                                    style={styles.streakRewardAnimation}
-                                />
-                                <View style={styles.streakRewardInfo}>
-                                    <Text style={styles.streakRewardTitle}>
-                                        ไฟสะสม {dailyStreak.currentStreak} วัน!
-                                    </Text>
-                                    <Text style={styles.streakRewardText}>
-                                        +{dailyStreak.rewards.xp} XP, +{dailyStreak.rewards.diamonds} เพชร
-                                    </Text>
-                                    {dailyStreak.rewards.bonus && (
-                                        <Text style={styles.streakRewardBonus}>
-                                            {dailyStreak.rewards.bonus}
-                                        </Text>
-                                    )}
-                                </View>
-                            </View>
-                        )}
-                    </View>
-
-                    {/* ข้อมูลผู้ใช้รวม */}
-                    <View style={styles.userStatsContainer}>
-                        <Text style={styles.userStatsTitle}>ข้อมูลรวมของคุณ</Text>
-                        <View style={styles.userStatsRow}>
-                            <View style={styles.userStatItem}>
-                                <LottieView
-                                    source={require('../assets/animations/Star.json')}
-                                    autoPlay
-                                    loop
-                                    style={styles.userStatAnimation}
-                                />
-                                <Text style={styles.userStatText}>
-                                    {summaryData.totalXP?.toLocaleString('th-TH') || 0} XP
-                                </Text>
-                            </View>
-                            <View style={styles.userStatItem}>
-                                <LottieView
-                                    source={require('../assets/animations/Diamond.json')}
-                                    autoPlay
-                                    loop
-                                    style={styles.userStatAnimation}
-                                />
-                                <Text style={styles.userStatText}>
-                                    {summaryData.totalDiamonds?.toLocaleString('th-TH') || 0} เพชร
-                                </Text>
-                            </View>
-                            <View style={styles.userStatItem}>
-                                <LottieView
-                                    source={require('../assets/animations/Trophy.json')}
-                                    autoPlay
-                                    loop
-                                    style={styles.userStatAnimation}
-                                />
-                                <Text style={styles.userStatText}>Level {summaryData.newLevel}</Text>
-                            </View>
-                        </View>
-                        
-                        {/* แถบความคืบหน้า Level */}
-                        <View style={styles.levelProgressContainer}>
-                            <Text style={styles.levelProgressText}>
-                                ความคืบหน้า Level {summaryData.newLevel}
-                            </Text>
-                            <Text style={styles.levelProgressSubtext}>
-                                XP สะสม {summaryData.totalXP?.toLocaleString('th-TH') || 0} • เหลือ {summaryData.xpToNextLevel?.toLocaleString('th-TH') ?? 0} XP ถึง Lv.{(summaryData.newLevel || 0) + 1}
-                            </Text>
-                            <View style={styles.levelProgressBar}>
-                                <View style={styles.levelProgressTrack}>
-                                    <LinearGradient
-                                        colors={['#FF8000', '#FFB84D', '#FFD700']}
-                                        start={{ x: 0, y: 0 }}
-                                        end={{ x: 1, y: 0 }}
-                                        style={[
-                                            styles.levelProgressFill,
-                                            { width: `${summaryData.levelProgressPercent || 0}%` }
-                                        ]}
-                                    />
-                                </View>
-                                <Text style={styles.levelProgressPercent}>
-                                    {Math.round(summaryData.levelProgressPercent || 0)}%
-                                </Text>
-                            </View>
-                        </View>
-                    </View>
-
-                    <View style={styles.summaryActions}>
-                        <TouchableOpacity style={[styles.summaryActionButton, styles.secondaryAction]}
-                            onPress={handleReplayLesson}
-                            activeOpacity={0.85}
-                        >
-                            <Text style={styles.summaryActionText}>เล่นอีกครั้ง</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={[styles.summaryActionButton, styles.primaryAction]}
-                            onPress={handleGoToNextStage}
-                            activeOpacity={0.85}
-                        >
-                            <Text style={styles.summaryActionText}>ไปด่านถัดไป</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={[styles.summaryActionButton, styles.neutralAction]}
-                            onPress={handleNavigateHome}
-                            activeOpacity={0.85}
-                        >
-                            <Text style={styles.summaryActionText}>กลับหน้าหลัก</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </SafeAreaView>
-        );
-    }
 
     return (
         <SafeAreaView style={styles.container}>
@@ -3133,6 +3014,70 @@ const styles = StyleSheet.create({
     },
     levelProgressContainer: {
         marginTop: 10,
+    },
+    unlockContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(76, 175, 80, 0.1)',
+        padding: 15,
+        borderRadius: 15,
+        marginTop: 15,
+        borderWidth: 2,
+        borderColor: '#4CAF50',
+    },
+    unlockAnimation: {
+        width: 40,
+        height: 40,
+    },
+    unlockInfo: {
+        marginLeft: 15,
+        flex: 1,
+    },
+    unlockTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#4CAF50',
+        marginBottom: 4,
+    },
+    unlockText: {
+        fontSize: 14,
+        color: '#333',
+        marginBottom: 2,
+    },
+    unlockSubtext: {
+        fontSize: 12,
+        color: '#666',
+        fontStyle: 'italic',
+    },
+    lockContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(158, 158, 158, 0.1)',
+        padding: 15,
+        borderRadius: 15,
+        marginTop: 15,
+        borderWidth: 2,
+        borderColor: '#9E9E9E',
+    },
+    lockInfo: {
+        marginLeft: 15,
+        flex: 1,
+    },
+    lockTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#9E9E9E',
+        marginBottom: 4,
+    },
+    lockText: {
+        fontSize: 14,
+        color: '#666',
+        marginBottom: 2,
+    },
+    lockSubtext: {
+        fontSize: 12,
+        color: '#999',
+        fontStyle: 'italic',
     },
     levelProgressText: {
         fontSize: 16,

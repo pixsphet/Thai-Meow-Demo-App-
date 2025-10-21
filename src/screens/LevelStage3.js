@@ -1,88 +1,479 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity, Animated, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity, Animated, SafeAreaView, Alert, Modal } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import LottieView from 'lottie-react-native';
 import ProgressRing from '../components/ProgressRing';
 import lessonService from '../services/lessonService';
+import { useUser } from '../contexts/UserContext';
+import { useAuth } from '../contexts/AuthContext';
+import { useProgress } from '../contexts/ProgressContext';
+import { getUserStats, restoreProgress } from '../services/progressServicePerUser';
+import { useFocusEffect } from '@react-navigation/native';
+import levelUnlockService from '../services/levelUnlockService';
+import { useUserData } from '../contexts/UserDataContext';
+import { useUnifiedStats } from '../contexts/UnifiedStatsContext';
+import userStatsService from '../services/userStatsService';
+import gameProgressService from '../services/gameProgressService';
 
 const { width } = Dimensions.get('window');
 const ITEM_OFFSET = 65;
+const DEBUG_UNLOCK_ALL_STAGES = true; // Temporarily enabled for testing
+
+const CUSTOM_STAGE_META = {
+  // Advanced level stages
+  1: {
+    lesson_id: 1,
+    title: 'สำนวนไทย (Thai Idioms)',
+    key: 'advanced1_idioms',
+    category: 'thai-idioms',
+    level: 'Advanced',
+    description: 'เรียนรู้สำนวนไทยและการใช้ในบริบทจริง',
+    gameScreen: 'Advanced1IdiomsGame',
+  },
+};
+
+const applyCustomStageMeta = (stage) => {
+  if (!stage) return stage;
+  const lessonId = Number(stage.lesson_id);
+  const meta = CUSTOM_STAGE_META[lessonId];
+  if (!meta) {
+    return stage;
+  }
+
+  return {
+    ...stage,
+    ...meta,
+    key: meta.key || stage.key,
+    category: meta.category || stage.category,
+    description: meta.description || stage.description,
+  };
+};
+
+// อ่าน progress ต่อ lesson จาก restoreProgress(lessonId)
+// คืน { progressRatio(0..1), finished(true/false), accuracy(0..1) }
+const readLessonProgress = async (lessonId) => {
+  try {
+    const [restored, sessionProgress] = await Promise.all([
+      restoreProgress(lessonId),
+      gameProgressService.getLessonProgress(lessonId).catch(() => null),
+    ]);
+
+    let progressRatio = 0;
+    let finished = false;
+    let accuracy = 0;
+
+    if (restored) {
+      const total = restored.total || (restored.questionsSnapshot?.length || 0);
+      const answersObj = restored.answers || {};
+      const answers = Object.values(answersObj);
+      const answered = answers.length;
+
+      const correct = answers.filter(a => a && a.correct === true).length;
+      accuracy = total > 0 ? correct / total : 0;
+
+      // ถือว่า "จบ" ถ้าตอบครบแล้ว หรือ currentIndex ชนปลาย
+      finished =
+        (total > 0 && answered >= total) ||
+        (typeof restored.currentIndex === 'number' && total > 0 && restored.currentIndex >= total - 1);
+
+      // ความคืบหน้าวงแหวน: ตอบไปเท่าไรจากทั้งหมด (ถ้ายังไม่ gen total, เป็น 0)
+      progressRatio = total > 0 ? Math.min(1, answered / total) : 0;
+    }
+
+    if (sessionProgress && Number.isFinite(sessionProgress.attempts) && sessionProgress.attempts > 0) {
+      const resolveAccuracyPercent = () => {
+        if (Number.isFinite(sessionProgress.bestAccuracy)) {
+          return sessionProgress.bestAccuracy;
+        }
+        if (Number.isFinite(sessionProgress.accuracy)) {
+          return sessionProgress.accuracy;
+        }
+        return 0;
+      };
+
+      const accuracyPercent = resolveAccuracyPercent();
+      const accuracyRatio = Math.max(
+        0,
+        Math.min(1, accuracyPercent > 1 ? accuracyPercent / 100 : accuracyPercent)
+      );
+
+      accuracy = Math.max(accuracy, accuracyRatio);
+      finished = finished || sessionProgress.completed || accuracyRatio >= 0.7;
+      progressRatio = Math.max(progressRatio, sessionProgress.completed ? 1 : accuracyRatio);
+    }
+
+    return { progressRatio, finished, accuracy };
+  } catch (e) {
+    console.warn('readLessonProgress error:', e?.message);
+    return { progressRatio: 0, finished: false, accuracy: 0 };
+  }
+};
+
+// ตรวจปลดล็อกด่านถัดไปตามกฎ "ครั้งแรก ≥ 70%"
+const canUnlockNextByRule = ({ finished, accuracy }) => {
+  return finished && accuracy >= 0.7;
+};
+
+const ensureAllStagesExist = (stages) => {
+  // For Advanced level, ensure we always have lesson_id 1 (Idioms)
+  const stageIds = stages.map(s => s.lesson_id).filter(Boolean);
+  if (!stageIds.includes(1)) {
+    const idiomsStage = applyCustomStageMeta({
+      id: 'advanced_idioms_1',
+      lesson_id: 1,
+      title: 'สำนวนไทย (Thai Idioms)',
+      level: 3,
+      key: 'advanced1_idioms',
+      category: 'thai-idioms',
+      status: 'current',
+      progress: 0,
+      type: 'lottie',
+      lottie: require('../assets/animations/stage_start.json'),
+    });
+    stages.unshift(idiomsStage);
+  }
+  return stages;
+};
 
 const LevelStage3 = ({ navigation }) => {
-  const level = 'Advanced'; // กำหนดระดับนี้
+  const levelType = 'Advanced'; // กำหนดระดับนี้
   const [stages, setStages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [levelProgress, setLevelProgress] = useState([]);
+  
+  // Get user data and progress
+  const { user } = useUser();
+  const { isAuthenticated } = useAuth();
+  const { getCurrentLevel } = useProgress();
+  const { stats: userStats, updateUserStats } = useUserData();
+  
+  // Use unified stats for real-time sync
+  const { 
+    xp, 
+    diamonds, 
+    hearts, 
+    level, 
+    streak,
+    loading: statsLoading 
+  } = useUnifiedStats();
   
   // Animation refs
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  // ซ่อนแท็บบาร์เมื่อเข้าหน้านี้ และคืนค่ากลับเมื่อออก
+  useFocusEffect(
+    React.useCallback(() => {
+      navigation.getParent()?.setOptions({ tabBarStyle: { display: 'none' } });
+      return () => {
+        navigation.getParent()?.setOptions({ tabBarStyle: { height: 80 } });
+      };
+    }, [navigation])
+  );
+
+  // Initialize new progress tracking services
+  useEffect(() => {
+    const initializeServices = async () => {
+      try {
+        if (user?.id) {
+          await gameProgressService.initialize(user.id);
+          await levelUnlockService.initialize(user.id);
+          await userStatsService.initialize(user.id);
+          console.log('✅ Progress tracking services initialized for LevelStage3');
+        }
+      } catch (error) {
+        console.error('❌ Error initializing services:', error);
+      }
+    };
+
+    initializeServices();
+  }, [user?.id]);
+
+  // Real-time updates for user stats
+  useEffect(() => {
+    if (hearts !== undefined && diamonds !== undefined) {
+      console.log('🔄 LevelStage3 updated with unified stats:', {
+        hearts,
+        diamonds,
+        xp,
+        level,
+        streak
+      });
+      
+      // Refresh stages to update unlock status
+      fetchStages();
+    }
+  }, [hearts, diamonds, xp, level, streak]);
 
   // ดึงข้อมูลบทเรียนเฉพาะระดับ Advanced
   const fetchStages = async () => {
     try {
       setLoading(true);
-      console.log('Starting to fetch stages...');
+      console.log('🔄 Starting to fetch stages...');
       
-      // ใช้ lessonService เพื่อดึงข้อมูลจาก MongoDB
-      const response = await lessonService.getLessonsByLevel('Advanced');
-      
-      if (!response.success) {
-        throw new Error(`API error: ${response.message || 'Failed to fetch lessons'}`);
-      }
-      
-      const data = response.data || response.lessons || [];
-      console.log('Fetched stages data:', data);
-
-      // กำหนด stage ปัจจุบัน (current)
-      const currentStageIndex = 0; // stage แรกเป็น current
-
-      const updatedStages = data.map((lesson, index) => {
-        let status = 'locked';
-        if (index === currentStageIndex) status = 'current';
-        else if (index < currentStageIndex) status = 'done';
-        else status = 'locked';
-
-        return {
-          id: lesson._id,
+      // ลองดึงข้อมูลจาก API ก่อน
+      const response = await lessonService.getLessonsByLevel(levelType);
+      if (response.success && response.data) {
+        console.log('✅ Successfully fetched stages from API:', response.data);
+        const lessonsData = response.data;
+        
+        // ประมวลผลข้อมูลจาก API
+        const baseStages = lessonsData.map((lesson, index) => applyCustomStageMeta({
+          id: lesson._id || `lesson_${index}`,
           lesson_id: lesson.lesson_id || lesson.order || index + 1,
-          title: lesson.title || lesson.titleTH,
-          level: lesson.level,
-          key: lesson.key,
-          status,
-          progress: index === currentStageIndex ? 0 : 1, // progress เริ่มต้น
+          title: lesson.title || lesson.titleTH || `บทเรียน ${index + 1}`,
+          level: lesson.level || 3,
+          key: lesson.key || `lesson_${index}`,
+          category: lesson.category || 'advanced',
+          status: 'locked',
+          progress: 0,
           type: 'lottie',
-          lottie: require('../assets/animations/Star.json'), // ใช้ Star animation
+          lottie: require('../assets/animations/stage_start.json'),
+        }));
+
+        // ดึง progress และคำนวณสถานะ
+        const withProgress = await Promise.all(
+          baseStages.map(async (s) => {
+            const p = await readLessonProgress(s.lesson_id);
+            return { ...s, progress: p.progressRatio, _finished: p.finished, _accuracy: p.accuracy };
+          })
+        );
+        
+        // คำนวณสถานะปลดล็อก
+        const normalizeAccuracy = (value) => {
+          if (!Number.isFinite(value)) return 0;
+          return value > 1 ? value / 100 : value;
+        };
+
+        const computed = await Promise.all(
+          withProgress.map(async (s, i, arr) => {
+            const prevStage = i > 0 ? arr[i - 1] : null;
+            const prevFinished =
+              prevStage && (prevStage._finished || prevStage.status === 'done' || prevStage.completed);
+            const prevAccuracyRatio = prevStage ? normalizeAccuracy(prevStage._accuracy ?? prevStage.accuracy) : 0;
+            const prevPassed = prevFinished && prevAccuracyRatio >= 0.7;
+
+            if (i === 0) {
+              const accuracyPercent = Math.round((s._accuracy ?? 0) * 100);
+              return { 
+                ...s, 
+                status: s._finished ? 'done' : 'current',
+                accuracy: accuracyPercent
+              };
+            }
+            
+            const levelId = `level${s.lesson_id}`;
+            const levelProgress = (await levelUnlockService.getLevelProgress(levelId)) || {};
+            let statusFromProgress = levelProgress.status;
+
+            if (!statusFromProgress || statusFromProgress === 'locked') {
+              statusFromProgress = (prevPassed || DEBUG_UNLOCK_ALL_STAGES) ? 'current' : 'locked';
+            }
+
+            if (statusFromProgress === 'locked' && (prevPassed || DEBUG_UNLOCK_ALL_STAGES)) {
+              statusFromProgress = 'current';
+            }
+            
+            if (statusFromProgress === 'locked' && !prevPassed && !DEBUG_UNLOCK_ALL_STAGES) {
+              return { 
+                ...s, 
+                status: 'locked', 
+                progress: 0,
+                accuracy: levelProgress.accuracy ?? 0
+              };
+            }
+            
+            let status = statusFromProgress;
+            if (levelProgress.completed) {
+              status = 'done';
+            } else if (!prevPassed && !DEBUG_UNLOCK_ALL_STAGES) {
+              status = 'locked';
+            }
+
+            const accuracyPercent =
+              levelProgress.accuracy !== undefined
+                ? Math.round(normalizeAccuracy(levelProgress.accuracy) * 100)
+                : Math.round((s._accuracy ?? 0) * 100);
+
+            return { 
+              ...s, 
+              status,
+              progress: Math.max(0, Math.min(1, accuracyPercent / 100)),
+              accuracy: accuracyPercent,
+              attempts: levelProgress.attempts,
+              bestScore: levelProgress.bestScore,
+              lastPlayed: levelProgress.lastPlayed
+            };
+          })
+        );
+        
+        console.log('✅ Stages with progress from API:', computed);
+        const allStages = ensureAllStagesExist(computed);
+        setStages(allStages);
+        setLoading(false);
+        return;
+      }
+    } catch (error) {
+      console.warn('⚠️ API error, using fallback data:', error.message);
+    }
+    
+    // ใช้ fallback data เมื่อ API ไม่ทำงาน
+    try {
+      const lessonsData = Array.from({ length: 10 }, (_, index) => ({
+        _id: `fallback-${index + 1}`,
+        lesson_id: index + 1,
+        title: `บทเรียนที่ ${index + 1}`,
+        level: 'Advanced',
+        key: `lesson_${index + 1}`,
+        category: 'advanced',
+      }));
+
+      // กำหนด stage ปัจจุบันเบื้องต้น: index 0
+      const currentStageIndex = 0;
+      let baseStages = lessonsData.map((lesson, index) => {
+        // ตรวจสอบว่า lesson object มีข้อมูลครบหรือไม่
+        if (!lesson || typeof lesson !== 'object') {
+          console.warn(`Invalid lesson object at index ${index}:`, lesson);
+          return applyCustomStageMeta({
+            id: `lesson_${index}`,
+            lesson_id: index + 1,
+            title: `บทเรียน ${index + 1}`,
+            level: 3,
+            key: `lesson_${index}`,
+            category: 'advanced',
+            status: 'locked',
+            progress: 0,
+            type: 'lottie',
+            lottie: require('../assets/animations/stage_start.json'),
+          });
+        }
+        return applyCustomStageMeta({
+          id: lesson?._id || `lesson_${index}`,
+          lesson_id: lesson?.lesson_id || lesson?.order || index + 1,
+          title: lesson?.title || lesson?.titleTH || `บทเรียน ${index + 1}`,
+          level: lesson?.level || 3,
+          key: lesson?.key || `lesson_${index}`,
+          category: lesson?.category || 'advanced',
+          status: 'locked',
+          progress: 0,
+          type: 'lottie',
+          lottie: require('../assets/animations/stage_start.json'),
+        });
+      });
+
+      // ดึง progress ต่อบทเรียนแบบขนาน แล้วคำนวณสถานะ
+      const withProgress = await Promise.all(
+        baseStages.map(async (s) => {
+          const p = await readLessonProgress(s.lesson_id);
+          return { ...s, progress: p.progressRatio, _finished: p.finished, _accuracy: p.accuracy };
+        })
+      );
+
+      // คำนวณ state ปลดล็อก
+      const normalizeAccuracy = (value) => {
+        if (!Number.isFinite(value)) return 0;
+        return value > 1 ? value / 100 : value;
+      };
+
+      const computed = withProgress.map(async (s, i, arr) => {
+        const prevStage = i > 0 ? arr[i - 1] : null;
+        const prevFinished =
+          prevStage && (prevStage._finished || prevStage.status === 'done' || prevStage.completed);
+        const prevAccuracyRatio = prevStage ? normalizeAccuracy(prevStage._accuracy ?? prevStage.accuracy) : 0;
+        const prevPassed = prevFinished && prevAccuracyRatio >= 0.7;
+
+        if (i === 0) {
+          const status = s._finished ? 'done' : 'current';
+          const accuracyPercent = Math.round((s._accuracy ?? 0) * 100);
+          return { ...s, status, accuracy: accuracyPercent, unlockMessage: false };
+        }
+        
+        // เช็คการปลดล็อกจากระบบใหม่
+        const levelId = `level${s.lesson_id}`;
+        const levelProgress = (await levelUnlockService.getLevelProgress(levelId)) || {};
+        let statusFromProgress = levelProgress.status;
+        if (!statusFromProgress || statusFromProgress === 'locked') {
+          statusFromProgress = (prevPassed || DEBUG_UNLOCK_ALL_STAGES) ? 'current' : 'locked';
+        }
+        if (statusFromProgress === 'locked' && (prevPassed || DEBUG_UNLOCK_ALL_STAGES)) {
+          statusFromProgress = 'current';
+        }
+        
+        if (statusFromProgress === 'locked' && !prevPassed && !DEBUG_UNLOCK_ALL_STAGES) {
+          return { 
+            ...s, 
+            status: 'locked', 
+            progress: 0,
+            accuracy: levelProgress.accuracy ?? 0,
+            unlockMessage: false
+          };
+        }
+        
+        // ปลดล็อกแล้ว: ถ้าจบ → done, ถ้ายัง → current
+        let status = statusFromProgress;
+        if (levelProgress.completed) {
+          status = 'done';
+        } else if (!prevPassed && !DEBUG_UNLOCK_ALL_STAGES) {
+          status = 'locked';
+        }
+        const accuracyPercent =
+          levelProgress.accuracy !== undefined
+            ? Math.round(normalizeAccuracy(levelProgress.accuracy) * 100)
+            : Math.round((s._accuracy ?? 0) * 100);
+        return { 
+          ...s, 
+          status,
+          progress: Math.max(0, Math.min(1, accuracyPercent / 100)),
+          accuracy: accuracyPercent,
+          attempts: levelProgress.attempts,
+          bestScore: levelProgress.bestScore,
+          lastPlayed: levelProgress.lastPlayed,
+          unlockMessage: false
         };
       });
 
-      console.log('Updated stages:', updatedStages);
-      setStages(updatedStages);
-    } catch (error) {
-      console.error('Error fetching stages:', error);
-      
-      // สร้างข้อมูล fallback สำหรับ 10 ด่าน
-      const fallbackStages = Array.from({ length: 10 }, (_, index) => {
-        let status = 'locked';
-        if (index === 0) status = 'current';
-        else if (index < 0) status = 'done';
-        else status = 'locked';
+      // รอให้ async operations เสร็จ
+      const computedResults = await Promise.all(computed);
 
+      console.log('✅ Stages with progress (fallback):', computedResults);
+      const allStages = ensureAllStagesExist(computedResults);
+      setStages(allStages);
+    } catch (fallbackError) {
+      console.error('❌ Error in fallback data processing:', fallbackError);
+      // ใช้ข้อมูลพื้นฐานสุดท้าย
+      const basicStages = Array.from({ length: 10 }, (_, index) => {
+        if (index === 0) {
+          return applyCustomStageMeta({
+            id: 'basic-idioms',
+            lesson_id: 1,
+            title: 'สำนวนไทย (Thai Idioms)',
+            level: 3,
+            key: 'advanced1_idioms',
+            category: 'thai-idioms',
+            status: 'current',
+            progress: 0,
+            type: 'lottie',
+            lottie: require('../assets/animations/stage_start.json'),
+            unlockMessage: false,
+          });
+        }
         return {
-          id: `fallback-${index + 1}`,
+          id: `basic-${index + 1}`,
           lesson_id: index + 1,
           title: `บทเรียนที่ ${index + 1}`,
-          level: 'Advanced',
+          level: 3,
           key: `lesson_${index + 1}`,
-          status,
-          progress: index === 0 ? 0 : 1,
+          status: index === 0 ? 'current' : 'locked',
+          progress: 0,
           type: 'lottie',
-          lottie: require('../assets/animations/Star.json'),
+          lottie: require('../assets/animations/stage_start.json'),
+          unlockMessage: false,
         };
       });
-      
-      console.log('Using fallback data:', fallbackStages);
-      setStages(fallbackStages);
+      const allBasicStages = ensureAllStagesExist(basicStages);
+      setStages(allBasicStages);
     } finally {
       setLoading(false);
     }
@@ -91,6 +482,14 @@ const LevelStage3 = ({ navigation }) => {
   useEffect(() => {
     fetchStages();
   }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      // ทุกครั้งที่เข้าหน้านี้ ให้รีเฟรชความคืบหน้า
+      fetchStages();
+      return () => {};
+    }, [])
+  );
 
   // Animation effects
   useEffect(() => {
@@ -116,11 +515,32 @@ const LevelStage3 = ({ navigation }) => {
     }
   }, [stages]);
 
+  // Pulse animation for progress rings
+  useEffect(() => {
+    const pulseAnimation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    pulseAnimation.start();
+    
+    return () => pulseAnimation.stop();
+  }, []);
+
   // Loading Screen
   if (loading) {
     return (
       <LinearGradient
-        colors={['#FF9800', '#FFB74D', '#FFCC80']}
+        colors={['#9C27B0', '#BA68C8', '#CE93D8']}
         style={styles.container}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -136,6 +556,9 @@ const LevelStage3 = ({ navigation }) => {
             <Text style={styles.loadingText}>
               กำลังโหลดข้อมูล...
             </Text>
+            <Text style={styles.loadingSubtext}>
+              กรุณารอสักครู่
+            </Text>
           </View>
         </SafeAreaView>
       </LinearGradient>
@@ -143,13 +566,14 @@ const LevelStage3 = ({ navigation }) => {
   }
 
   return (
-    <LinearGradient
-      colors={['#FF9800', '#FFB74D', '#FFCC80']}
-      style={styles.container}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-    >
-      <SafeAreaView style={styles.safeArea}>
+    <>
+      <LinearGradient
+        colors={['#9C27B0', '#BA68C8', '#CE93D8']}
+        style={styles.container}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      >
+        <SafeAreaView style={styles.safeArea}>
         {/* Header */}
         <Animated.View 
           style={[
@@ -172,18 +596,52 @@ const LevelStage3 = ({ navigation }) => {
               <Text style={styles.levelSubtext}>Advanced Level</Text>
             </View>
             <View style={styles.progressIcons}>
-              <View style={[styles.iconContainer, styles.completedIcon]}>
-                <Text style={styles.completedIconText}>⭐</Text>
+              <View style={styles.iconWithLabel}>
+                <View style={[styles.iconContainer, styles.heartIcon]}>
+                  <LottieView
+                    source={require('../assets/animations/Heart.json')}
+                    autoPlay
+                    loop
+                    style={styles.headerAnimation}
+                  />
+                </View>
+                <Text style={styles.iconLabel}>{hearts}</Text>
               </View>
-              <View style={[styles.iconContainer, styles.completedIcon]}>
-                <Text style={styles.completedIconText}>📖</Text>
+              <View style={styles.iconWithLabel}>
+                <View style={[styles.iconContainer, styles.diamondIcon]}>
+                  <LottieView
+                    source={require('../assets/animations/Diamond.json')}
+                    autoPlay
+                    loop
+                    style={styles.headerAnimation}
+                  />
+                </View>
+                <Text style={styles.iconLabel}>{diamonds}</Text>
               </View>
-              <View style={[styles.iconContainer, styles.currentIcon]}>
-                <Text style={styles.currentIconText}>📖</Text>
+              <View style={styles.iconWithLabel}>
+                <View style={[styles.iconContainer, styles.levelIcon]}>
+                  <LottieView
+                    source={require('../assets/animations/Trophy.json')}
+                    autoPlay
+                    loop
+                    style={styles.headerAnimation}
+                  />
+                </View>
+                <Text style={styles.iconLabel}>{userStats?.level || getCurrentLevel()}</Text>
               </View>
-              <View style={[styles.iconContainer, styles.lockedIcon]}>
-                <Text style={styles.lockedIconText}>📚</Text>
-              </View>
+            </View>
+          </View>
+
+          {/* Header badges row */}
+          <View style={styles.headerBadgesRow}>
+            <View style={[styles.badgePill, { backgroundColor: 'rgba(255, 255, 255, 0.25)', borderColor: '#FFD54F' }]}>
+              <Text style={styles.badgePillText}>⭐ {xp?.toLocaleString?.('th-TH') || xp || 0} XP</Text>
+            </View>
+            <View style={[styles.badgePill, { backgroundColor: 'rgba(255, 255, 255, 0.25)', borderColor: '#FF6B6B' }]}>
+              <Text style={styles.badgePillText}>🔥 {streak || 0} วันต่อเนื่อง</Text>
+            </View>
+            <View style={[styles.badgePill, { backgroundColor: 'rgba(255, 255, 255, 0.25)', borderColor: '#90CAF9' }]}>
+              <Text style={styles.badgePillText}>🎯 เลเวล {level || (userStats?.level || 1)}</Text>
             </View>
           </View>
         </Animated.View>
@@ -212,7 +670,6 @@ const LevelStage3 = ({ navigation }) => {
               ]}
             >
             <TouchableOpacity
-              disabled={stage.status === 'locked'}
               style={[
                 styles.stageCircle,
                 stage.status === 'done' && styles.doneCircle,
@@ -220,18 +677,27 @@ const LevelStage3 = ({ navigation }) => {
                 stage.status === 'current' && styles.currentCircle,
                 stage.status === 'locked' && styles.lockedCircle,
               ]}
-                  onPress={() => {
-                    if (stage.status !== 'locked') {
-                      // ไปที่เกมใหม่ NewLessonGame
-                      console.log('Navigating to NewLessonGame with lessonId:', stage.lesson_id);
-                      navigation.navigate('Game', { 
-                        screen: 'NewLessonGame',
-                        params: {
-                          lessonId: stage.lesson_id, 
-                          category: 'advanced',
-                          level: stage.level,
-                          stageTitle: stage.title 
-                        }
+                  onPress={async () => {
+                    if (stage.status === 'locked') {
+                      Alert.alert('ยังไม่ปลดล็อก', 'ต้องผ่านด่านก่อนหน้าอย่างน้อย 70% ในการเล่นครั้งแรก เพื่อปลดล็อกด่านนี้');
+                      return;
+                    }
+                    console.log('Navigating to lesson screen with lessonId:', stage.lesson_id);
+                    
+                    // Navigate to appropriate game screen based on stage metadata
+                    if (stage.gameScreen === 'Advanced1IdiomsGame') {
+                      navigation.navigate('Advanced1IdiomsGame', {
+                        lessonId: stage.lesson_id,
+                        category: stage.category,
+                        level: stage.level,
+                        stageTitle: stage.title
+                      });
+                    } else {
+                      navigation.navigate('NewLessonGame', {
+                        lessonId: stage.lesson_id, 
+                        category: 'advanced',
+                        level: stage.level,
+                        stageTitle: stage.title 
                       });
                     }
                   }}
@@ -239,13 +705,24 @@ const LevelStage3 = ({ navigation }) => {
             >
               <View style={styles.progressWrapper}>
                 {stage.status === 'current' && (
-                  <ProgressRing
-                    progress={stage.progress || 0.67}
-                    size={138}
-                    strokeWidth={10}
-                    color="#FF8000"
-                    bgColor="#FFE0B2"
-                  />
+                  <Animated.View
+                    style={{
+                      transform: [{ scale: pulseAnim }]
+                    }}
+                  >
+                    <ProgressRing
+                      progress={Math.max(0, Math.min(1, stage.progress || 0))}
+                      size={142}
+                      strokeWidth={14}
+                      color="#9C27B0"
+                      bgColor="rgba(156, 39, 176, 0.2)"
+                      shadowColor="#9C27B0"
+                      shadowOpacity={0.6}
+                      shadowRadius={12}
+                      gradient={true}
+                      gradientColors={['#9C27B0', '#BA68C8', '#CE93D8']}
+                    />
+                  </Animated.View>
                 )}
 
                 {stage.type === 'lottie' && stage.lottie && (
@@ -263,6 +740,13 @@ const LevelStage3 = ({ navigation }) => {
                 <View style={styles.starContainer}>
                   <Text style={styles.star}>⭐</Text>
                 </View>
+
+                {/* Lock overlay */}
+                {stage.status === 'locked' && (
+                  <View style={styles.lockOverlay}>
+                    <Text style={styles.lockText}>🔒</Text>
+                  </View>
+                )}
               </View>
             </TouchableOpacity>
 
@@ -280,14 +764,28 @@ const LevelStage3 = ({ navigation }) => {
                  stage.status === 'done' ? 'เสร็จแล้ว' : 
                  stage.status === 'locked' ? 'ยังล็อค' : 'พร้อมเรียน'}
               </Text>
+
+              {/* Stage info chips */}
+              <View style={styles.stageChipsRow}>
+                <View style={[styles.stageChip, { borderColor: '#CE93D8' }]}>
+                  <Text style={styles.stageChipText}>📈 ความคืบหน้า {Math.round(Math.max(0, Math.min(1, stage.progress || 0)) * 100)}%</Text>
+                </View>
+                {Number.isFinite(stage.accuracy) && (
+                  <View style={[styles.stageChip, { borderColor: stage.accuracy >= 70 ? '#4CAF50' : '#BA68C8' }]}>
+                    <Text style={styles.stageChipText}>🎯 แม่นยำ {Math.round(stage.accuracy)}%</Text>
+                  </View>
+                )}
+              </View>
             </View>
           </Animated.View>
         ))
         )}
         </ScrollView>
 
-      </SafeAreaView>
-    </LinearGradient>
+        </SafeAreaView>
+      </LinearGradient>
+
+    </>
   );
 };
 
@@ -313,7 +811,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -339,9 +837,31 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 2,
   },
+  headerBadgesRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 6,
+    justifyContent: 'center',
+  },
+  badgePill: {
+    borderWidth: 1.5,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  badgePillText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
+  },
   progressIcons: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
+  },
+  iconWithLabel: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   iconContainer: {
     marginHorizontal: 4,
@@ -356,28 +876,34 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 3,
   },
-  completedIcon: {
-    backgroundColor: '#FFD700',
+  heartIcon: {
+    backgroundColor: 'rgba(255, 107, 107, 0.2)',
+    borderWidth: 2,
+    borderColor: '#FF6B6B',
   },
-  currentIcon: {
-    backgroundColor: '#FF9800',
-    borderWidth: 3,
-    borderColor: '#FFFFFF',
+  diamondIcon: {
+    backgroundColor: 'rgba(33, 150, 243, 0.2)',
+    borderWidth: 2,
+    borderColor: '#2196F3',
   },
-  lockedIcon: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+  levelIcon: {
+    backgroundColor: 'rgba(255, 193, 7, 0.2)',
+    borderWidth: 2,
+    borderColor: '#FFC107',
   },
-  completedIconText: {
-    fontSize: 20,
-    color: '#B8860B',
+  headerAnimation: {
+    width: 24,
+    height: 24,
   },
-  currentIconText: {
-    fontSize: 20,
+  iconLabel: {
+    fontSize: 12,
+    fontWeight: 'bold',
     color: '#FFFFFF',
-  },
-  lockedIconText: {
-    fontSize: 20,
-    color: 'rgba(255, 255, 255, 0.6)',
+    textAlign: 'center',
+    marginTop: 2,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   stageList: { 
     paddingBottom: 30, 
@@ -394,11 +920,11 @@ const styles = StyleSheet.create({
     width: 150,
     height: 150,
     borderRadius: 75,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 4,
-    borderColor: '#FF9800',
+    borderColor: '#9C27B0',
     elevation: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -419,23 +945,23 @@ const styles = StyleSheet.create({
     zIndex: 10 
   },
   glow: { 
-    shadowColor: '#FF9800', 
+    shadowColor: '#9C27B0', 
     shadowOffset: { width: 0, height: 0 }, 
     shadowOpacity: 0.7, 
     shadowRadius: 22, 
     elevation: 28 
   },
   doneCircle: { 
-    backgroundColor: 'rgba(255, 255, 255, 0.9)', 
+    backgroundColor: 'rgba(255, 255, 255, 0.95)', 
     borderColor: '#4CAF50' 
   },
   activeCircle: { 
-    backgroundColor: 'rgba(255, 255, 255, 0.9)', 
-    borderColor: '#FFB74D' 
+    backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+    borderColor: '#CE93D8' 
   },
   currentCircle: { 
-    backgroundColor: 'rgba(255, 255, 255, 0.9)', 
-    borderColor: '#FF9800' 
+    backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+    borderColor: '#9C27B0' 
   },
   lockedCircle: { 
     backgroundColor: 'rgba(255, 255, 255, 0.5)', 
@@ -456,7 +982,7 @@ const styles = StyleSheet.create({
   },
   stageDescription: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: 'rgba(255, 255, 255, 0.9)',
     textAlign: 'center',
     marginTop: 4,
   },
@@ -475,6 +1001,12 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
   },
+  loadingSubtext: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginTop: 8,
+    textAlign: 'center',
+  },
   starContainer: {
     position: 'absolute',
     top: 5,
@@ -482,13 +1014,13 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderWidth: 2,
-    borderColor: '#FF9800',
+    borderColor: '#9C27B0',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 15,
-    shadowColor: '#FF9800',
+    shadowColor: '#9C27B0',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 3,
@@ -496,33 +1028,48 @@ const styles = StyleSheet.create({
   },
   star: {
     fontSize: 16,
-    color: '#FFD700',
-    textShadowColor: '#FF9800',
+    color: '#FFD54F',
+    textShadowColor: '#9C27B0',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 1,
     fontWeight: 'bold',
   },
-  // Loading Screen Styles
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
+  lockOverlay: {
+    position: 'absolute',
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: 'rgba(0,0,0,0.25)',
     alignItems: 'center',
-    backgroundColor: 'transparent',
+    justifyContent: 'center',
+    zIndex: 20,
   },
+  lockText: {
+    fontSize: 26,
+    color: '#FFF',
+  },
+  stageChipsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 6,
+  },
+  stageChip: {
+    borderWidth: 1.5,
+    borderRadius: 14,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    backgroundColor: 'rgba(255,255,255,0.18)'
+  },
+  stageChipText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600'
+  },
+  // Loading Screen Styles
   loadingAnimation: {
     width: 200,
     height: 200,
     marginBottom: 20,
   },
-  loadingText: {
-    fontSize: 18,
-    fontWeight: '600',
-    textAlign: 'center',
-    color: '#FFFFFF',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
-  },
 });
-
 export default LevelStage3;

@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const User = require('../models/User');
 const Player = require('../models/Player');
 const UserStatsModel = require('../models/UserStats');
@@ -335,6 +336,10 @@ async function buildStatsDTO(user) {
 }
 
 async function getUserWithMergedData(userId) {
+  if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+    return null;
+  }
+
   const user = await User.findById(userId);
   if (!user) {
     return null;

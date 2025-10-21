@@ -23,6 +23,7 @@ import { getLevelRewards, getXpProgress } from "../utils/leveling";
 
 const tabItems = [
   { name: 'Home', label: 'หน้าแรก', icon: 'home', screen: 'HomeMain' },
+  { name: 'Minigame', label: 'เกม', icon: 'gamepad', screen: 'Minigame' },
   { name: 'Progress', label: 'ความคืบหน้า', icon: 'trophy', screen: 'Progress' },
   { name: 'Profile', label: 'โปรไฟล์', icon: 'user', screen: 'Profile' },
   { name: 'AddFriend', label: 'เพิ่มเพื่อน', icon: 'user-plus', screen: 'AddFriend' }
@@ -53,7 +54,10 @@ const CustomTabBar = ({ activeTab, navigation, theme }) => {
     }}>
       {tabItems.map(item => {
         const isActive = item.name === activeTab;
-        const tint = isActive ? '#FF8000' : '#666';
+        let tint = '#666';
+        if (isActive) {
+          tint = '#FF8000';
+        }
         return (
           <TouchableOpacity
             key={item.name}

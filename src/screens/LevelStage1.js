@@ -14,10 +14,11 @@ import { useUserData } from '../contexts/UserDataContext';
 import { useUnifiedStats } from '../contexts/UnifiedStatsContext';
 import userStatsService from '../services/userStatsService';
 import gameProgressService from '../services/gameProgressService';
-import Lesson3Game from './Lesson3Game';
+// Removed Lesson3Game/Lesson4Game (files no longer exist)
 
 const { width } = Dimensions.get('window');
 const ITEM_OFFSET = 65;
+const DEBUG_UNLOCK_ALL_STAGES = true; // Set to false for production
 
 const CUSTOM_STAGE_META = {
   1: {
@@ -32,10 +33,22 @@ const CUSTOM_STAGE_META = {
     description: 'ฝึกครบสระไทยทั้ง 32 ตัว',
   },
   3: {
-    title: 'Lesson 3 - คำทักทาย',
+    title: 'คำทักทาย',
     key: 'lesson_greetings_3',
     category: 'greetings',
     description: 'ฝึกคำทักทายพร้อม 5 มินิเกม',
+  },
+  4: {
+    title: 'สิ่งของรอบตัว',
+    key: 'lesson_objects_4',
+    category: 'objects',
+    description: 'ฝึกคำศัพท์สิ่งของรอบตัว 16 คำ',
+  },
+  5: {
+    title: 'ร่างกาย (Body Parts)',
+    key: 'lesson_body_5',
+    category: 'body',
+    description: 'ฝึกคำศัพท์ร่างกาย 16 คำ',
   },
 };
 
@@ -122,13 +135,44 @@ const canUnlockNextByRule = ({ finished, accuracy }) => {
   return finished && accuracy >= 0.7;
 };
 
+const ensureAllStagesExist = (stages) => {
+  const requiredLessonIds = [1, 2, 3, 4, 5];
+  const existingLessonIds = stages.map(s => Number(s.lesson_id));
+  const missingLessonIds = requiredLessonIds.filter(id => !existingLessonIds.includes(id));
+
+  if (missingLessonIds.length > 0) {
+    console.warn(`Missing stages for lesson IDs: ${missingLessonIds.join(', ')}. Adding default stages.`);
+    const newStages = [...stages];
+    missingLessonIds.forEach(id => {
+      const meta = CUSTOM_STAGE_META[id];
+      if (meta) {
+        newStages.push(applyCustomStageMeta({
+          id: `lesson_${id}`,
+          lesson_id: id,
+          title: meta.title,
+          level: 'Beginner',
+          key: meta.key,
+          category: meta.category,
+          status: 'locked',
+          progress: 0,
+          type: 'lottie',
+          lottie: require('../assets/animations/stage_start.json'),
+        }));
+      } else {
+        console.warn(`No meta data found for lesson ID: ${id}. Skipping.`);
+      }
+    });
+    return newStages;
+  }
+  return stages;
+};
+
 const LevelStage1 = ({ navigation }) => {
   const levelType = 'Beginner'; // กำหนดระดับนี้
   const [stages, setStages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [levelProgress, setLevelProgress] = useState([]);
-  const [showLesson3, setShowLesson3] = useState(false);
-  const [lesson3Params, setLesson3Params] = useState(null);
+  // Removed lesson3/lesson4 modal state (use navigation instead)
   
   // Get user data and progress
   const { user } = useUser();
@@ -240,6 +284,38 @@ const LevelStage1 = ({ navigation }) => {
           baseStages.splice(2, 0, lesson3Stage);
         }
         
+        if (!baseStages.some(stage => Number(stage.lesson_id) === 4)) {
+          const lesson4Stage = applyCustomStageMeta({
+            id: 'lesson4',
+            lesson_id: 4,
+            title: 'Lesson 4 - สิ่งของรอบตัว',
+            level: 'Beginner',
+            key: 'lesson_objects_4',
+            category: 'objects',
+            status: 'locked',
+            progress: 0,
+            type: 'lottie',
+            lottie: require('../assets/animations/stage_start.json'),
+          });
+          baseStages.splice(3, 0, lesson4Stage);
+        }
+        
+        if (!baseStages.some(stage => Number(stage.lesson_id) === 5)) {
+          const lesson5Stage = applyCustomStageMeta({
+            id: 'lesson5',
+            lesson_id: 5,
+            title: 'Lesson 5 - ร่างกาย (Body Parts)',
+            level: 'Beginner',
+            key: 'lesson_body_5',
+            category: 'body',
+            status: 'locked',
+            progress: 0,
+            type: 'lottie',
+            lottie: require('../assets/animations/stage_start.json'),
+          });
+          baseStages.splice(4, 0, lesson5Stage);
+        }
+        
         // ดึง progress และคำนวณสถานะ
         const withProgress = await Promise.all(
           baseStages.map(async (s) => {
@@ -276,14 +352,14 @@ const LevelStage1 = ({ navigation }) => {
             let statusFromProgress = levelProgress.status;
 
             if (!statusFromProgress || statusFromProgress === 'locked') {
-              statusFromProgress = prevPassed ? 'current' : 'locked';
+              statusFromProgress = (prevPassed || DEBUG_UNLOCK_ALL_STAGES) ? 'current' : 'locked';
             }
 
-            if (statusFromProgress === 'locked' && prevPassed) {
+            if (statusFromProgress === 'locked' && (prevPassed || DEBUG_UNLOCK_ALL_STAGES)) {
               statusFromProgress = 'current';
             }
             
-            if (statusFromProgress === 'locked' && !prevPassed) {
+            if (statusFromProgress === 'locked' && !prevPassed && !DEBUG_UNLOCK_ALL_STAGES) {
               return { 
                 ...s, 
                 status: 'locked', 
@@ -295,7 +371,7 @@ const LevelStage1 = ({ navigation }) => {
             let status = statusFromProgress;
             if (levelProgress.completed) {
               status = 'done';
-            } else if (!prevPassed) {
+            } else if (!prevPassed && !DEBUG_UNLOCK_ALL_STAGES) {
               status = 'locked';
             }
 
@@ -317,7 +393,8 @@ const LevelStage1 = ({ navigation }) => {
         );
         
         console.log('✅ Stages with progress from API:', computed);
-        setStages(computed);
+        const allStages = ensureAllStagesExist(computed);
+        setStages(allStages);
         setLoading(false);
         return;
       }
@@ -384,6 +461,38 @@ const LevelStage1 = ({ navigation }) => {
         });
         baseStages.splice(2, 0, lesson3Stage);
       }
+      
+      if (!baseStages.some(stage => Number(stage.lesson_id) === 4)) {
+        const lesson4Stage = applyCustomStageMeta({
+          id: 'lesson4',
+          lesson_id: 4,
+          title: 'Lesson 4 - สิ่งของรอบตัว',
+          level: 'Beginner',
+          key: 'lesson_objects_4',
+          category: 'objects',
+          status: 'locked',
+          progress: 0,
+          type: 'lottie',
+          lottie: require('../assets/animations/stage_start.json'),
+        });
+        baseStages.splice(3, 0, lesson4Stage);
+      }
+
+      if (!baseStages.some(stage => Number(stage.lesson_id) === 5)) {
+        const lesson5Stage = applyCustomStageMeta({
+          id: 'lesson5',
+          lesson_id: 5,
+          title: 'Lesson 5 - ร่างกาย (Body Parts)',
+          level: 'Beginner',
+          key: 'lesson_body_5',
+          category: 'body',
+          status: 'locked',
+          progress: 0,
+          type: 'lottie',
+          lottie: require('../assets/animations/stage_start.json'),
+        });
+        baseStages.splice(4, 0, lesson5Stage);
+      }
 
       // ดึง progress ต่อบทเรียนแบบขนาน แล้วคำนวณสถานะ
       const withProgress = await Promise.all(
@@ -419,13 +528,13 @@ const LevelStage1 = ({ navigation }) => {
         const levelProgress = (await levelUnlockService.getLevelProgress(levelId)) || {};
         let statusFromProgress = levelProgress.status;
         if (!statusFromProgress || statusFromProgress === 'locked') {
-          statusFromProgress = prevPassed ? 'current' : 'locked';
+          statusFromProgress = (prevPassed || DEBUG_UNLOCK_ALL_STAGES) ? 'current' : 'locked';
         }
-        if (statusFromProgress === 'locked' && prevPassed) {
+        if (statusFromProgress === 'locked' && (prevPassed || DEBUG_UNLOCK_ALL_STAGES)) {
           statusFromProgress = 'current';
         }
         
-        if (statusFromProgress === 'locked' && !prevPassed) {
+        if (statusFromProgress === 'locked' && !prevPassed && !DEBUG_UNLOCK_ALL_STAGES) {
           return { 
             ...s, 
             status: 'locked', 
@@ -439,7 +548,7 @@ const LevelStage1 = ({ navigation }) => {
         let status = statusFromProgress;
         if (levelProgress.completed) {
           status = 'done';
-        } else if (!prevPassed) {
+        } else if (!prevPassed && !DEBUG_UNLOCK_ALL_STAGES) {
           status = 'locked';
         }
         const accuracyPercent =
@@ -462,7 +571,8 @@ const LevelStage1 = ({ navigation }) => {
       const computedResults = await Promise.all(computed);
 
       console.log('✅ Stages with progress (fallback):', computedResults);
-      setStages(computedResults);
+      const allStages = ensureAllStagesExist(computedResults);
+      setStages(allStages);
     } catch (fallbackError) {
       console.error('❌ Error in fallback data processing:', fallbackError);
       // ใช้ข้อมูลพื้นฐานสุดท้าย
@@ -636,6 +746,19 @@ const LevelStage1 = ({ navigation }) => {
               </View>
             </View>
           </View>
+
+          {/* Header badges row */}
+          <View style={styles.headerBadgesRow}>
+            <View style={[styles.badgePill, { backgroundColor: 'rgba(255, 255, 255, 0.25)', borderColor: '#FFD54F' }]}>
+              <Text style={styles.badgePillText}>⭐ {xp?.toLocaleString?.('th-TH') || xp || 0} XP</Text>
+            </View>
+            <View style={[styles.badgePill, { backgroundColor: 'rgba(255, 255, 255, 0.25)', borderColor: '#FF6B6B' }]}>
+              <Text style={styles.badgePillText}>🔥 {streak || 0} วันต่อเนื่อง</Text>
+            </View>
+            <View style={[styles.badgePill, { backgroundColor: 'rgba(255, 255, 255, 0.25)', borderColor: '#90CAF9' }]}>
+              <Text style={styles.badgePillText}>🎯 เลเวล {level || (userStats?.level || 1)}</Text>
+            </View>
+          </View>
         </Animated.View>
 
         <ScrollView contentContainerStyle={styles.stageList} showsVerticalScrollIndicator={false}>
@@ -676,9 +799,17 @@ const LevelStage1 = ({ navigation }) => {
                     }
                     console.log('Navigating to lesson screen with lessonId:', stage.lesson_id);
                     
+                    // Special case for lesson 1 - route to ConsonantStage1Game (ก-ฮ)
+                    if (stage.lesson_id === 1) {
+                      navigation.navigate('ConsonantStage1Game', {
+                        lessonId: stage.lesson_id,
+                        category: 'thai-consonants',
+                        level: stage.level,
+                        stageTitle: stage.title || 'พยัญชนะพื้นฐาน ก-ฮ',
+                      });
                     // Special case for lesson 2 - route to Thai vowel game
-                    if (stage.lesson_id === 2) {
-                      navigation.navigate('BeginnerVowelsStage', {
+                    } else if (stage.lesson_id === 2) {
+                      navigation.navigate('VowelStage2Game', {
                         lessonId: stage.lesson_id,
                         category: 'vowels_basic',
                         level: stage.level,
@@ -686,13 +817,26 @@ const LevelStage1 = ({ navigation }) => {
                         generator: 'lesson2_vowels',
                       });
                     } else if (stage.lesson_id === 3) {
-                      setLesson3Params({
+                      navigation.navigate('GreetingStage3Game', {
                         lessonId: stage.lesson_id,
-                        category: 'greetings',
+                        category: 'thai-greetings',
                         level: stage.level,
-                        stageTitle: stage.title
+                        stageTitle: stage.title || 'คำทักทาย',
                       });
-                      setShowLesson3(true);
+                    } else if (stage.lesson_id === 4) {
+                      navigation.navigate('Lesson4ObjectsGame', {
+                        lessonId: stage.lesson_id,
+                        category: 'thai-objects',
+                        level: stage.level,
+                        stageTitle: stage.title || 'สิ่งของรอบตัว',
+                      });
+                    } else if (stage.lesson_id === 5) {
+                      navigation.navigate('Lesson5BodyGame', {
+                        lessonId: stage.lesson_id,
+                        category: 'thai-body-parts',
+                        level: stage.level,
+                        stageTitle: stage.title || 'ร่างกาย (Body Parts)',
+                      });
                     } else {
                       navigation.navigate('NewLessonGame', {
                         lessonId: stage.lesson_id, 
@@ -715,13 +859,13 @@ const LevelStage1 = ({ navigation }) => {
                       progress={Math.max(0, Math.min(1, stage.progress || 0))}
                       size={142}
                       strokeWidth={14}
-                      color="#FF6B35"
-                      bgColor="rgba(255, 255, 255, 0.2)"
-                      shadowColor="#FF6B35"
+                      color="#FF8000"
+                      bgColor="rgba(255, 255, 255, 0.28)"
+                      shadowColor="#FF8000"
                       shadowOpacity={0.6}
                       shadowRadius={12}
                       gradient={true}
-                      gradientColors={['#FF6B35', '#FF8C00', '#FFB74D']}
+                      gradientColors={['#FF8000', '#FFA500', '#FFB74D']}
                     />
                   </Animated.View>
                 )}
@@ -741,6 +885,13 @@ const LevelStage1 = ({ navigation }) => {
                 <View style={styles.starContainer}>
                   <Text style={styles.star}>⭐</Text>
                 </View>
+
+                {/* Lock overlay */}
+                {stage.status === 'locked' && (
+                  <View style={styles.lockOverlay}>
+                    <Text style={styles.lockText}>🔒</Text>
+                  </View>
+                )}
               </View>
             </TouchableOpacity>
 
@@ -758,6 +909,18 @@ const LevelStage1 = ({ navigation }) => {
                  stage.status === 'done' ? 'เสร็จแล้ว' : 
                  stage.status === 'locked' ? 'ยังล็อค' : 'พร้อมเรียน'}
               </Text>
+
+              {/* Stage info chips */}
+              <View style={styles.stageChipsRow}>
+                <View style={[styles.stageChip, { borderColor: '#FFB74D' }]}>
+                  <Text style={styles.stageChipText}>📈 ความคืบหน้า {Math.round(Math.max(0, Math.min(1, stage.progress || 0)) * 100)}%</Text>
+                </View>
+                {Number.isFinite(stage.accuracy) && (
+                  <View style={[styles.stageChip, { borderColor: stage.accuracy >= 70 ? '#4CAF50' : '#FFA000' }]}>
+                    <Text style={styles.stageChipText}>🎯 แม่นยำ {Math.round(stage.accuracy)}%</Text>
+                  </View>
+                )}
+              </View>
             </View>
           </Animated.View>
         ))
@@ -767,25 +930,7 @@ const LevelStage1 = ({ navigation }) => {
         </SafeAreaView>
       </LinearGradient>
 
-      <Modal
-        visible={showLesson3}
-        animationType="slide"
-        presentationStyle="fullScreen"
-        onRequestClose={() => {
-          setShowLesson3(false);
-          setLesson3Params(null);
-          fetchStages();
-        }}
-      >
-        <Lesson3Game
-          route={{ params: lesson3Params }}
-          onClose={async () => {
-            setShowLesson3(false);
-            setLesson3Params(null);
-            await fetchStages();
-          }}
-        />
-      </Modal>
+      {/* Removed Lesson3/Lesson4 modal implementation */}
     </>
   );
 };
@@ -837,6 +982,23 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.8)',
     fontSize: 14,
     marginTop: 2,
+  },
+  headerBadgesRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 6,
+    justifyContent: 'center',
+  },
+  badgePill: {
+    borderWidth: 1.5,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  badgePillText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
   },
   progressIcons: {
     flexDirection: 'row',
@@ -1017,6 +1179,37 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 1,
     fontWeight: 'bold',
+  },
+  lockOverlay: {
+    position: 'absolute',
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: 'rgba(0,0,0,0.25)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 20,
+  },
+  lockText: {
+    fontSize: 26,
+    color: '#FFF',
+  },
+  stageChipsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 6,
+  },
+  stageChip: {
+    borderWidth: 1.5,
+    borderRadius: 14,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    backgroundColor: 'rgba(255,255,255,0.18)'
+  },
+  stageChipText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600'
   },
   // Loading Screen Styles
   loadingContainer: {

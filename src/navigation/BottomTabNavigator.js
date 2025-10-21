@@ -19,8 +19,20 @@ import LevelStage1 from '../screens/LevelStage1';
 import LevelStage2 from '../screens/LevelStage2';
 import LevelStage3 from '../screens/LevelStage3';
 import ThaiVowelGame from '../screens/ThaiVowelGame';
-import ThaiTonesGame from '../screens/ThaiTonesGame';
-import Lesson3Game from '../screens/Lesson3Game';
+import ConsonantStage1Game from '../screens/ConsonantStage1Game';
+import VowelStage2Game from '../screens/VowelStage2Game';
+import TestConsonantGame from '../screens/TestConsonantGame';
+// Removed Lesson3Game/Lesson4Game imports (files not present)
+import MinigameScreen from '../screens/MinigameScreen';
+import Game1Screen from '../screens/Game1Screen';
+import Game2Screen from '../screens/Game2Screen';
+import MemoryMatchScreen from '../screens/MemoryMatchScreen';
+import SpeedTypingScreen from '../screens/SpeedTypingScreen';
+import GemShopScreen from '../screens/GemShopScreen';
+import GreetingStage3Game from '../screens/GreetingStage3Game';
+import Lesson4ObjectsGame from '../screens/Lesson4ObjectsGame';
+import Lesson5BodyGame from '../screens/Lesson5BodyGame';
+import Advanced1IdiomsGame from '../screens/Advanced1IdiomsGame';
 
 
 const Tab = createBottomTabNavigator();
@@ -71,6 +83,21 @@ const MainStackNavigator = () => {
         options={{ headerShown: false }}
       />
       <Stack.Screen 
+        name="ConsonantStage1Game" 
+        component={ConsonantStage1Game} 
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="TestConsonantGame" 
+        component={TestConsonantGame} 
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="VowelStage2Game" 
+        component={VowelStage2Game} 
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
         name="LessonComplete" 
         component={LessonCompleteScreen} 
         options={{ headerShown: false }}
@@ -105,14 +132,55 @@ const MainStackNavigator = () => {
         component={GameModeSelector} 
         options={{ headerShown: false }}
       />
+        {/* Removed Lesson3Game/Lesson4Game screens */}
+        <Stack.Screen 
+          name="Minigame" 
+          component={MinigameScreen} 
+          options={{ headerShown: false }}
+        />
       <Stack.Screen 
-        name="ThaiTones" 
-        component={ThaiTonesGame} 
+        name="Game1" 
+        component={Game1Screen} 
         options={{ headerShown: false }}
       />
       <Stack.Screen 
-        name="Lesson3Game" 
-        component={Lesson3Game} 
+        name="Game2" 
+        component={Game2Screen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="MemoryMatch" 
+        component={MemoryMatchScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="SpeedTyping" 
+        component={SpeedTypingScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="GemShop" 
+        component={GemShopScreen} 
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="GreetingStage3Game" 
+        component={GreetingStage3Game} 
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="Lesson4ObjectsGame" 
+        component={Lesson4ObjectsGame} 
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="Lesson5BodyGame" 
+        component={Lesson5BodyGame} 
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="Advanced1IdiomsGame" 
+        component={Advanced1IdiomsGame} 
         options={{ headerShown: false }}
       />
     </Stack.Navigator>
@@ -133,13 +201,14 @@ const CustomTabBar = ({ navigation }) => {
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 2 },
     borderTopWidth: 0,
-    height: 68,
+    height: 72,
     borderRadius: 18,
     paddingBottom: 8,
     paddingTop: 8,
+    paddingHorizontal: 4,
     overflow: 'hidden',
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     alignItems: 'center',
   };
 
@@ -149,6 +218,12 @@ const CustomTabBar = ({ navigation }) => {
       label: 'หน้าแรก',
       icon: 'home',
       screen: 'HomeMain',
+    },
+    {
+      name: 'Minigame',
+      label: 'เกม',
+      icon: 'gamepad2',
+      screen: 'Minigame',
     },
     {
       name: 'Progress',
@@ -179,20 +254,23 @@ const CustomTabBar = ({ navigation }) => {
             flex: 1,
             alignItems: 'center',
             justifyContent: 'center',
-            paddingVertical: 8,
+            paddingVertical: 6,
+            paddingHorizontal: 2,
+            minWidth: 60,
           }}
           onPress={() => navigation.navigate(item.screen)}
         >
           <FontAwesome 
             name={item.icon} 
-            size={24} 
-            color={item.name === 'Home' ? '#FF8000' : '#666'} 
+            size={22} 
+            color={item.name === 'Home' ? '#FF8000' : item.name === 'Minigame' ? '#8b5cf6' : '#666'} 
           />
           <Text style={{
-            fontSize: 12,
+            fontSize: 11,
             fontWeight: '500',
-            color: item.name === 'Home' ? '#FF8000' : '#666',
-            marginTop: 4,
+            color: item.name === 'Home' ? '#FF8000' : item.name === 'Minigame' ? '#8b5cf6' : '#666',
+            marginTop: 3,
+            textAlign: 'center',
           }}>
             {item.label}
           </Text>

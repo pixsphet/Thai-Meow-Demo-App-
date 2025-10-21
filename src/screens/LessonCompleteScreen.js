@@ -18,15 +18,32 @@ import { getLevelRewards, getXpProgress } from '../utils/leveling';
 const { width, height } = Dimensions.get('window');
 
 const LessonCompleteScreen = ({ navigation, route }) => {
-  const { 
-    score = 0, 
-    totalQuestions = 0, 
-    timeSpent = 0, 
-    accuracy = 0,
+  const {
+    lessonId,
+    stageTitle = 'เล่นเสร็จสิ้น',
+    score = 0,
+    totalQuestions = 0,
+    correctAnswers,
+    wrongAnswers,
+    timeSpent = 0,
+    accuracyPercent,
+    accuracyRatio,
+    accuracy,
     xpGained = 0,
-    diamondsGained = 0
+    diamondsGained = 0,
+    heartsRemaining,
+    streak = 0,
+    maxStreak = 0,
+    isUnlocked = false,
+    nextStageUnlocked = false,
+    nextStageMeta = null,
+    stageSelectRoute = 'LevelStage1',
+    replayRoute = 'ConsonantStage1Game',
+    replayParams = {},
+    questionTypeCounts = {},
   } = route.params || {};
-  const { userProgress, applyDelta } = useProgress();
+  
+  const { userProgress } = useProgress();
   
   const [showRewards, setShowRewards] = useState(false);
   const [rewards, setRewards] = useState({
@@ -45,6 +62,52 @@ const LessonCompleteScreen = ({ navigation, route }) => {
   const initialStatsRef = useRef(null);
   const hasAnimatedRef = useRef(false);
 
+  // คำนวณคะแนนที่ถูก
+  const resolvedCorrectAnswers = useMemo(() => {
+    if (Number.isFinite(correctAnswers)) {
+      return correctAnswers;
+    }
+    if (Number.isFinite(score)) {
+      return score;
+    }
+    return 0;
+  }, [correctAnswers, score]);
+
+  // คำนวณคะแนนที่ผิด
+  const resolvedWrongAnswers = useMemo(() => {
+    if (Number.isFinite(wrongAnswers)) {
+      return wrongAnswers;
+    }
+    const total = totalQuestions || 0;
+    return Math.max(0, total - resolvedCorrectAnswers);
+  }, [wrongAnswers, totalQuestions, resolvedCorrectAnswers]);
+
+  // คำนวณความแม่นยำเป็นเปอร์เซ็นต์
+  const normalizedAccuracyPercent = useMemo(() => {
+    if (Number.isFinite(accuracyPercent)) {
+      const val = Math.round(accuracyPercent);
+      return Math.max(0, Math.min(100, val));
+    }
+    if (Number.isFinite(accuracy)) {
+      const val = accuracy <= 1 ? Math.round(accuracy * 100) : Math.round(accuracy);
+      return Math.max(0, Math.min(100, val));
+    }
+    if (totalQuestions > 0) {
+      const val = Math.round((resolvedCorrectAnswers / totalQuestions) * 100);
+      return Math.max(0, Math.min(100, val));
+    }
+    return 0;
+  }, [accuracyPercent, accuracy, resolvedCorrectAnswers, totalQuestions]);
+
+  // คำนวณความแม่นยำเป็นอัตราส่วน
+  const normalizedAccuracyRatio = useMemo(() => {
+    if (Number.isFinite(accuracyRatio)) {
+      return Math.max(0, Math.min(1, accuracyRatio));
+    }
+    const ratio = normalizedAccuracyPercent / 100;
+    return Math.max(0, Math.min(1, ratio));
+  }, [accuracyRatio, normalizedAccuracyPercent]);
+
   useEffect(() => {
     if (!initialStatsRef.current && Number.isFinite(userProgress?.xp)) {
       initialStatsRef.current = {
@@ -54,6 +117,7 @@ const LessonCompleteScreen = ({ navigation, route }) => {
     }
   }, [userProgress?.xp, userProgress?.level]);
 
+  // Animate entrance
   useEffect(() => {
     if (hasAnimatedRef.current) return;
     Animated.parallel([
@@ -76,12 +140,12 @@ const LessonCompleteScreen = ({ navigation, route }) => {
 
   const calculatedRewards = useMemo(
     () => calculateRewards(),
-    [accuracy, xpGained, diamondsGained, score, totalQuestions, timeSpent, userProgress?.streak]
+    [xpGained, diamondsGained, streak, maxStreak, userProgress?.streak]
   );
 
   const derivedAchievements = useMemo(
     () => checkAchievements(),
-    [accuracy, timeSpent, totalQuestions, userProgress?.streak]
+    [normalizedAccuracyPercent, timeSpent, totalQuestions, userProgress?.streak, streak, maxStreak]
   );
 
   useEffect(() => {
@@ -125,48 +189,19 @@ const LessonCompleteScreen = ({ navigation, route }) => {
   ]);
 
   function calculateRewards() {
-    const baseXp = xpGained || score;
-    const baseDiamonds = diamondsGained || Math.max(2, Math.floor(score / 50));
-    
-    // Bonus multipliers based on performance
-    let xpMultiplier = 1;
-    let diamondMultiplier = 1;
-    let heartsBonus = 0;
-    let streakBonus = 0;
-    
-    // Perfect score bonus (100% accuracy)
-    if (accuracy >= 100) {
-      xpMultiplier += 0.5;
-      diamondMultiplier += 0.5;
-      heartsBonus += 2;
-    }
-    
-    // High accuracy bonus (90%+)
-    if (accuracy >= 90) {
-      xpMultiplier += 0.3;
-      diamondMultiplier += 0.3;
-      heartsBonus += 1;
-    }
-    
-    // Speed bonus (completed quickly)
-    const avgTimePerQuestion = timeSpent / totalQuestions;
-    if (avgTimePerQuestion < 10) { // Less than 10 seconds per question
-      xpMultiplier += 0.2;
-      diamondMultiplier += 0.2;
-    }
-    
-    // Streak bonus (if user has been playing consistently)
-    const currentStreak = userProgress?.streak || 0;
-    if (currentStreak >= 3) {
-      streakBonus = Math.floor(currentStreak / 3);
-      xpMultiplier += streakBonus * 0.1;
-    }
-    
+    const xpReward = Number.isFinite(xpGained) ? Math.max(0, Math.round(xpGained)) : 0;
+    const diamondReward = Number.isFinite(diamondsGained) ? Math.max(0, Math.round(diamondsGained)) : 0;
+    const resolvedStreak = Math.max(
+      0,
+      Number.isFinite(maxStreak) ? Math.round(maxStreak) : 0,
+      Number.isFinite(streak) ? Math.round(streak) : 0
+    );
+
     return {
-      xp: Math.floor(baseXp * xpMultiplier),
-      diamonds: Math.floor(baseDiamonds * diamondMultiplier),
-      hearts: heartsBonus,
-      streak: streakBonus
+      xp: xpReward,
+      diamonds: diamondReward,
+      hearts: 0,
+      streak: resolvedStreak,
     };
   }
 
@@ -174,7 +209,7 @@ const LessonCompleteScreen = ({ navigation, route }) => {
     const achievements = [];
     
     // Perfect Score Achievement
-    if (accuracy >= 100) {
+    if (normalizedAccuracyPercent >= 100) {
       achievements.push({
         id: 'perfect_score',
         title: 'คะแนนเต็ม! 🎯',
@@ -185,8 +220,8 @@ const LessonCompleteScreen = ({ navigation, route }) => {
     }
     
     // Speed Demon Achievement
-    const avgTimePerQuestion = timeSpent / totalQuestions;
-    if (avgTimePerQuestion < 5) {
+    const avgTimePerQuestion = totalQuestions > 0 ? timeSpent / totalQuestions : Infinity;
+    if (avgTimePerQuestion < 5 && totalQuestions > 0) {
       achievements.push({
         id: 'speed_demon',
         title: 'เร็วมาก! ⚡',
@@ -197,7 +232,11 @@ const LessonCompleteScreen = ({ navigation, route }) => {
     }
     
     // Streak Master Achievement
-    const currentStreak = userProgress?.streak || 0;
+    const currentStreak = Math.max(
+      Number.isFinite(userProgress?.streak) ? userProgress.streak : 0,
+      Number.isFinite(streak) ? streak : 0,
+      Number.isFinite(maxStreak) ? maxStreak : 0
+    );
     if (currentStreak >= 7) {
       achievements.push({
         id: 'streak_master',
@@ -209,7 +248,7 @@ const LessonCompleteScreen = ({ navigation, route }) => {
     }
     
     // First Lesson Achievement
-    if (totalQuestions > 0 && score > 0) {
+    if (totalQuestions > 0 && resolvedCorrectAnswers > 0) {
       achievements.push({
         id: 'first_lesson',
         title: 'เริ่มต้นดี! 🌟',
@@ -218,37 +257,62 @@ const LessonCompleteScreen = ({ navigation, route }) => {
         color: '#4ECDC4'
       });
     }
+
+    // High Accuracy Achievement
+    if (normalizedAccuracyPercent >= 90 && totalQuestions > 0) {
+      achievements.push({
+        id: 'high_accuracy',
+        title: 'ความแม่นยำสูง 🎪',
+        description: 'ตอบถูกมากกว่า 90%',
+        icon: '🎪',
+        color: '#6B5FFF'
+      });
+    }
     
     return achievements;
+  }
+
+  const handleStageSelect = () => {
+    navigation.navigate(stageSelectRoute);
   };
 
-  const handleContinue = async () => {
-    try {
-      await applyDelta({
-        xp: rewards.xp,
-        diamonds: rewards.diamonds,
-        hearts: rewards.hearts,
-        finishedLesson: true,
-        timeSpentSec: timeSpent
-      });
-    } catch (error) {
-      console.warn('⚠️ Failed to persist rewards:', error?.message || error);
+  const handleNextStage = () => {
+    if (nextStageMeta?.route) {
+      if (nextStageUnlocked) {
+        navigation.replace(nextStageMeta.route, nextStageMeta.params || {});
+      }
+      return;
     }
-
-    navigation.navigate('HomeMain');
+    handleStageSelect();
   };
 
-  const handleRetry = () => {
+  const handleReplay = () => {
+    if (replayRoute) {
+      navigation.replace(replayRoute, replayParams || {});
+      return;
+    }
     navigation.goBack();
   };
 
-  const calculatedAccuracy = totalQuestions > 0 ? Math.round((score / (totalQuestions * 10)) * 100) : 0;
+  const calculatedAccuracy = Math.max(0, Math.min(100, normalizedAccuracyPercent));
   const formatTime = (seconds) => {
     if (!Number.isFinite(seconds) || seconds <= 0) return '0:00';
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
+
+  const hasNextStage = Boolean(nextStageMeta?.route);
+  const canGoNextStage = hasNextStage && nextStageUnlocked;
+  const primaryButtonDisabled = hasNextStage && !canGoNextStage;
+  const primaryButtonLabel = hasNextStage
+    ? canGoNextStage
+      ? 'ไปด่านถัดไป'
+      : 'ปลดล็อกเพื่อเล่นด่านถัดไป'
+    : 'กลับหน้าเลือกด่าน';
+  const primaryButtonColors = primaryButtonDisabled
+    ? ['#D4D4D4', '#BDBDBD']
+    : ['#FF8C00', '#FF6B35'];
 
   const RewardChip = ({ icon, label, value, colors }) => (
     <LinearGradient colors={colors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.rewardChip}>
@@ -286,6 +350,7 @@ const LessonCompleteScreen = ({ navigation, route }) => {
               },
             ]}
           >
+            {/* Header Section */}
             <View style={styles.headerSection}>
               <LottieView
                 source={require('../assets/animations/celebration.json')}
@@ -293,12 +358,16 @@ const LessonCompleteScreen = ({ navigation, route }) => {
                 loop={false}
                 style={styles.celebrationAnimation}
               />
+              {stageTitle ? (
+                <Text style={styles.lessonTitle}>{stageTitle}</Text>
+              ) : null}
               <Text style={styles.title}>ยอดเยี่ยมมาก! 🎉</Text>
               <Text style={styles.subtitle}>
-                คุณทำคะแนนได้ {score} จาก {totalQuestions * 10} คะแนน
+                คุณตอบถูก {resolvedCorrectAnswers} จาก {totalQuestions} ข้อ
               </Text>
             </View>
 
+            {/* Stats Row */}
             <View style={styles.statsRow}>
               <StatBadge
                 icon={<FontAwesome6 name="bullseye" size={18} color="#FF7A00" />}
@@ -311,12 +380,13 @@ const LessonCompleteScreen = ({ navigation, route }) => {
                 value={formatTime(timeSpent)}
               />
               <StatBadge
-                icon={<FontAwesome6 name="list-check" size={18} color="#45B7D1" />}
-                label="จำนวนข้อ"
-                value={totalQuestions}
+                icon={<FontAwesome6 name="heart" size={18} color="#FF4F64" />}
+                label="หัวใจคงเหลือ"
+                value={Number.isFinite(heartsRemaining) ? heartsRemaining : '-'}
               />
             </View>
 
+            {/* Rewards Block */}
             {showRewards && (
               <View style={styles.rewardsBlock}>
                 <Text style={styles.sectionTitle}>ของรางวัล</Text>
@@ -334,29 +404,20 @@ const LessonCompleteScreen = ({ navigation, route }) => {
                     colors={['#E0F4FF', '#B0E5FF']}
                   />
                 </View>
-                {(rewards.hearts > 0 || rewards.streak > 0) && (
+                {rewards.hearts > 0 && (
                   <View style={styles.rewardRow}>
-                    {rewards.hearts > 0 && (
-                      <RewardChip
-                        icon={<FontAwesome name="heart" size={20} color="#FF4F64" />}
-                        label="หัวใจ"
-                        value={`+${rewards.hearts}`}
-                        colors={['#FFE1E8', '#FFB2C7']}
-                      />
-                    )}
-                    {rewards.streak > 0 && (
-                      <RewardChip
-                        icon={<FontAwesome name="fire" size={20} color="#FF6B3D" />}
-                        label="โบนัสต่อเนื่อง"
-                        value={`x${rewards.streak}`}
-                        colors={['#FFE8D6', '#FFC9A3']}
-                      />
-                    )}
+                    <RewardChip
+                      icon={<LottieView source={require('../assets/animations/Heart.json')} autoPlay loop style={styles.rewardAnimation} />}
+                      label="หัวใจ"
+                      value={`+${rewards.hearts}`}
+                      colors={['#FFE1E8', '#FFB2C7']}
+                    />
                   </View>
                 )}
               </View>
             )}
 
+            {/* Level Up Card */}
             {newLevel && (
               <View style={styles.levelUpCard}>
                 <LottieView
@@ -370,6 +431,43 @@ const LessonCompleteScreen = ({ navigation, route }) => {
               </View>
             )}
 
+            {/* Unlock/Lock Status */}
+            {isUnlocked && nextStageUnlocked && (
+              <View style={styles.unlockContainer}>
+                <LottieView
+                  source={require('../assets/animations/Trophy.json')}
+                  autoPlay
+                  loop
+                  style={styles.unlockAnimation}
+                />
+                <View style={styles.unlockInfo}>
+                  <Text style={styles.unlockTitle}>🎉 ปลดล็อกด่านถัดไป!</Text>
+                  <Text style={styles.unlockText}>
+                    ความแม่นยำ {calculatedAccuracy}% - ผ่านเกณฑ์ 70%
+                  </Text>
+                  <Text style={styles.unlockSubtext}>
+                    ตอนนี้คุณสามารถเล่นด่านต่อไปได้แล้ว
+                  </Text>
+                </View>
+              </View>
+            )}
+            
+            {!isUnlocked && (
+              <View style={styles.lockContainer}>
+                <FontAwesome6 name="lock" size={24} color="#999" />
+                <View style={styles.lockInfo}>
+                  <Text style={styles.lockTitle}>ยังไม่ผ่านเกณฑ์</Text>
+                  <Text style={styles.lockText}>
+                    ความแม่นยำ {calculatedAccuracy}% - ต้องได้ 70% ขึ้นไป
+                  </Text>
+                  <Text style={styles.lockSubtext}>
+                    ลองเล่นอีกครั้งเพื่อปลดล็อกด่านถัดไป
+                  </Text>
+                </View>
+              </View>
+            )}
+
+            {/* Level Summary */}
             {levelSummary && (
               <View style={styles.levelSummaryCard}>
                 <View style={styles.levelSummaryHeader}>
@@ -408,11 +506,11 @@ const LessonCompleteScreen = ({ navigation, route }) => {
                     <Text style={styles.nextRewardsLabel}>ของขวัญเลเวลถัดไป</Text>
                     <View style={styles.nextRewardsChips}>
                       <View style={[styles.nextRewardChip, styles.nextRewardHeart]}>
-                        <FontAwesome name="heart" size={14} color="#FF4F64" />
+                        <LottieView source={require('../assets/animations/Heart.json')} autoPlay loop style={styles.nextRewardIcon} />
                         <Text style={styles.nextRewardText}>+{nextRewards.hearts}</Text>
                       </View>
                       <View style={[styles.nextRewardChip, styles.nextRewardDiamond]}>
-                        <FontAwesome name="diamond" size={14} color="#2196F3" />
+                        <LottieView source={require('../assets/animations/Diamond.json')} autoPlay loop style={styles.nextRewardIcon} />
                         <Text style={styles.nextRewardText}>+{nextRewards.diamonds}</Text>
                       </View>
                     </View>
@@ -421,6 +519,7 @@ const LessonCompleteScreen = ({ navigation, route }) => {
               </View>
             )}
 
+            {/* Achievements */}
             {achievements.length > 0 && (
               <View style={styles.achievementBlock}>
                 <Text style={styles.sectionTitle}>ความสำเร็จรอบนี้</Text>
@@ -444,22 +543,38 @@ const LessonCompleteScreen = ({ navigation, route }) => {
               </View>
             )}
 
-            <View style={styles.buttonRow}>
-              <TouchableOpacity style={styles.secondaryButton} onPress={handleRetry} activeOpacity={0.85}>
-                <FontAwesome6 name="rotate-right" size={18} color="#FF7A00" />
-                <Text style={styles.secondaryButtonText}>ลองอีกครั้ง</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.primaryButton} onPress={handleContinue} activeOpacity={0.9}>
+            {/* Action Buttons */}
+            <View style={styles.buttonColumn}>
+              <TouchableOpacity
+                style={[
+                  styles.primaryButton,
+                  primaryButtonDisabled && styles.primaryButtonDisabled
+                ]}
+                onPress={handleNextStage}
+                activeOpacity={0.9}
+                disabled={primaryButtonDisabled && hasNextStage}
+              >
                 <LinearGradient
-                  colors={['#FF8C00', '#FF6B35']}
+                  colors={primaryButtonColors}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={styles.primaryButtonGradient}
                 >
                   <FontAwesome6 name="arrow-right" size={18} color="#FFFFFF" />
-                  <Text style={styles.primaryButtonText}>กลับหน้าหลัก</Text>
+                  <Text style={styles.primaryButtonText}>{primaryButtonLabel}</Text>
                 </LinearGradient>
               </TouchableOpacity>
+
+              <View style={styles.buttonRow}>
+                <TouchableOpacity style={styles.secondaryButton} onPress={handleStageSelect} activeOpacity={0.85}>
+                  <FontAwesome6 name="list-ul" size={18} color="#FF7A00" />
+                  <Text style={styles.secondaryButtonText}>เลือกด่าน</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.secondaryButton} onPress={handleReplay} activeOpacity={0.85}>
+                  <FontAwesome6 name="rotate-right" size={18} color="#FF7A00" />
+                  <Text style={styles.secondaryButtonText}>เล่นอีกครั้ง</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </Animated.View>
         </ScrollView>
@@ -497,6 +612,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
+  lessonTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6B4A29',
+    marginBottom: 6,
+  },
   celebrationAnimation: {
     width: '100%',
     height: 120,
@@ -510,10 +631,9 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    color: '#fff',
+    color: '#5C3B16',
     textAlign: 'center',
     paddingHorizontal: 20,
-    color: '#5C3B16',
   },
   statsRow: {
     flexDirection: 'row',
@@ -733,6 +853,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     gap: 6,
   },
+  nextRewardIcon: {
+    width: 20,
+    height: 20,
+  },
   nextRewardHeart: {
     backgroundColor: '#FFE6EC',
   },
@@ -762,7 +886,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 14,
     borderRadius: 18,
-    flexDirection: 'row',
     marginBottom: 10,
   },
   achievementEmoji: {
@@ -781,15 +904,19 @@ const styles = StyleSheet.create({
     color: '#6B4A29',
     marginTop: 2,
   },
+  buttonColumn: {
+    width: '100%',
+    marginTop: 16,
+  },
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
-    marginTop: 8,
+    marginTop: 12,
   },
   secondaryButton: {
     flex: 1,
-    marginRight: 10,
+    marginHorizontal: 6,
     borderRadius: 18,
     backgroundColor: '#FFF5E6',
     borderWidth: 1,
@@ -806,10 +933,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   primaryButton: {
-    flex: 1,
-    marginLeft: 10,
+    width: '100%',
     borderRadius: 18,
     overflow: 'hidden',
+  },
+  primaryButtonDisabled: {
+    opacity: 0.75,
   },
   primaryButtonGradient: {
     flexDirection: 'row',
@@ -822,6 +951,70 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  unlockContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+    padding: 15,
+    borderRadius: 15,
+    marginTop: 15,
+    borderWidth: 2,
+    borderColor: '#4CAF50',
+  },
+  unlockAnimation: {
+    width: 40,
+    height: 40,
+  },
+  unlockInfo: {
+    marginLeft: 15,
+    flex: 1,
+  },
+  unlockTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#4CAF50',
+    marginBottom: 4,
+  },
+  unlockText: {
+    fontSize: 14,
+    color: '#333',
+    marginBottom: 2,
+  },
+  unlockSubtext: {
+    fontSize: 12,
+    color: '#666',
+    fontStyle: 'italic',
+  },
+  lockContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(158, 158, 158, 0.1)',
+    padding: 15,
+    borderRadius: 15,
+    marginTop: 15,
+    borderWidth: 2,
+    borderColor: '#9E9E9E',
+  },
+  lockInfo: {
+    marginLeft: 15,
+    flex: 1,
+  },
+  lockTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#9E9E9E',
+    marginBottom: 4,
+  },
+  lockText: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 2,
+  },
+  lockSubtext: {
+    fontSize: 12,
+    color: '#999',
+    fontStyle: 'italic',
   },
 });
 

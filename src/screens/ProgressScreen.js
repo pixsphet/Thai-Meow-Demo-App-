@@ -18,6 +18,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import LottieView from 'lottie-react-native';
 import { FontAwesome } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
 const ProgressScreen = ({ navigation }) => {
   const { theme } = useTheme();
@@ -285,6 +286,99 @@ const ProgressScreen = ({ navigation }) => {
     return null;
   }
 
+  // Custom Tab Bar Component
+  const CustomTabBar = () => {
+    const tabBarStyle = {
+      position: 'absolute',
+      left: 12,
+      right: 12,
+      bottom: 26,
+      backgroundColor: '#fff',
+      elevation: 10,
+      shadowColor: '#000',
+      shadowOpacity: 0.12,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 2 },
+      borderTopWidth: 0,
+      height: 72,
+      borderRadius: 18,
+      paddingBottom: 8,
+      paddingTop: 8,
+      paddingHorizontal: 4,
+      overflow: 'hidden',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    };
+
+    const tabItems = [
+      {
+        name: 'Home',
+        label: 'หน้าแรก',
+        icon: 'home',
+        screen: 'HomeMain',
+      },
+      {
+        name: 'Minigame',
+        label: 'เกม',
+        icon: 'gamepad',
+        screen: 'Minigame',
+      },
+      {
+        name: 'Progress',
+        label: 'ความคืบหน้า',
+        icon: 'trophy',
+        screen: 'Progress',
+      },
+      {
+        name: 'Profile',
+        label: 'โปรไฟล์',
+        icon: 'user',
+        screen: 'Profile',
+      },
+      {
+        name: 'AddFriend',
+        label: 'เพิ่มเพื่อน',
+        icon: 'user-plus',
+        screen: 'AddFriend',
+      },
+    ];
+
+    return (
+      <View style={tabBarStyle}>
+        {tabItems.map((item) => (
+          <TouchableOpacity
+            key={item.name}
+            style={{
+              flex: 1,
+              alignItems: 'center',
+              justifyContent: 'center',
+              paddingVertical: 6,
+              paddingHorizontal: 2,
+              minWidth: 60,
+            }}
+            onPress={() => navigation.navigate(item.screen)}
+          >
+          <FontAwesome 
+            name={item.icon} 
+            size={22} 
+            color={item.name === 'Progress' ? '#FF8000' : '#666'}
+          />
+          <Text style={{
+            fontSize: 11,
+            fontWeight: '500',
+            color: item.name === 'Progress' ? '#FF8000' : '#666',
+            marginTop: 3,
+            textAlign: 'center',
+          }}>
+              {item.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    );
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <ScrollView 
@@ -434,60 +528,8 @@ const ProgressScreen = ({ navigation }) => {
 
       </ScrollView>
       
-      {/* Custom Tab Bar - Same as HomeScreen */}
-      <View style={{
-        position: 'absolute',
-        left: 12,
-        right: 12,
-        bottom: 26,
-        backgroundColor: '#fff',
-        elevation: 10,
-        shadowColor: '#000',
-        shadowOpacity: 0.12,
-        shadowRadius: 10,
-        shadowOffset: { width: 0, height: 2 },
-        borderTopWidth: 0,
-        height: 68,
-        borderRadius: 18,
-        paddingBottom: 8,
-        paddingTop: 8,
-        overflow: 'hidden',
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        alignItems: 'center',
-      }}>
-        {[
-          { name: 'Home', label: 'หน้าแรก', icon: 'home', screen: 'HomeMain' },
-          { name: 'Progress', label: 'ความคืบหน้า', icon: 'trophy', screen: 'Progress' },
-          { name: 'Profile', label: 'โปรไฟล์', icon: 'user', screen: 'Profile' },
-          { name: 'AddFriend', label: 'เพิ่มเพื่อน', icon: 'user-plus', screen: 'AddFriend' }
-        ].map((item) => (
-          <TouchableOpacity
-            key={item.name}
-            style={{
-              flex: 1,
-              alignItems: 'center',
-              justifyContent: 'center',
-              paddingVertical: 8,
-            }}
-            onPress={() => navigation.navigate(item.screen)}
-          >
-            <FontAwesome 
-              name={item.icon} 
-              size={24} 
-              color={item.name === 'Progress' ? '#FF8000' : '#666'} 
-            />
-            <Text style={{
-              fontSize: 12,
-              fontWeight: '500',
-              color: item.name === 'Progress' ? '#FF8000' : '#666',
-              marginTop: 4,
-            }}>
-              {item.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      {/* Custom Tab Bar */}
+      <CustomTabBar />
     </SafeAreaView>
   );
 };

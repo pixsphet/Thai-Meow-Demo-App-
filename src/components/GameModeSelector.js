@@ -72,7 +72,7 @@ const GameModeSelector = ({ navigation, route }) => {
         navigation.navigate('ThaiVowels', { gameMode: mode.id });
         break;
       case 'thai-tones':
-        navigation.navigate('ThaiTones', { gameMode: mode.id });
+        navigation.navigate('BeginnerVowelsStage', { gameMode: mode.id });
         break;
       default:
         navigation.navigate('ConsonantLearn', { gameMode: mode.id });

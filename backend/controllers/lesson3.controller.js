@@ -63,17 +63,59 @@ exports.postLesson3Completion = async (req, res, next) => {
       });
     }
 
-    const payload = {
-      userId: mongoose.Types.ObjectId(normalizedUserId),
+    const numericAccuracy = Number.isFinite(Number(accuracy))
+      ? Number(accuracy)
+      : 0;
+    const normalizedPayload = {
       lessonId,
-      accuracy,
-      score: Math.round((accuracy / 100) * 5),
-      xpEarned,
-      diamondsEarned,
-      heartsRemaining,
-      timeSpentSec,
-      unlockedNext,
+      accuracy: numericAccuracy,
+      score: Math.max(
+        0,
+        Math.min(5, Math.round((numericAccuracy / 100) * 5))
+      ),
+      xpEarned: Number.isFinite(Number(xpEarned)) ? Number(xpEarned) : 0,
+      diamondsEarned: Number.isFinite(Number(diamondsEarned))
+        ? Number(diamondsEarned)
+        : 0,
+      heartsRemaining: Number.isFinite(Number(heartsRemaining))
+        ? Number(heartsRemaining)
+        : 0,
+      timeSpentSec: Number.isFinite(Number(timeSpentSec))
+        ? Number(timeSpentSec)
+        : 0,
+      unlockedNext: Boolean(unlockedNext),
       completedAt: new Date(),
+    };
+
+    const isValidUserId = mongoose.Types.ObjectId.isValid(normalizedUserId);
+
+    if (!isValidUserId) {
+      console.warn(
+        '[lesson3] Skipping persistence for non-ObjectId userId:',
+        normalizedUserId
+      );
+
+      return res.json({
+        success: true,
+        message: 'Lesson 3 progress accepted (guest)',
+        data: {
+          progress: {
+            ...normalizedPayload,
+            userId: normalizedUserId || null,
+            persisted: false,
+          },
+          stats: null,
+          meta: {
+            persisted: false,
+            reason: 'invalid_user_id',
+          },
+        },
+      });
+    }
+
+    const payload = {
+      ...normalizedPayload,
+      userId: new mongoose.Types.ObjectId(normalizedUserId),
     };
 
     await UserProgress.create(payload);
@@ -81,13 +123,13 @@ exports.postLesson3Completion = async (req, res, next) => {
     const user = await getUserWithMergedData(normalizedUserId);
     if (user) {
       applyProgressToUser(user, {
-        xpGain: xpEarned,
-        diamondsEarned,
-        heartsLeft: heartsRemaining,
+        xpGain: payload.xpEarned,
+        diamondsEarned: payload.diamondsEarned,
+        heartsLeft: payload.heartsRemaining,
         completedLesson: true,
         incrementSession: true,
-        accuracy: accuracy,
-        timeSpent: timeSpentSec,
+        accuracy: payload.accuracy,
+        timeSpent: payload.timeSpentSec,
       });
       await user.save();
     }
@@ -100,6 +142,9 @@ exports.postLesson3Completion = async (req, res, next) => {
       data: {
         progress: payload,
         stats,
+        meta: {
+          persisted: true,
+        },
       },
     });
   } catch (error) {

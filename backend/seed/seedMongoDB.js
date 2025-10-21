@@ -7,6 +7,9 @@ const User = require('../models/User');
 const Vocab = require('../models/Vocab');
 const Progress = require('../models/Progress');
 
+// Import seed functions
+const { seedGreetings } = require('./seedGreetings');
+
 // Connect to MongoDB
 const connectDB = async () => {
   try {
@@ -172,6 +175,10 @@ const seedDatabase = async () => {
       await lessonDoc.save();
     }
     console.log(`✅ Seeded ${lessons.length} lessons`);
+
+    // Seed greetings vocabulary
+    console.log('👋 Seeding greetings vocabulary...');
+    await seedGreetings();
 
     console.log('🎉 Database seeding completed successfully!');
     
