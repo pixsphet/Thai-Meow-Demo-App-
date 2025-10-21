@@ -103,11 +103,7 @@ const playViaVajaX = async (text, options = {}) => {
     fileUri = `${FileSystem.cacheDirectory}tts-${Date.now()}.wav`;
     
     try {
-      const result = await FileSystem.downloadAsync(ttsData.audioUrl, fileUri, {
-        headers: {
-          'Apikey': 'ObDts2bk3smc2qsagGbISxE9b1sITgQb'
-        }
-      });
+      const result = await FileSystem.downloadAsync(ttsData.audioUrl, fileUri);
       console.log('✅ [TTS] Audio downloaded:', result.uri);
     } catch (error) {
       console.error('❌ [TTS] Failed to download audio from URL:', error?.message);

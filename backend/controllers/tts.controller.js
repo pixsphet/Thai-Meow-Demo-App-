@@ -6,6 +6,7 @@ const VAJAX_ENDPOINT = 'https://api.aiforthai.in.th/vaja';
 const VAJAX_API_KEY = process.env.VAJAX_API_KEY;
 const DEFAULT_SPEAKER = (process.env.VAJAX_SPEAKER || 'nana').trim();
 const DEFAULT_STYLE = (process.env.VAJAX_STYLE || '').trim();
+const DEFAULT_SPEED = parseFloat(process.env.VAJAX_SPEED || '1.0');
 const DEFAULT_REFERENCE_AUDIO_PATH = process.env.VAJAX_REFERENCE_AUDIO_PATH;
 const DEFAULT_REFERENCE_TEXT = (process.env.VAJAX_REFERENCE_TEXT || '').trim();
 
@@ -161,7 +162,7 @@ exports.generateSpeech = async (req, res) => {
       payload.reference_text = referenceText;
     }
 
-    const resolvedSpeed = clampNumber(speed, 0.5, 2.0);
+    const resolvedSpeed = clampNumber(speed !== undefined ? speed : DEFAULT_SPEED, 0.5, 2.0);
     if (resolvedSpeed !== undefined) {
       payload.speed = resolvedSpeed;
     }
