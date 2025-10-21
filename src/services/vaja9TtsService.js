@@ -10,6 +10,31 @@ const DEFAULT_SPEECH_OPTIONS = {
   quality: Speech.VoiceQuality?.Enhanced,
 };
 
+// Configure audio session
+const configureAudioSession = async () => {
+  try {
+    await Audio.setAudioModeAsync({
+      allowsRecordingIOS: false,
+      interruptionMode: Audio.InterruptionMode.DuckOthers,
+      playsInSilentModeIOS: true,
+      shouldDuckAndroid: true,
+      staysActiveInBackground: false,
+    });
+    console.log('✅ [TTS] Audio session configured');
+  } catch (error) {
+    console.error('❌ [TTS] Failed to configure audio session:', error?.message);
+  }
+};
+
+// Initialize audio session on first load
+Audio.setAudioModeAsync({
+  allowsRecordingIOS: false,
+  interruptionMode: Audio.InterruptionMode.DuckOthers,
+  playsInSilentModeIOS: true,
+  shouldDuckAndroid: true,
+  staysActiveInBackground: false,
+}).catch((e) => console.warn('Audio mode warning:', e?.message));
+
 let currentPlayback = {
   sound: null,
   fileUri: null,
@@ -100,8 +125,13 @@ const playViaVajaX = async (text, options = {}) => {
     console.log('🎵 [TTS] Playing audio directly from URL (real-time):', ttsData.audioUrl);
     
     try {
+      // Ensure audio session is configured
+      await configureAudioSession();
+      
       const sound = new Audio.Sound();
       await sound.loadAsync({ uri: ttsData.audioUrl });
+      
+      console.log('📢 [TTS] Sound loaded, playing now...');
       await sound.playAsync();
 
       currentPlayback = { sound, fileUri: null };
