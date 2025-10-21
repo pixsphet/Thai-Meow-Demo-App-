@@ -213,6 +213,7 @@ const playViaVajaX = async (text, options = {}) => {
   const { data: response } = await api.post('tts/speak', payload);
 
   if (!response?.success) {
+    console.error('❌ [TTS] Backend error:', response?.message);
     throw new Error(response?.message || 'VajaX request failed');
   }
 
@@ -220,6 +221,8 @@ const playViaVajaX = async (text, options = {}) => {
 
   // Support both audioUrl (new) and audioBase64 (legacy)
   if (!ttsData.audioUrl && !ttsData.audioBase64) {
+    console.error('❌ [TTS] No audio data returned from backend');
+    console.error('📋 Response data:', JSON.stringify(ttsData));
     throw new Error('No audio data returned from backend');
   }
 
@@ -241,7 +244,8 @@ const playViaVajaX = async (text, options = {}) => {
       // Play from temp cache
       await playAudioFile(result.uri);
     } catch (downloadError) {
-      console.error('❌ [TTS] Failed to download audio:', downloadError?.message);
+      console.error('❌ [TTS] Download failed:', downloadError?.message);
+      console.error('🔗 URL was:', ttsData.audioUrl);
       throw new Error(`Failed to download audio: ${downloadError?.message}`);
     }
   } else {
