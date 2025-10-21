@@ -15,7 +15,7 @@ const configureAudioSession = async () => {
   try {
     await Audio.setAudioModeAsync({
       allowsRecordingIOS: false,
-      interruptionMode: Audio.InterruptionMode.DuckOthers,
+      interruptionMode: Audio.INTERRUPTION_MODE_IOS_DUCK_OTHERS,
       playsInSilentModeIOS: true,
       shouldDuckAndroid: true,
       staysActiveInBackground: false,
@@ -29,7 +29,7 @@ const configureAudioSession = async () => {
 // Initialize audio session on first load
 Audio.setAudioModeAsync({
   allowsRecordingIOS: false,
-  interruptionMode: Audio.InterruptionMode.DuckOthers,
+  interruptionMode: Audio.INTERRUPTION_MODE_IOS_DUCK_OTHERS,
   playsInSilentModeIOS: true,
   shouldDuckAndroid: true,
   staysActiveInBackground: false,
