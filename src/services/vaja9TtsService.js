@@ -174,16 +174,24 @@ const playViaVajaX = async (text, options = {}) => {
   
   // Check if audio URL is already cached
   if (audioUrlCache.has(cacheKey)) {
-    console.log('⚡ [TTS] Playing from cache (instant!):', cacheKey);
-    const cachedUrl = audioUrlCache.get(cacheKey);
-    console.log('⚡ [TTS] Cached URL:', cachedUrl);
+    console.log('⚡ [TTS] URL found in cache!', cacheKey);
+    const remoteUrl = audioUrlCache.get(cacheKey);
+    console.log('🔗 Remote URL:', remoteUrl);
     
     try {
-      await configureAudioSession();
-      await playAudioFile(cachedUrl);
+      // Re-download from cached URL
+      console.log('📥 [TTS] Re-downloading from cache URL...');
+      const tempFileName = `tts_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.wav`;
+      const tempFileUri = `${FileSystem.cacheDirectory}${tempFileName}`;
+      
+      const result = await FileSystem.downloadAsync(remoteUrl, tempFileUri);
+      console.log('✅ [TTS] Audio re-downloaded from cache URL');
+      
+      // Play from temp file
+      await playAudioFile(result.uri);
       return;
     } catch (error) {
-      console.error('❌ [TTS] Failed to play cached audio:', error?.message);
+      console.error('❌ [TTS] Failed to play cached URL:', error?.message);
       audioUrlCache.delete(cacheKey);
       // Continue to request new audio
     }
