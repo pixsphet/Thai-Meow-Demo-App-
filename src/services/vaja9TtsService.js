@@ -40,6 +40,9 @@ let currentPlayback = {
   fileUri: null,
 };
 
+// Audio URL cache to avoid redundant API calls
+const audioCache = new Map();
+
 const releaseCurrentPlayback = async () => {
   const { sound, fileUri } = currentPlayback;
   currentPlayback = { sound: null, fileUri: null };
@@ -88,6 +91,34 @@ const resolveFileExtension = (mimeType) => {
 };
 
 const playViaVajaX = async (text, options = {}) => {
+  const cacheKey = `${text}:${options.speaker || 'default'}`;
+  
+  // Check if audio URL is already cached
+  if (audioCache.has(cacheKey)) {
+    console.log('⚡ [TTS] Playing from cache (instant!):', cacheKey);
+    const cachedUrl = audioCache.get(cacheKey);
+    
+    try {
+      await configureAudioSession();
+      const sound = new Audio.Sound();
+      await sound.loadAsync({ uri: cachedUrl });
+      await sound.playAsync();
+
+      currentPlayback = { sound, fileUri: null };
+
+      sound.setOnPlaybackStatusUpdate(async (status) => {
+        if (status.didJustFinish || status.isLoaded === false) {
+          await releaseCurrentPlayback();
+        }
+      });
+      return;
+    } catch (error) {
+      console.error('❌ [TTS] Failed to play cached audio:', error?.message);
+      audioCache.delete(cacheKey);
+      // Continue to request new audio
+    }
+  }
+
   const payload = {
     text,
     speaker: options.speaker,
@@ -107,6 +138,7 @@ const playViaVajaX = async (text, options = {}) => {
     }
   });
 
+  console.log('🌐 [TTS] Requesting audio from backend...');
   const { data: response } = await api.post('tts/speak', payload);
 
   if (!response?.success) {
@@ -121,6 +153,10 @@ const playViaVajaX = async (text, options = {}) => {
   }
 
   if (ttsData.audioUrl) {
+    // Cache the URL for future use
+    audioCache.set(cacheKey, ttsData.audioUrl);
+    console.log('💾 [TTS] Cached audio URL for:', cacheKey);
+    
     // Play directly from URL (real-time, no waiting for download)
     console.log('🎵 [TTS] Playing audio directly from URL (real-time):', ttsData.audioUrl);
     
