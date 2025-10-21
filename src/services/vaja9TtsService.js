@@ -92,6 +92,26 @@ Audio.setAudioModeAsync({
   staysActiveInBackground: false,
 }).catch((e) => console.warn('Audio mode warning:', e?.message));
 
+// Test audio playback on app load
+const testAudioPlayback = async () => {
+  try {
+    console.log('🔊 [TTS] Testing audio output...');
+    await Audio.Sound.createAsync(
+      require('../../assets/sounds/test.wav'),
+      { volume: 1 },
+      async (status) => {
+        if (status.isLoaded) {
+          console.log('✅ [TTS] Audio test successful - sound is working!');
+        }
+      }
+    ).catch(err => {
+      console.log('ℹ️ [TTS] No test sound available (OK)');
+    });
+  } catch (error) {
+    console.log('ℹ️ [TTS] Audio test skipped');
+  }
+};
+
 let currentPlayback = {
   sound: null,
   fileUri: null,
@@ -230,9 +250,13 @@ const playViaVajaX = async (text, options = {}) => {
       console.log('🔊 [TTS] Loading local audio:', localUri);
       await sound.loadAsync({ uri: localUri });
       
+      // Set volume to maximum
+      await sound.setVolumeAsync(1.0);
+      console.log('🔊 [TTS] Volume set to 1.0 (max)');
+      
       console.log('📢 [TTS] Sound loaded, playing now...');
       const status = await sound.playAsync();
-      console.log('✅ [TTS] Playback status:', status?.isPlaying);
+      console.log('✅ [TTS] Playback status:', status?.isPlaying, 'Duration:', status?.durationMillis, 'ms');
 
       currentPlayback = { sound, fileUri: localUri };
 
