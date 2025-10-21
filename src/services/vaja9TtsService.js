@@ -202,21 +202,26 @@ const playViaVajaX = async (text, options = {}) => {
       await configureAudioSession();
       
       const sound = new Audio.Sound();
+      console.log('🔊 [TTS] Loading audio with URL:', ttsData.audioUrl);
       await sound.loadAsync({ uri: ttsData.audioUrl });
       
       console.log('📢 [TTS] Sound loaded, playing now...');
-      await sound.playAsync();
+      const status = await sound.playAsync();
+      console.log('✅ [TTS] Playback status:', status?.isPlaying);
 
       currentPlayback = { sound, fileUri: null };
 
       sound.setOnPlaybackStatusUpdate(async (status) => {
+        console.log('📊 [TTS] Playback update:', { isPlaying: status?.isPlaying, didJustFinish: status?.didJustFinish });
         if (status.didJustFinish || status.isLoaded === false) {
           await releaseCurrentPlayback();
         }
       });
     } catch (error) {
-      console.error('❌ [TTS] Failed to play audio from URL:', error?.message);
-      throw new Error(`Failed to play audio: ${error?.message}`);
+      console.error('❌ [TTS] Failed to play audio from URL:', error?.message, error);
+      console.warn('⚠️ [TTS] Falling back to Expo Speech');
+      // Fallback to Expo Speech
+      await speakWithExpo(text, options);
     }
   } else {
     // Legacy: Use base64 (fallback)
