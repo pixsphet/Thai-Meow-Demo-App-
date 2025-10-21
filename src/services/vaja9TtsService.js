@@ -14,58 +14,37 @@ const DEFAULT_SPEECH_OPTIONS = {
 // Cache key for AsyncStorage
 const TTS_CACHE_KEY = 'tts_audio_cache';
 
-// Audio file cache - stores local file paths
-let audioCacheIndex = new Map();
+// Audio URL cache - stores remote URLs, not local paths
+let audioUrlCache = new Map();
 
-// Load cache index from AsyncStorage on startup
-const loadAudioCacheIndex = async () => {
+// Load cache from AsyncStorage on startup
+const loadAudioUrlCache = async () => {
   try {
     const cached = await AsyncStorage.getItem(TTS_CACHE_KEY);
     if (cached) {
       const cacheObj = JSON.parse(cached);
-      audioCacheIndex = new Map(Object.entries(cacheObj));
-      console.log('✅ [TTS] Loaded audio cache index from storage:', audioCacheIndex.size, 'items');
+      audioUrlCache = new Map(Object.entries(cacheObj));
+      console.log('✅ [TTS] Loaded audio URL cache from storage:', audioUrlCache.size, 'items');
     }
   } catch (error) {
-    console.warn('⚠️ [TTS] Failed to load cache index:', error?.message);
+    console.warn('⚠️ [TTS] Failed to load cache:', error?.message);
   }
 };
 
-// Save cache index to AsyncStorage
-const saveAudioCacheIndex = async () => {
+// Save cache to AsyncStorage
+const saveAudioUrlCache = async () => {
   try {
-    const cacheObj = Object.fromEntries(audioCacheIndex);
-    console.log('💾 [TTS] Saving cache index to AsyncStorage...', Object.keys(cacheObj).length, 'items');
+    const cacheObj = Object.fromEntries(audioUrlCache);
+    console.log('💾 [TTS] Saving audio URL cache...', Object.keys(cacheObj).length, 'items');
     await AsyncStorage.setItem(TTS_CACHE_KEY, JSON.stringify(cacheObj));
-    console.log('✅ [TTS] Cache index saved successfully!');
+    console.log('✅ [TTS] Cache saved!');
   } catch (error) {
-    console.error('❌ [TTS] Failed to save cache index:', error?.message);
-  }
-};
-
-// Download audio file and store locally
-const downloadAudioFile = async (audioUrl, cacheKey) => {
-  try {
-    const fileName = `audio_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.wav`;
-    const fileUri = `${FileSystem.cacheDirectory}tts_${fileName}`;
-    
-    console.log('📥 [TTS] Downloading audio to:', fileUri);
-    const result = await FileSystem.downloadAsync(audioUrl, fileUri);
-    
-    console.log('✅ [TTS] Audio downloaded successfully');
-    // Store the local file path in index
-    audioCacheIndex.set(cacheKey, result.uri);
-    await saveAudioCacheIndex();
-    
-    return result.uri;
-  } catch (error) {
-    console.error('❌ [TTS] Failed to download audio:', error?.message);
-    return null;
+    console.error('❌ [TTS] Failed to save cache:', error?.message);
   }
 };
 
 // Initialize cache on app load
-loadAudioCacheIndex();
+loadAudioUrlCache();
 
 // Configure audio session
 const configureAudioSession = async () => {
@@ -164,34 +143,48 @@ const resolveFileExtension = (mimeType) => {
   return 'wav';
 };
 
+const playAudioFile = async (fileUri) => {
+  try {
+    await configureAudioSession();
+    const sound = new Audio.Sound();
+    await sound.loadAsync({ uri: fileUri });
+    console.log('📢 [TTS] Sound loaded, playing now...');
+    const status = await sound.playAsync();
+    console.log('✅ [TTS] Playback status:', status?.isPlaying, 'Duration:', status?.durationMillis, 'ms');
+
+    currentPlayback = { sound, fileUri };
+
+    sound.setOnPlaybackStatusUpdate(async (status) => {
+      console.log('📊 [TTS] Playback update:', { isPlaying: status?.isPlaying, didJustFinish: status?.didJustFinish });
+      if (status.didJustFinish || status.isLoaded === false) {
+        await releaseCurrentPlayback();
+      }
+    });
+  } catch (error) {
+    console.error('❌ [TTS] Failed to play audio from cache:', error?.message, error);
+    console.warn('⚠️ [TTS] Falling back to Expo Speech');
+    // Fallback to Expo Speech
+    await speakWithExpo(null, { referenceAudio: fileUri }); // Assuming referenceAudio can be used for fallback
+  }
+};
+
 const playViaVajaX = async (text, options = {}) => {
   const cacheKey = `${text}:${options.speaker || 'default'}`;
-  console.log('🔍 [TTS] Checking cache for:', cacheKey, '| Cache size:', audioCacheIndex.size);
+  console.log('🔍 [TTS] Checking cache for:', cacheKey, '| Cache size:', audioUrlCache.size);
   
   // Check if audio URL is already cached
-  if (audioCacheIndex.has(cacheKey)) {
+  if (audioUrlCache.has(cacheKey)) {
     console.log('⚡ [TTS] Playing from cache (instant!):', cacheKey);
-    const cachedUrl = audioCacheIndex.get(cacheKey);
+    const cachedUrl = audioUrlCache.get(cacheKey);
     console.log('⚡ [TTS] Cached URL:', cachedUrl);
     
     try {
       await configureAudioSession();
-      const sound = new Audio.Sound();
-      await sound.loadAsync({ uri: cachedUrl });
-      console.log('✅ [TTS] Cache audio loaded, playing...');
-      await sound.playAsync();
-
-      currentPlayback = { sound, fileUri: null };
-
-      sound.setOnPlaybackStatusUpdate(async (status) => {
-        if (status.didJustFinish || status.isLoaded === false) {
-          await releaseCurrentPlayback();
-        }
-      });
+      await playAudioFile(cachedUrl);
       return;
     } catch (error) {
       console.error('❌ [TTS] Failed to play cached audio:', error?.message);
-      audioCacheIndex.delete(cacheKey);
+      audioUrlCache.delete(cacheKey);
       // Continue to request new audio
     }
   }
@@ -231,46 +224,25 @@ const playViaVajaX = async (text, options = {}) => {
   }
 
   if (ttsData.audioUrl) {
-    // Download and cache the audio file
-    console.log('🎵 [TTS] Downloading audio from:', ttsData.audioUrl);
-    const localUri = await downloadAudioFile(ttsData.audioUrl, cacheKey);
+    // Cache the URL for future use
+    audioUrlCache.set(cacheKey, ttsData.audioUrl);
+    await saveAudioUrlCache();
+    console.log('💾 [TTS] Cached audio URL:', cacheKey);
     
-    if (!localUri) {
-      console.error('❌ [TTS] Failed to download audio');
-      throw new Error('Failed to download audio file');
-    }
-    
-    console.log('✅ [TTS] Audio saved locally, playing from cache');
+    // Download to temp cache file
+    console.log('📥 [TTS] Downloading audio to cache...');
+    const tempFileName = `tts_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.wav`;
+    const tempFileUri = `${FileSystem.cacheDirectory}${tempFileName}`;
     
     try {
-      // Ensure audio session is configured
-      await configureAudioSession();
+      const result = await FileSystem.downloadAsync(ttsData.audioUrl, tempFileUri);
+      console.log('✅ [TTS] Audio downloaded to:', tempFileUri);
       
-      const sound = new Audio.Sound();
-      console.log('🔊 [TTS] Loading local audio:', localUri);
-      await sound.loadAsync({ uri: localUri });
-      
-      // Set volume to maximum
-      await sound.setVolumeAsync(1.0);
-      console.log('🔊 [TTS] Volume set to 1.0 (max)');
-      
-      console.log('📢 [TTS] Sound loaded, playing now...');
-      const status = await sound.playAsync();
-      console.log('✅ [TTS] Playback status:', status?.isPlaying, 'Duration:', status?.durationMillis, 'ms');
-
-      currentPlayback = { sound, fileUri: localUri };
-
-      sound.setOnPlaybackStatusUpdate(async (status) => {
-        console.log('📊 [TTS] Playback update:', { isPlaying: status?.isPlaying, didJustFinish: status?.didJustFinish });
-        if (status.didJustFinish || status.isLoaded === false) {
-          await releaseCurrentPlayback();
-        }
-      });
-    } catch (error) {
-      console.error('❌ [TTS] Failed to play audio from cache:', error?.message, error);
-      console.warn('⚠️ [TTS] Falling back to Expo Speech');
-      // Fallback to Expo Speech
-      await speakWithExpo(text, options);
+      // Play from temp cache
+      await playAudioFile(result.uri);
+    } catch (downloadError) {
+      console.error('❌ [TTS] Failed to download audio:', downloadError?.message);
+      throw new Error(`Failed to download audio: ${downloadError?.message}`);
     }
   } else {
     // Legacy: Use base64 (fallback)
