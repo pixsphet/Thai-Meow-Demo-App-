@@ -1,6 +1,7 @@
 import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Speech from 'expo-speech';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from './apiClient';
 
 const DEFAULT_SPEECH_OPTIONS = {
@@ -9,6 +10,38 @@ const DEFAULT_SPEECH_OPTIONS = {
   pitch: 1.0,
   quality: Speech.VoiceQuality?.Enhanced,
 };
+
+// Cache key for AsyncStorage
+const TTS_CACHE_KEY = 'tts_audio_cache';
+
+// Load cache from AsyncStorage on startup
+let audioCache = new Map();
+
+const loadAudioCache = async () => {
+  try {
+    const cached = await AsyncStorage.getItem(TTS_CACHE_KEY);
+    if (cached) {
+      const cacheObj = JSON.parse(cached);
+      audioCache = new Map(Object.entries(cacheObj));
+      console.log('✅ [TTS] Loaded audio cache from storage:', audioCache.size, 'items');
+    }
+  } catch (error) {
+    console.warn('⚠️ [TTS] Failed to load cache:', error?.message);
+  }
+};
+
+// Save cache to AsyncStorage
+const saveAudioCache = async () => {
+  try {
+    const cacheObj = Object.fromEntries(audioCache);
+    await AsyncStorage.setItem(TTS_CACHE_KEY, JSON.stringify(cacheObj));
+  } catch (error) {
+    console.warn('⚠️ [TTS] Failed to save cache:', error?.message);
+  }
+};
+
+// Initialize cache on app load
+loadAudioCache();
 
 // Configure audio session
 const configureAudioSession = async () => {
@@ -39,9 +72,6 @@ let currentPlayback = {
   sound: null,
   fileUri: null,
 };
-
-// Audio URL cache to avoid redundant API calls
-const audioCache = new Map();
 
 const releaseCurrentPlayback = async () => {
   const { sound, fileUri } = currentPlayback;
@@ -155,6 +185,7 @@ const playViaVajaX = async (text, options = {}) => {
   if (ttsData.audioUrl) {
     // Cache the URL for future use
     audioCache.set(cacheKey, ttsData.audioUrl);
+    await saveAudioCache(); // Save cache after successful request
     console.log('💾 [TTS] Cached audio URL for:', cacheKey);
     
     // Play directly from URL (real-time, no waiting for download)
