@@ -120,8 +120,9 @@ const getHintText = (type) => {
 // Language helpers
 const isThaiText = (text) => /[ก-๙]/.test(String(text || ''));
 
-// Global display preference: use romanization for choice texts
+// Global display preference: use both Thai and Roman
 const SHOW_ROMAN = true;
+const SHOW_THAI = true; // Also show Thai characters
 
 const getTypeLabel = (type) => {
   switch (type) {
@@ -165,7 +166,9 @@ const makeListenChoose = (word, pool) => {
     correctText: word.char,
     choices: choices.map((c, i) => ({
       id: i + 1,
-      text: SHOW_ROMAN ? (c.roman || c.name) : c.char,
+      thai: c.char,
+      roman: c.roman || c.name,
+      text: `${c.char}\n${c.roman || c.name}`, // Thai on top, Roman below
       speakText: c.audioText || c.name || c.roman || c.char,
       isCorrect: c.char === word.char,
     })),
@@ -186,7 +189,9 @@ const makePictureMatch = (word, pool) => {
     correctText: word.char,
     choices: choices.map((c, i) => ({
       id: i + 1,
-      text: SHOW_ROMAN ? (c.roman || c.name) : c.char,
+      thai: c.char,
+      roman: c.roman || c.name,
+      text: `${c.char}\n${c.roman || c.name}`, // Thai on top, Roman below
       speakText: c.audioText || c.name || c.roman || c.char,
       isCorrect: c.char === word.char,
     })),
@@ -242,7 +247,9 @@ const makeFillBlank = (word, pool) => {
     correctText: word.char,
     choices: choices.map((c, i) => ({
       id: i + 1,
-      text: SHOW_ROMAN ? (c.roman || c.name) : c.char,
+      thai: c.char,
+      roman: c.roman || c.name,
+      text: `${c.char}\n${c.roman || c.name}`, // Thai on top, Roman below
       speakText: c.audioText || c.name || c.roman || c.char,
       isCorrect: c.char === word.char,
     })),
@@ -352,13 +359,17 @@ const makeAorB = (word, pool = []) => {
     choices: [
       {
         letter: 'A',
-        text: SHOW_ROMAN ? (choiceA.roman || choiceA.name) : choiceA.char,
+        thai: choiceA.char,
+        roman: choiceA.roman || choiceA.name,
+        text: `${choiceA.char}\n${choiceA.roman || choiceA.name}`, // Thai on top, Roman below
         isCorrect: choiceA.char === word.char,
         char: choiceA.char,
       },
       {
         letter: 'B',
-        text: SHOW_ROMAN ? (choiceB.roman || choiceB.name) : choiceB.char,
+        thai: choiceB.char,
+        roman: choiceB.roman || choiceB.name,
+        text: `${choiceB.char}\n${choiceB.roman || choiceB.name}`, // Thai on top, Roman below
         isCorrect: choiceB.char === word.char,
         char: choiceB.char,
       },
@@ -2163,6 +2174,8 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '800',
     color: COLORS.dark,
+    textAlign: 'center',
+    lineHeight: 28,
   },
   dragMatchContainer: {
     flexDirection: 'row',
@@ -2350,6 +2363,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: COLORS.dark,
+    textAlign: 'center',
+    lineHeight: 20,
   },
   memoryGrid: {
     display: 'flex',
