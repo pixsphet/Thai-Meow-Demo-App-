@@ -8,8 +8,8 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  TextInput as RNTextInput,
 } from 'react-native';
-import { TextInput } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../contexts/ThemeContext';
@@ -165,7 +165,7 @@ const ChangePasswordScreen = ({ navigation }) => {
                 รหัสผ่านปัจจุบัน
               </Text>
             </View>
-            <TextInput
+            <RNTextInput
               style={[
                 styles.inputField,
                 {
@@ -211,7 +211,7 @@ const ChangePasswordScreen = ({ navigation }) => {
                 รหัสผ่านใหม่
               </Text>
             </View>
-            <TextInput
+            <RNTextInput
               style={[
                 styles.inputField,
                 {
@@ -260,7 +260,7 @@ const ChangePasswordScreen = ({ navigation }) => {
                 ยืนยันรหัสผ่านใหม่
               </Text>
             </View>
-            <TextInput
+            <RNTextInput
               style={[
                 styles.inputField,
                 {
