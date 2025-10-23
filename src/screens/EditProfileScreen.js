@@ -454,74 +454,124 @@ const EditProfileScreen = ({ navigation }) => {
       <Modal
         visible={imagePickerVisible}
         transparent
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setImagePickerVisible(false)}
       >
-        <View style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
+        <View style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.6)' }]}>
           <ScrollView 
             contentContainerStyle={styles.modalScrollContent}
             showsVerticalScrollIndicator={false}
           >
-            <View style={[styles.modalContent, { backgroundColor: theme.surface }]}>
-              <View style={styles.modalHeader}>
-                <Text style={[styles.modalTitle, { color: theme.text }]}>
-                  เลือกรูปโปรไฟล์
-                </Text>
-                <TouchableOpacity onPress={() => setImagePickerVisible(false)}>
-                  <MaterialCommunityIcons name="close" size={24} color={theme.text} />
+            <View style={[styles.modalContentWrapper, { shadowColor: theme.primary }]}>
+              <LinearGradient
+                colors={[theme.surface, theme.surface]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.modalContent}
+              >
+                <View style={styles.modalHeader}>
+                  <View style={styles.modalIconWrapper}>
+                    <MaterialCommunityIcons name="image-multiple" size={28} color={theme.primary} />
+                  </View>
+                  <Text style={[styles.modalTitle, { color: theme.text }]}>
+                    เลือกรูปโปรไฟล์
+                  </Text>
+                  <TouchableOpacity 
+                    onPress={() => setImagePickerVisible(false)}
+                    style={styles.modalCloseButton}
+                  >
+                    <MaterialCommunityIcons name="close" size={24} color={theme.textSecondary} />
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.modalDivider} />
+
+                <TouchableOpacity
+                  style={[
+                    styles.modalButton, 
+                    { 
+                      backgroundColor: theme.primary + '15',
+                      borderColor: theme.primary + '30',
+                    }
+                  ]}
+                  onPress={handleTakePhoto}
+                  disabled={uploading}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.modalButtonIcon, { backgroundColor: theme.primary + '25' }]}>
+                    <MaterialCommunityIcons name="camera" size={24} color={theme.primary} />
+                  </View>
+                  <View style={styles.modalButtonContent}>
+                    <Text style={[styles.modalButtonText, { color: theme.text }]}>
+                      ถ่ายรูปใหม่
+                    </Text>
+                    <Text style={[styles.modalButtonSubtext, { color: theme.textSecondary }]}>
+                      ใช้กล้องเพื่อถ่ายรูปโปรไฟล์
+                    </Text>
+                  </View>
+                  <MaterialCommunityIcons name="chevron-right" size={20} color={theme.primary} />
                 </TouchableOpacity>
-              </View>
 
-              <TouchableOpacity
-                style={[styles.modalButton, { backgroundColor: theme.primary + '20' }]}
-                onPress={handleTakePhoto}
-                disabled={uploading}
-              >
-                <MaterialCommunityIcons name="camera" size={24} color={theme.primary} />
-                <View style={styles.modalButtonContent}>
-                  <Text style={[styles.modalButtonText, { color: theme.text }]}>
-                    ถ่ายรูปใหม่
-                  </Text>
-                  <Text style={[styles.modalButtonSubtext, { color: theme.textSecondary }]}>
-                    ใช้กล้องเพื่อถ่ายรูปโปรไฟล์
-                  </Text>
-                </View>
-              </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.modalButton, 
+                    { 
+                      backgroundColor: theme.primary + '15',
+                      borderColor: theme.primary + '30',
+                    }
+                  ]}
+                  onPress={handlePickImageFromLibrary}
+                  disabled={uploading}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.modalButtonIcon, { backgroundColor: theme.primary + '25' }]}>
+                    <MaterialCommunityIcons name="image" size={24} color={theme.primary} />
+                  </View>
+                  <View style={styles.modalButtonContent}>
+                    <Text style={[styles.modalButtonText, { color: theme.text }]}>
+                      เลือกจากไลบรารี่
+                    </Text>
+                    <Text style={[styles.modalButtonSubtext, { color: theme.textSecondary }]}>
+                      เลือกรูปภาพที่มีอยู่แล้ว
+                    </Text>
+                  </View>
+                  <MaterialCommunityIcons name="chevron-right" size={20} color={theme.primary} />
+                </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[styles.modalButton, { backgroundColor: theme.primary + '20' }]}
-                onPress={handlePickImageFromLibrary}
-                disabled={uploading}
-              >
-                <MaterialCommunityIcons name="image" size={24} color={theme.primary} />
-                <View style={styles.modalButtonContent}>
-                  <Text style={[styles.modalButtonText, { color: theme.text }]}>
-                    เลือกจากไลบรารี่
-                  </Text>
-                  <Text style={[styles.modalButtonSubtext, { color: theme.textSecondary }]}>
-                    เลือกรูปภาพที่มีอยู่แล้ว
-                  </Text>
-                </View>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.modalButton, { backgroundColor: '#EF4444' + '20' }]}
-                onPress={() => {
-                  setImagePickerVisible(false);
-                  handleRemoveImage();
-                }}
-                disabled={uploading || !formData.avatar}
-              >
-                <MaterialCommunityIcons name="trash-can" size={24} color="#EF4444" />
-                <View style={styles.modalButtonContent}>
-                  <Text style={[styles.modalButtonText, { color: theme.text }]}>
-                    ลบรูปปัจจุบัน
-                  </Text>
-                  <Text style={[styles.modalButtonSubtext, { color: theme.textSecondary }]}>
-                    ใช้รูปค่าเริ่มต้น
-                  </Text>
-                </View>
-              </TouchableOpacity>
+                {formData.avatar && (
+                  <>
+                    <View style={styles.modalDivider} />
+                    <TouchableOpacity
+                      style={[
+                        styles.modalButton, 
+                        { 
+                          backgroundColor: '#EF4444' + '15',
+                          borderColor: '#EF4444' + '30',
+                        }
+                      ]}
+                      onPress={() => {
+                        setImagePickerVisible(false);
+                        handleRemoveImage();
+                      }}
+                      disabled={uploading}
+                      activeOpacity={0.7}
+                    >
+                      <View style={[styles.modalButtonIcon, { backgroundColor: '#EF4444' + '25' }]}>
+                        <MaterialCommunityIcons name="trash-can" size={24} color="#EF4444" />
+                      </View>
+                      <View style={styles.modalButtonContent}>
+                        <Text style={[styles.modalButtonText, { color: '#EF4444' }]}>
+                          ลบรูปปัจจุบัน
+                        </Text>
+                        <Text style={[styles.modalButtonSubtext, { color: theme.textSecondary }]}>
+                          ใช้รูปค่าเริ่มต้น
+                        </Text>
+                      </View>
+                      <MaterialCommunityIcons name="chevron-right" size={20} color="#EF4444" />
+                    </TouchableOpacity>
+                  </>
+                )}
+              </LinearGradient>
             </View>
           </ScrollView>
         </View>
@@ -732,9 +782,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  modalContent: {
+  modalContentWrapper: {
     width: width * 0.8,
     borderRadius: 20,
+    overflow: 'hidden',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.2,
+    shadowRadius: 15,
+    elevation: 10,
+  },
+  modalContent: {
+    width: '100%',
     padding: 20,
     alignItems: 'center',
   },
@@ -745,22 +803,50 @@ const styles = StyleSheet.create({
     width: '100%',
     marginBottom: 20,
   },
+  modalIconWrapper: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
+    flex: 1,
+    textAlign: 'center',
+  },
+  modalCloseButton: {
+    padding: 5,
+  },
+  modalDivider: {
+    width: '100%',
+    height: 1,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+    marginVertical: 20,
   },
   modalButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     width: '100%',
     paddingVertical: 15,
     borderRadius: 15,
     marginBottom: 10,
-    gap: 10,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  modalButtonIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalButtonContent: {
-    alignItems: 'center',
+    flex: 1,
+    marginLeft: 15,
   },
   modalButtonText: {
     fontSize: 16,
