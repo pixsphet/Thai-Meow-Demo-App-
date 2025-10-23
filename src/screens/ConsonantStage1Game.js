@@ -364,15 +364,26 @@ const makeOrderTiles = (word) => {
 
 // A or B: Quick listen and choose between two
 const makeAorB = (word, pool = [], usedChars = new Set()) => {
+  // Get options that are different from target word and not used
   const wrongOptions = pool.filter(w => w.char !== word.char && !usedChars.has(w.char));
-  const choiceB = wrongOptions.length > 0 ? pick(wrongOptions) : word;
-  const choiceA = Math.random() > 0.5 ? word : choiceB;
+  
+  // Pick one wrong option, or use word if no options available
+  const wrongChoice = wrongOptions.length > 0 ? pick(wrongOptions) : word;
+  
+  // Randomly assign which position gets the correct answer
+  const choiceA = Math.random() > 0.5 ? word : wrongChoice;
+  const choiceB = choiceA === word ? wrongChoice : word;
+  
+  // Ensure both choices have data
+  if (!choiceA || !choiceB) {
+    console.warn('[makeAorB] Missing choice data', { choiceA, choiceB, word });
+  }
   
   return {
     id: `aob_${word.char}_${uid()}`,
     type: QUESTION_TYPES.A_OR_B,
     instruction: 'เลือก A หรือ B',
-    audioText: word.audioText,
+    audioText: word.audioText || word.name,
     // Rewards for this question
     rewardXP: 15,
     rewardDiamond: 1,
@@ -380,17 +391,17 @@ const makeAorB = (word, pool = [], usedChars = new Set()) => {
     choices: [
       {
         letter: 'A',
-        thai: choiceA?.char || choiceA?.char || '',
+        thai: choiceA?.char || '',
         roman: choiceA?.roman || choiceA?.name || '',
-        text: `${choiceA?.char}\n${choiceA?.roman || choiceA?.name}`, // Thai on top, Roman below
+        text: `${choiceA?.char || ''}\n${choiceA?.roman || choiceA?.name || ''}`,
         isCorrect: choiceA?.char === word.char,
         char: choiceA?.char || '',
       },
       {
         letter: 'B',
-        thai: choiceB?.char || choiceB?.char || '',
+        thai: choiceB?.char || '',
         roman: choiceB?.roman || choiceB?.name || '',
-        text: `${choiceB?.char}\n${choiceB?.roman || choiceB?.name}`, // Thai on top, Roman below
+        text: `${choiceB?.char || ''}\n${choiceB?.roman || choiceB?.name || ''}`,
         isCorrect: choiceB?.char === word.char,
         char: choiceB?.char || '',
       },
