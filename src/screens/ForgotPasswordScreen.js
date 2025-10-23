@@ -180,7 +180,7 @@ const ForgotPasswordScreen = () => {
                         selectionColor={theme.primary}
                     />
                     {icon && (
-                        <View style={styles.eyeButton}>
+                        <View style={styles.eyeButton} pointerEvents="none">
                             {icon}
                         </View>
                     )}
