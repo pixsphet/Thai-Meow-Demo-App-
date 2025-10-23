@@ -1,409 +1,517 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  SafeAreaView,
-  TouchableOpacity,
-  ScrollView,
-  Alert,
-  ActivityIndicator,
-  TextInput as RNTextInput,
+    View,
+    Text,
+    StyleSheet,
+    SafeAreaView,
+    StatusBar,
+    TouchableOpacity,
+    TextInput,
+    Alert,
+    Animated,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    Modal,
+    ActivityIndicator,
 } from 'react-native';
+
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../contexts/ThemeContext';
 import { useUser } from '../contexts/UserContext';
 import userService from '../services/userService';
 
-const ChangePasswordScreen = ({ navigation }) => {
-  const { theme } = useTheme();
-  const { user } = useUser();
+const ChangePasswordScreen = () => {
+    const navigation = useNavigation();
+    const { theme, darkTheme } = useTheme();
+    const { user } = useUser();
 
-  const [formData, setFormData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
-  });
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [successModalVisible, setSuccessModalVisible] = useState(false);
 
-  const [showPasswords, setShowPasswords] = useState({
-    current: false,
-    new: false,
-    confirm: false,
-  });
+    const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  const [errors, setErrors] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
-  });
+    React.useEffect(() => {
+        Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 300,
+            useNativeDriver: true,
+        }).start();
+    }, []);
 
-  const [loading, setLoading] = useState(false);
+    const validatePassword = (password) => {
+        if (password.length < 6) return false;
+        if (!/[a-z]/.test(password)) return false;
+        if (!/[A-Z]/.test(password)) return false;
+        if (!/[0-9]/.test(password)) return false;
+        return true;
+    };
 
-  const validatePassword = (password) => {
-    if (password.length < 6) return 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร';
-    if (!/[a-z]/.test(password)) return 'รหัสผ่านต้องมีตัวอักษรตัวเล็ก';
-    if (!/[A-Z]/.test(password)) return 'รหัสผ่านต้องมีตัวอักษรตัวใหญ่';
-    if (!/[0-9]/.test(password)) return 'รหัสผ่านต้องมีตัวเลข';
-    return '';
-  };
+    const handleChangePassword = async () => {
+        // Validation
+        if (!currentPassword.trim()) {
+            Alert.alert('ข้อผิดพลาด', 'กรุณากรอกรหัสผ่านปัจจุบัน');
+            return;
+        }
 
-  const validateForm = () => {
-    let isValid = true;
-    const newErrors = {};
+        if (!newPassword.trim()) {
+            Alert.alert('ข้อผิดพลาด', 'กรุณากรอกรหัสผ่านใหม่');
+            return;
+        }
 
-    if (!formData.currentPassword.trim()) {
-      newErrors.currentPassword = 'กรุณากรอกรหัสผ่านปัจจุบัน';
-      isValid = false;
-    }
+        if (!confirmPassword.trim()) {
+            Alert.alert('ข้อผิดพลาด', 'กรุณากรอกการยืนยันรหัสผ่าน');
+            return;
+        }
 
-    if (!formData.newPassword.trim()) {
-      newErrors.newPassword = 'กรุณากรอกรหัสผ่านใหม่';
-      isValid = false;
-    } else {
-      const passwordError = validatePassword(formData.newPassword);
-      if (passwordError) {
-        newErrors.newPassword = passwordError;
-        isValid = false;
-      }
-    }
+        if (!validatePassword(newPassword)) {
+            Alert.alert(
+                'รหัสผ่านไม่ถูกต้อง',
+                'รหัสผ่านต้องมี:\n• ตัวอักษรตัวเล็ก (a-z)\n• ตัวอักษรตัวใหญ่ (A-Z)\n• ตัวเลข (0-9)\n• อย่างน้อย 6 ตัวอักษร'
+            );
+            return;
+        }
 
-    if (formData.newPassword !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'รหัสผ่านไม่ตรงกัน';
-      isValid = false;
-    }
+        if (newPassword !== confirmPassword) {
+            Alert.alert('ข้อผิดพลาด', 'รหัสผ่านใหม่ไม่ตรงกัน');
+            return;
+        }
 
-    if (formData.currentPassword === formData.newPassword) {
-      newErrors.newPassword = 'รหัสผ่านใหม่ต้องไม่เหมือนเดิม';
-      isValid = false;
-    }
+        if (currentPassword === newPassword) {
+            Alert.alert('ข้อผิดพลาด', 'รหัสผ่านใหม่ต้องไม่เหมือนเดิม');
+            return;
+        }
 
-    setErrors(newErrors);
-    return isValid;
-  };
+        setLoading(true);
 
-  const handleChangePassword = async () => {
-    if (!validateForm()) return;
+        try {
+            const result = await userService.changePassword({
+                currentPassword,
+                newPassword,
+            });
 
-    try {
-      setLoading(true);
+            if (result.success) {
+                setSuccessModalVisible(true);
+                // Clear form
+                setCurrentPassword('');
+                setNewPassword('');
+                setConfirmPassword('');
+            } else {
+                Alert.alert('ข้อผิดพลาด', result.message || 'ไม่สามารถเปลี่ยนรหัสผ่านได้');
+            }
+        } catch (error) {
+            console.error('Change password error:', error);
+            Alert.alert('ข้อผิดพลาด', error.message || 'เกิดข้อผิดพลาดในการเปลี่ยนรหัสผ่าน');
+        } finally {
+            setLoading(false);
+        }
+    };
 
-      const response = await userService.changePassword({
-        currentPassword: formData.currentPassword,
-        newPassword: formData.newPassword,
-      });
+    const handleSuccessClose = () => {
+        setSuccessModalVisible(false);
+        navigation.goBack();
+    };
 
-      if (response.success) {
-        Alert.alert(
-          'สำเร็จ',
-          'เปลี่ยนรหัสผ่านเรียบร้อยแล้ว',
-          [
-            {
-              text: 'ตกลง',
-              onPress: () => navigation.goBack(),
-            },
-          ]
+    const PasswordInput = ({
+        value,
+        onChangeText,
+        placeholder,
+        showPassword,
+        onToggleShow,
+        label,
+    }) => {
+        return (
+            <View style={styles.inputContainer}>
+                <Text style={[styles.inputLabel, { color: theme.text }]}>{label}</Text>
+                <View style={[styles.passwordInputWrapper, {
+                    backgroundColor: theme.surface,
+                    borderColor: theme.border,
+                    borderWidth: 1
+                }]}>
+                    <TextInput
+                        style={[styles.passwordInput, { color: theme.text }]}
+                        value={value}
+                        onChangeText={onChangeText}
+                        placeholder={placeholder}
+                        placeholderTextColor={theme.textSecondary}
+                        secureTextEntry={!showPassword}
+                        editable={!loading}
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                        spellCheck={false}
+                        autoFocus={false}
+                        blurOnSubmit={false}
+                        returnKeyType="done"
+                        enablesReturnKeyAutomatically={false}
+                        selectionColor={theme.primary}
+                    />
+                    <TouchableOpacity
+                        style={styles.eyeButton}
+                        onPress={onToggleShow}
+                        activeOpacity={0.7}
+                    >
+                        <Icon
+                            name={showPassword ? "visibility" : "visibility-off"}
+                            size={24}
+                            color={theme.textSecondary}
+                        />
+                    </TouchableOpacity>
+                </View>
+            </View>
         );
-      } else {
-        Alert.alert('ข้อผิดพลาด', response.message || 'ไม่สามารถเปลี่ยนรหัสผ่านได้');
-      }
-    } catch (error) {
-      Alert.alert('ข้อผิดพลาด', error.message || 'เกิดข้อผิดพลาดในการเปลี่ยนรหัสผ่าน');
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  const handleCancel = () => {
-    Alert.alert(
-      'ยกเลิก',
-      'คุณต้องการยกเลิกการเปลี่ยนรหัสผ่านหรือไม่?',
-      [
-        { text: 'ไม่', style: 'cancel' },
-        { text: 'ใช่', onPress: () => navigation.goBack() },
-      ]
+    return (
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+            <StatusBar
+                barStyle={darkTheme ? 'light-content' : 'dark-content'}
+                backgroundColor={theme.background}
+            />
+
+            <KeyboardAvoidingView
+                style={styles.keyboardContainer}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            >
+                <ScrollView
+                    style={styles.scrollView}
+                    contentContainerStyle={styles.scrollContent}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}
+                >
+                    <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
+                        {/* Header */}
+                        <View style={styles.header}>
+                            <TouchableOpacity
+                                style={styles.backButton}
+                                onPress={() => navigation.goBack()}
+                            >
+                                <Icon name="arrow-back" size={24} color={theme.text} />
+                            </TouchableOpacity>
+                            <Text style={[styles.headerTitle, { color: theme.text }]}>
+                                เปลี่ยนรหัสผ่าน
+                            </Text>
+                            <View style={styles.headerSpacer} />
+                        </View>
+
+                        {/* Info */}
+                        <View style={styles.infoContainer}>
+                            <Icon name="lock-reset" size={60} color={theme.primary} />
+                            <Text style={[styles.infoTitle, { color: theme.text }]}>
+                                เปลี่ยนรหัสผ่าน
+                            </Text>
+                            <Text style={[styles.infoSubtitle, { color: theme.textSecondary }]}>
+                                อัปเดตรหัสผ่านของคุณเพื่อความปลอดภัยที่ดีขึ้น
+                            </Text>
+                            {user?.email && (
+                                <Text style={[styles.emailText, { color: theme.primary }]}>
+                                    {user.email}
+                                </Text>
+                            )}
+                        </View>
+
+                        {/* Form */}
+                        <View style={styles.formContainer}>
+                            <PasswordInput
+                                value={currentPassword}
+                                onChangeText={setCurrentPassword}
+                                placeholder="กรอกรหัสผ่านปัจจุบัน"
+                                showPassword={showCurrentPassword}
+                                onToggleShow={() => setShowCurrentPassword(!showCurrentPassword)}
+                                label="รหัสผ่านปัจจุบัน"
+                            />
+
+                            <PasswordInput
+                                value={newPassword}
+                                onChangeText={setNewPassword}
+                                placeholder="กรอกรหัสผ่านใหม่"
+                                showPassword={showNewPassword}
+                                onToggleShow={() => setShowNewPassword(!showNewPassword)}
+                                label="รหัสผ่านใหม่"
+                            />
+
+                            <PasswordInput
+                                value={confirmPassword}
+                                onChangeText={setConfirmPassword}
+                                placeholder="ยืนยันรหัสผ่านใหม่"
+                                showPassword={showConfirmPassword}
+                                onToggleShow={() => setShowConfirmPassword(!showConfirmPassword)}
+                                label="ยืนยันรหัสผ่าน"
+                            />
+
+                            {/* Password Requirements */}
+                            <View style={styles.validationContainer}>
+                                <Text style={[styles.validationTitle, { color: theme.text }]}>
+                                    ✓ ต้องการเงื่อนไขรหัสผ่าน:
+                                </Text>
+                                <Text style={[styles.validationText, { color: theme.textSecondary }]}>
+                                    • ตัวอักษรตัวเล็ก (a-z){'\n'}
+                                    • ตัวอักษรตัวใหญ่ (A-Z){'\n'}
+                                    • ตัวเลข (0-9){'\n'}
+                                    • อย่างน้อย 6 ตัวอักษร
+                                </Text>
+                            </View>
+                        </View>
+
+                        {/* Change Button */}
+                        <LinearGradient
+                            colors={["#FF8C00", "#FFA500"]}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={styles.continueButton}
+                        >
+                            <TouchableOpacity
+                                onPress={handleChangePassword}
+                                disabled={loading || !currentPassword.trim() || !newPassword.trim() || !confirmPassword.trim()}
+                                activeOpacity={0.8}
+                                style={[
+                                    styles.continueTouchable,
+                                    (loading || !currentPassword.trim() || !newPassword.trim() || !confirmPassword.trim()) && styles.disabledButton
+                                ]}
+                            >
+                                {loading ? (
+                                    <ActivityIndicator size="small" color="#fff" />
+                                ) : (
+                                    <Text style={styles.continueText}>
+                                        เปลี่ยนรหัสผ่าน
+                                    </Text>
+                                )}
+                            </TouchableOpacity>
+                        </LinearGradient>
+
+                        {/* Back Button */}
+                        <TouchableOpacity
+                            style={styles.backToLoginButton}
+                            onPress={() => navigation.goBack()}
+                        >
+                            <Text style={[styles.backToLoginText, { color: theme.primary }]}>
+                                ยกเลิก
+                            </Text>
+                        </TouchableOpacity>
+                    </Animated.View>
+                </ScrollView>
+            </KeyboardAvoidingView>
+
+            {/* Success Modal */}
+            <Modal
+                transparent
+                visible={successModalVisible}
+                animationType="fade"
+                onRequestClose={handleSuccessClose}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={[styles.modalContainer, { backgroundColor: theme.card }]}>
+                        <View style={styles.successIconContainer}>
+                            <Icon name="check-circle" size={60} color="#4CAF50" />
+                        </View>
+                        <Text style={[styles.modalTitle, { color: theme.text }]}>สำเร็จ!</Text>
+                        <Text style={[styles.modalMessage, { color: theme.text }]}>
+                            เปลี่ยนรหัสผ่านเรียบร้อยแล้ว
+                        </Text>
+                        <TouchableOpacity
+                            style={[styles.modalButton, { backgroundColor: theme.primary }]}
+                            onPress={handleSuccessClose}
+                        >
+                            <Text style={styles.modalButtonText}>ตกลง</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
+        </SafeAreaView>
     );
-  };
-
-  return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
-      <LinearGradient
-        colors={[theme.primary, theme.primary + 'dd']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.header}
-      >
-        <TouchableOpacity style={styles.headerButton} onPress={handleCancel}>
-          <MaterialCommunityIcons name="close" size={24} color={theme.white} />
-        </TouchableOpacity>
-
-        <View style={styles.headerTitleContainer}>
-          <MaterialCommunityIcons name="lock-reset" size={28} color={theme.white} />
-          <Text style={[styles.headerTitle, { color: theme.white }]}>เปลี่ยนรหัสผ่าน</Text>
-        </View>
-
-        <TouchableOpacity
-          style={styles.headerButton}
-          onPress={handleChangePassword}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator size="small" color={theme.white} />
-          ) : (
-            <MaterialCommunityIcons name="check-circle" size={24} color={theme.white} />
-          )}
-        </TouchableOpacity>
-      </LinearGradient>
-
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.formContainer}>
-          {/* Current Password */}
-          <View style={[styles.inputCard, { backgroundColor: theme.surface }]}>
-            <View style={styles.inputLabelRow}>
-              <MaterialCommunityIcons name="lock" size={18} color={theme.primary} />
-              <Text style={[styles.label, { color: theme.text, marginLeft: 8 }]}>
-                รหัสผ่านปัจจุบัน
-              </Text>
-            </View>
-            <RNTextInput
-              style={[
-                styles.inputField,
-                {
-                  backgroundColor: theme.lightGray || '#f5f5f5',
-                  borderColor: errors.currentPassword ? '#EF4444' : theme.lightGray,
-                  color: theme.text,
-                  borderWidth: 1,
-                }
-              ]}
-              value={formData.currentPassword}
-              onChangeText={(text) => {
-                setFormData(prev => ({ ...prev, currentPassword: text }));
-                if (errors.currentPassword) {
-                  setErrors(prev => ({ ...prev, currentPassword: '' }));
-                }
-              }}
-              placeholder="กรอกรหัสผ่านปัจจุบัน"
-              placeholderTextColor={theme.textSecondary}
-              secureTextEntry={!showPasswords.current}
-              autoCapitalize="none"
-              editable={!loading}
-            />
-            <TouchableOpacity
-              style={styles.eyeButton}
-              onPress={() => setShowPasswords(prev => ({ ...prev, current: !prev.current }))}
-            >
-              <MaterialCommunityIcons
-                name={showPasswords.current ? 'eye' : 'eye-off'}
-                size={20}
-                color={theme.textSecondary}
-              />
-            </TouchableOpacity>
-            {errors.currentPassword && (
-              <Text style={[styles.errorText, { color: '#EF4444' }]}>{errors.currentPassword}</Text>
-            )}
-          </View>
-
-          {/* New Password */}
-          <View style={[styles.inputCard, { backgroundColor: theme.surface }]}>
-            <View style={styles.inputLabelRow}>
-              <MaterialCommunityIcons name="lock-plus" size={18} color={theme.primary} />
-              <Text style={[styles.label, { color: theme.text, marginLeft: 8 }]}>
-                รหัสผ่านใหม่
-              </Text>
-            </View>
-            <RNTextInput
-              style={[
-                styles.inputField,
-                {
-                  backgroundColor: theme.lightGray || '#f5f5f5',
-                  borderColor: errors.newPassword ? '#EF4444' : theme.lightGray,
-                  color: theme.text,
-                  borderWidth: 1,
-                }
-              ]}
-              value={formData.newPassword}
-              onChangeText={(text) => {
-                setFormData(prev => ({ ...prev, newPassword: text }));
-                if (errors.newPassword) {
-                  setErrors(prev => ({ ...prev, newPassword: '' }));
-                }
-              }}
-              placeholder="กรอกรหัสผ่านใหม่"
-              placeholderTextColor={theme.textSecondary}
-              secureTextEntry={!showPasswords.new}
-              autoCapitalize="none"
-              editable={!loading}
-            />
-            <TouchableOpacity
-              style={styles.eyeButton}
-              onPress={() => setShowPasswords(prev => ({ ...prev, new: !prev.new }))}
-            >
-              <MaterialCommunityIcons
-                name={showPasswords.new ? 'eye' : 'eye-off'}
-                size={20}
-                color={theme.textSecondary}
-              />
-            </TouchableOpacity>
-            {errors.newPassword && (
-              <Text style={[styles.errorText, { color: '#EF4444' }]}>{errors.newPassword}</Text>
-            )}
-            <Text style={[styles.hintText, { color: theme.textSecondary }]}>
-              💡 ต้องมี: ตัวเล็ก, ตัวใหญ่, ตัวเลข, อย่างน้อย 6 ตัวอักษร
-            </Text>
-          </View>
-
-          {/* Confirm Password */}
-          <View style={[styles.inputCard, { backgroundColor: theme.surface }]}>
-            <View style={styles.inputLabelRow}>
-              <MaterialCommunityIcons name="lock-check" size={18} color={theme.primary} />
-              <Text style={[styles.label, { color: theme.text, marginLeft: 8 }]}>
-                ยืนยันรหัสผ่านใหม่
-              </Text>
-            </View>
-            <RNTextInput
-              style={[
-                styles.inputField,
-                {
-                  backgroundColor: theme.lightGray || '#f5f5f5',
-                  borderColor: errors.confirmPassword ? '#EF4444' : theme.lightGray,
-                  color: theme.text,
-                  borderWidth: 1,
-                }
-              ]}
-              value={formData.confirmPassword}
-              onChangeText={(text) => {
-                setFormData(prev => ({ ...prev, confirmPassword: text }));
-                if (errors.confirmPassword) {
-                  setErrors(prev => ({ ...prev, confirmPassword: '' }));
-                }
-              }}
-              placeholder="ยืนยันรหัสผ่าน"
-              placeholderTextColor={theme.textSecondary}
-              secureTextEntry={!showPasswords.confirm}
-              autoCapitalize="none"
-              editable={!loading}
-            />
-            <TouchableOpacity
-              style={styles.eyeButton}
-              onPress={() => setShowPasswords(prev => ({ ...prev, confirm: !prev.confirm }))}
-            >
-              <MaterialCommunityIcons
-                name={showPasswords.confirm ? 'eye' : 'eye-off'}
-                size={20}
-                color={theme.textSecondary}
-              />
-            </TouchableOpacity>
-            {errors.confirmPassword && (
-              <Text style={[styles.errorText, { color: '#EF4444' }]}>{errors.confirmPassword}</Text>
-            )}
-          </View>
-
-          {/* Security Tips */}
-          <View style={[styles.securityTips, { backgroundColor: theme.primary + '10' }]}>
-            <MaterialCommunityIcons name="shield-alert" size={20} color={theme.primary} />
-            <View style={{ marginLeft: 12, flex: 1 }}>
-              <Text style={[styles.tipTitle, { color: theme.primary }]}>เคล็ดลับความปลอดภัย</Text>
-              <Text style={[styles.tipText, { color: theme.textSecondary }]}>
-                • ใช้รหัสผ่านที่ยากต่อการทายง่าย{'\n'}
-                • อย่าบอกรหัสผ่านให้ใครทราบ{'\n'}
-                • เปลี่ยนรหัสผ่านเป็นระยะ
-              </Text>
-            </View>
-          </View>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    justifyContent: 'space-between',
-  },
-  headerButton: {
-    padding: 8,
-  },
-  headerTitleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  content: {
-    flex: 1,
-    padding: 16,
-  },
-  formContainer: {
-    gap: 16,
-  },
-  inputCard: {
-    borderRadius: 18,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  inputLabelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  inputField: {
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    paddingRight: 45,
-  },
-  eyeButton: {
-    position: 'absolute',
-    right: 12,
-    top: 38,
-    padding: 8,
-    zIndex: 10,
-  },
-  errorText: {
-    fontSize: 12,
-    marginTop: 8,
-    fontWeight: '500',
-  },
-  hintText: {
-    fontSize: 12,
-    marginTop: 8,
-  },
-  securityTips: {
-    borderRadius: 16,
-    padding: 16,
-    flexDirection: 'row',
-    marginTop: 8,
-    marginBottom: 32,
-  },
-  tipTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    marginBottom: 8,
-  },
-  tipText: {
-    fontSize: 12,
-    lineHeight: 18,
-  },
+    container: {
+        flex: 1,
+    },
+    keyboardContainer: {
+        flex: 1,
+    },
+    scrollView: {
+        flex: 1,
+    },
+    scrollContent: {
+        flexGrow: 1,
+        paddingBottom: 20,
+    },
+    content: {
+        flex: 1,
+        paddingHorizontal: 20,
+    },
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 20,
+        paddingTop: 60,
+    },
+    backButton: {
+        padding: 8,
+        marginRight: 10,
+    },
+    headerTitle: {
+        fontSize: 20,
+        fontWeight: '600',
+        flex: 1,
+        textAlign: 'center',
+    },
+    headerSpacer: {
+        width: 40,
+    },
+    infoContainer: {
+        alignItems: 'center',
+        marginBottom: 30,
+        paddingVertical: 20,
+    },
+    infoTitle: {
+        fontSize: 24,
+        fontWeight: '700',
+        marginTop: 15,
+        marginBottom: 10,
+        textAlign: 'center',
+    },
+    infoSubtitle: {
+        fontSize: 16,
+        textAlign: 'center',
+        marginBottom: 10,
+        lineHeight: 22,
+        paddingHorizontal: 20,
+    },
+    emailText: {
+        fontSize: 14,
+        fontWeight: '600',
+        marginTop: 8,
+    },
+    formContainer: {
+        flex: 1,
+    },
+    inputContainer: {
+        marginBottom: 20,
+    },
+    inputLabel: {
+        fontSize: 16,
+        fontWeight: '600',
+        marginBottom: 8,
+        color: '#333',
+    },
+    passwordInputWrapper: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderRadius: 12,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        minHeight: 56,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 3,
+        elevation: 2,
+    },
+    passwordInput: {
+        flex: 1,
+        fontSize: 16,
+        paddingVertical: 12,
+        paddingHorizontal: 0,
+        minHeight: 48,
+    },
+    eyeButton: {
+        padding: 8,
+    },
+    validationContainer: {
+        marginTop: 20,
+        marginBottom: 20,
+        paddingHorizontal: 12,
+        paddingVertical: 12,
+    },
+    validationTitle: {
+        fontSize: 14,
+        fontWeight: '600',
+        marginBottom: 8,
+    },
+    validationText: {
+        fontSize: 12,
+        lineHeight: 18,
+    },
+    continueButton: {
+        marginTop: 20,
+        marginBottom: 20,
+        borderRadius: 30,
+        elevation: 6,
+    },
+    continueTouchable: {
+        paddingVertical: 16,
+        alignItems: 'center',
+    },
+    disabledButton: {
+        opacity: 0.6,
+    },
+    continueText: {
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: 16,
+    },
+    backToLoginButton: {
+        alignItems: 'center',
+        paddingVertical: 15,
+    },
+    backToLoginText: {
+        fontSize: 16,
+        fontWeight: '500',
+    },
+    // Modal styles
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalContainer: {
+        margin: 20,
+        borderRadius: 20,
+        padding: 30,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
+    },
+    successIconContainer: {
+        marginBottom: 20,
+    },
+    modalTitle: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        marginBottom: 10,
+        textAlign: 'center',
+    },
+    modalMessage: {
+        fontSize: 16,
+        textAlign: 'center',
+        marginBottom: 30,
+        lineHeight: 24,
+    },
+    modalButton: {
+        paddingHorizontal: 30,
+        paddingVertical: 12,
+        borderRadius: 25,
+    },
+    modalButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: '600',
+    },
 });
 
 export default ChangePasswordScreen;
