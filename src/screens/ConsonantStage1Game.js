@@ -825,11 +825,8 @@ const ConsonantStage1Game = ({ navigation, route }) => {
   const handleAnswerSelect = (answer, speakText) => {
     setCurrentAnswer(answer);
     if (speakText) {
-      playTTS(speakText);
+      vaja9TtsService.playThai(speakText);
     }
-    
-    // Just set the answer, user must click CHECK button to submit
-    // No auto-checking anymore
   };
   
   // Handle check answer
@@ -1111,7 +1108,7 @@ const ConsonantStage1Game = ({ navigation, route }) => {
               
               <TouchableOpacity
                 style={styles.speakerButton}
-                onPress={() => playTTS(question.audioText)}
+                onPress={() => vaja9TtsService.playThai(question.audioText)}
               >
                 <MaterialIcons name="volume-up" size={40} color={COLORS.primary} />
               </TouchableOpacity>
@@ -1215,10 +1212,10 @@ const ConsonantStage1Game = ({ navigation, route }) => {
         const handleLeftPress = (leftItem) => {
           if (currentFeedback) return;
           
-          // Play sound
+          // Play sound using vaja9TtsService
           if (leftItem && leftItem.text) {
             try {
-              playTTS(leftItem.text);
+              vaja9TtsService.playThai(leftItem.text);
             } catch (error) {
               console.log('TTS Error:', error);
             }
@@ -1230,10 +1227,10 @@ const ConsonantStage1Game = ({ navigation, route }) => {
         const handleRightPress = (rightItem) => {
           if (currentFeedback) return;
           
-          // Play sound
+          // Play sound using vaja9TtsService
           if (rightItem && rightItem.text) {
             try {
-              playTTS(rightItem.text);
+              vaja9TtsService.playThai(rightItem.text);
             } catch (error) {
               console.log('TTS Error:', error);
             }
@@ -1370,7 +1367,7 @@ const ConsonantStage1Game = ({ navigation, route }) => {
                       if (item && item.text) {
                         setTimeout(() => {
                           try {
-                            playTTS(item.text);
+                            vaja9TtsService.playThai(item.text);
                           } catch (error) {
                             console.log('TTS Error:', error);
                           }
@@ -1392,7 +1389,7 @@ const ConsonantStage1Game = ({ navigation, route }) => {
                       if (item && item.text) {
                         setTimeout(() => {
                           try {
-                            playTTS(item.text);
+                            vaja9TtsService.playThai(item.text);
                           } catch (error) {
                             console.log('TTS Error:', error);
                           }
@@ -1455,7 +1452,7 @@ const ConsonantStage1Game = ({ navigation, route }) => {
               
               <TouchableOpacity
                 style={styles.speakerButton}
-                onPress={() => playTTS(question.audioText)}
+                onPress={() => vaja9TtsService.playThai(question.audioText)}
               >
                 <MaterialIcons name="volume-up" size={40} color={COLORS.primary} />
               </TouchableOpacity>
@@ -1516,7 +1513,7 @@ const ConsonantStage1Game = ({ navigation, route }) => {
                         const [card1, card2] = flippedCards;
                         if (card1.pairId === card2.pairId) {
                           // Match found!
-                          playTTS(card1.audioText);
+                          vaja9TtsService.playThai(card1.audioText);
                           const newMatched = new Set(mmMatched);
                           newMatched.add(card1.pairId);
                           setMmMatched(newMatched);
@@ -1692,7 +1689,7 @@ const ConsonantStage1Game = ({ navigation, route }) => {
                   </Text>
                   <TouchableOpacity
                     style={styles.speakerButton}
-                    onPress={() => playTTS(subQ.audioText)}
+                    onPress={() => vaja9TtsService.playThai(subQ.audioText)}
                   >
                     <MaterialIcons name="volume-up" size={40} color={COLORS.primary} />
                   </TouchableOpacity>
@@ -1739,7 +1736,7 @@ const ConsonantStage1Game = ({ navigation, route }) => {
                   </Text>
                   <TouchableOpacity
                     style={styles.speakerButton}
-                    onPress={() => playTTS(subQ.audioText)}
+                    onPress={() => vaja9TtsService.playThai(subQ.audioText)}
                   >
                     <MaterialIcons name="volume-up" size={40} color={COLORS.primary} />
                   </TouchableOpacity>
