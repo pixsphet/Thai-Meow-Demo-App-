@@ -392,23 +392,6 @@ const ProfileScreen = ({ navigation }) => {
                   }
                   style={[styles.avatar, { borderColor: theme.primary }]}
                 />
-                <TouchableOpacity
-                  onPress={() => navigation.navigate("EditProfile")}
-                  style={[
-                    styles.avatarEdit,
-                    {
-                      backgroundColor: theme.primary,
-                      shadowColor: theme.primary,
-                      shadowOffset: { width: 0, height: 6 },
-                      shadowOpacity: 0.4,
-                      shadowRadius: 12,
-                      elevation: 8,
-                    }
-                  ]}
-                  activeOpacity={0.8}
-                >
-                  <MaterialCommunityIcons name="pencil" size={18} color={theme.white} />
-                </TouchableOpacity>
               </View>
 
               <View style={styles.heroInfo}>
