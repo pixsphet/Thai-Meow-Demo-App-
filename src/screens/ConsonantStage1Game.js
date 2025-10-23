@@ -31,6 +31,7 @@ import { useUserData } from '../contexts/UserDataContext';
 // Data
 import consonantsFallback from '../data/consonants_fallback.json';
 import { letterImages } from '../assets/letters';
+import FireStreakAlert from '../components/FireStreakAlert';
 
 const { width, height } = Dimensions.get('window');
 
@@ -52,7 +53,8 @@ const QUESTION_TYPES = {
   PICTURE_MATCH: 'PICTURE_MATCH',
   DRAG_MATCH: 'DRAG_MATCH',
   FILL_BLANK: 'FILL_BLANK',
-  ARRANGE_SENTENCE: 'ARRANGE_SENTENCE',
+  SYLLABLE_BUILDER: 'SYLLABLE_BUILDER',
+  ORDER_TILES: 'ORDER_TILES',
 };
 
 // Colors
@@ -97,6 +99,10 @@ const getHintText = (type) => {
       return 'แตะตัวเลือกเพื่อเติมคำให้ถูกต้อง';
     case QUESTION_TYPES.ARRANGE_SENTENCE:
       return 'แตะคำเรียงตามลำดับให้ถูกต้อง';
+    case QUESTION_TYPES.SYLLABLE_BUILDER:
+      return 'เลือกให้ครบทุกช่องเพื่อประกอบพยางค์';
+    case QUESTION_TYPES.ORDER_TILES:
+      return 'แตะคำตามลำดับ ถ้ากดพลาดแตะซ้ำเพื่อเอาออก';
     default:
       return '';
   }
@@ -115,8 +121,20 @@ const getTypeLabel = (type) => {
     case QUESTION_TYPES.DRAG_MATCH: return 'จับคู่ชื่อเรียก ↔ ตัวอักษร';
     case QUESTION_TYPES.FILL_BLANK: return 'เติมคำให้ถูก';
     case QUESTION_TYPES.ARRANGE_SENTENCE: return 'เรียงคำ';
+    case QUESTION_TYPES.SYLLABLE_BUILDER: return 'ประกอบพยางค์';
+    case QUESTION_TYPES.ORDER_TILES: return 'เรียงบัตรคำ';
     default: return '';
   }
+};
+
+// Helper constants for syllable building
+const BASIC_VOWELS = ['ะ','า','ิ','ี','ุ','ู','เ','แ','โ'];
+const BASIC_FINALS = ['', 'น', 'ม', 'ก'];
+const TONES = ['', '่','้','๊','๋'];
+
+// Helper: render syllable from components
+const toRenderedSyllable = ({ initial, vowel, tone, final }) => {
+  return `${vowel}${initial}${tone}${final}`;
 };
 
 // Question Generators
@@ -233,7 +251,82 @@ const makeArrange = (word) => {
   };
 };
 
-// Generate questions (target 15): LC×5, PM×4, DM×3, FB×2, ARR×1
+// Syllable Builder: choose initial, vowel, tone, final
+const makeSyllableBuilder = (word, pool = []) => {
+  const vowel = pick(BASIC_VOWELS);
+  const tone = pick(TONES);
+  const final = pick(BASIC_FINALS);
+  
+  // Create options for each slot
+  const getOtherConsonants = () => {
+    if (pool.length > 0) {
+      return pool
+        .filter(w => w.char !== word.char)
+        .slice(0, 2)
+        .map(w => w.char);
+    }
+    return ['ข', 'ค', 'ง'];
+  };
+  
+  return {
+    id: `sb_${word.char}_${uid()}`,
+    type: QUESTION_TYPES.SYLLABLE_BUILDER,
+    instruction: 'ประกอบพยางค์จากส่วนประกอบ',
+    correct: {
+      initial: word.char,
+      vowel,
+      tone,
+      final,
+    },
+    slots: [
+      {
+        key: 'initial',
+        label: 'อักษรต้น (Initial)',
+        options: shuffle([word.char, ...getOtherConsonants()]),
+      },
+      {
+        key: 'vowel',
+        label: 'สระ (Vowel)',
+        options: shuffle([vowel, ...BASIC_VOWELS.filter(v => v !== vowel).slice(0, 2)]),
+      },
+      {
+        key: 'tone',
+        label: 'วรรณยุกต์ (Tone)',
+        options: shuffle([tone, ...TONES.filter(t => t !== tone).slice(0, 1)]),
+      },
+      {
+        key: 'final',
+        label: 'ตัวสะกด (Final)',
+        options: shuffle([final, ...BASIC_FINALS.filter(f => f !== final).slice(0, 2)]),
+      },
+    ],
+  };
+};
+
+// Order Tiles: arrange words/phrases in correct order
+const makeOrderTiles = (word) => {
+  // Multiple correct orderings
+  const correctOrders = [
+    ['คำว่า', word.char, 'อ่านว่า', word.name],
+    [word.char, 'อ่านว่า', word.name],
+  ];
+  
+  // Distractors
+  const distractors = ['ครับ', 'ค่ะ', 'ไหม', 'อย่าง'];
+  
+  // All parts to shuffle (use first correct order as base)
+  const allParts = shuffle([...correctOrders[0], ...distractors]);
+  
+  return {
+    id: `ot_${word.char}_${uid()}`,
+    type: QUESTION_TYPES.ORDER_TILES,
+    instruction: 'เรียงคำให้ถูกต้อง',
+    correctOrders,
+    allParts,
+  };
+};
+
+// Generate questions (target 15): LC×5, PM×4, DM×3, FB×2, SB×1, OT×1
 const generateConsonantQuestions = (pool) => {
   const questions = [];
   const usedChars = new Set();
@@ -275,12 +368,20 @@ const generateConsonantQuestions = (pool) => {
     questions.push(makeFillBlank(word, pool));
   }
   
-  // ARRANGE × 1
-  const available2 = pool.filter(w => !usedChars.has(w.char));
-  if (available2.length > 0) {
-    const word = pick(available2);
+  // SYLLABLE_BUILDER × 1
+  let available3 = pool.filter(w => !usedChars.has(w.char));
+  if (available3.length > 0) {
+    const word = pick(available3);
     usedChars.add(word.char);
-    questions.push(makeArrange(word));
+    questions.push(makeSyllableBuilder(word, pool));
+  }
+  
+  // ORDER_TILES × 1
+  const available4 = pool.filter(w => !usedChars.has(w.char));
+  if (available4.length > 0) {
+    const word = pick(available4);
+    usedChars.add(word.char);
+    questions.push(makeOrderTiles(word));
   }
   
   return shuffle(questions);
@@ -303,6 +404,19 @@ const checkAnswer = (question, userAnswer) => {
     
     case QUESTION_TYPES.ARRANGE_SENTENCE:
       return Array.isArray(userAnswer) && JSON.stringify(userAnswer) === JSON.stringify(question.correctOrder);
+    
+    case QUESTION_TYPES.SYLLABLE_BUILDER:
+      if (!userAnswer) return false;
+      return ['initial', 'vowel', 'tone', 'final'].every(
+        k => userAnswer[k] === question.correct[k]
+      );
+    
+    case QUESTION_TYPES.ORDER_TILES:
+      return Array.isArray(userAnswer) 
+        && question.correctOrders.some(pattern =>
+             userAnswer.length === pattern.length &&
+             userAnswer.every((t, idx) => t === pattern[idx])
+           );
     
     default:
       return false;
@@ -374,6 +488,8 @@ const ConsonantStage1Game = ({ navigation, route }) => {
   const [resumeData, setResumeData] = useState(null);
   const [dmSelected, setDmSelected] = useState({ leftId: null, rightId: null });
   const [dmPairs, setDmPairs] = useState([]); // {leftId,rightId}
+  const [showFireStreakAlert, setShowFireStreakAlert] = useState(false);
+  const [currentFeedback, setCurrentFeedback] = useState(null); // 'correct'|'wrong'|null
   
   // Refs
   const startTimeRef = useRef(Date.now());
@@ -467,6 +583,8 @@ const ConsonantStage1Game = ({ navigation, route }) => {
   const autosave = useCallback(async () => {
     if (questions.length === 0) return;
     
+    console.debug(`[AutoSave] Q${currentIndex + 1}/${questions.length}`, { score, hearts, xpEarned });
+    
     const snapshot = {
       questionsSnapshot: questions,
       currentIndex,
@@ -513,23 +631,43 @@ const ConsonantStage1Game = ({ navigation, route }) => {
     if (speakText) {
       playTTS(speakText);
     }
+    
+    // Auto-check for simple question types
+    const currentQuestion = questions[currentIndex];
+    if (currentQuestion && [QUESTION_TYPES.LISTEN_CHOOSE, QUESTION_TYPES.PICTURE_MATCH, QUESTION_TYPES.FILL_BLANK].includes(currentQuestion.type)) {
+      // Delay slightly to allow answer to be set in state first
+      setTimeout(() => {
+        handleCheckAnswer(answer);
+      }, 100);
+    }
   };
   
   // Handle check answer
-  const handleCheckAnswer = () => {
-    if (currentAnswer === null) return;
+  const handleCheckAnswer = (overrideAnswer) => {
+    const answerToCheck = overrideAnswer !== undefined ? overrideAnswer : currentAnswer;
+    if (answerToCheck === null) return;
     
     const currentQuestion = questions[currentIndex];
-    const isCorrect = checkAnswer(currentQuestion, currentAnswer);
+    const isCorrect = checkAnswer(currentQuestion, answerToCheck);
+    
+    console.debug(`[Answer Check] Q${currentIndex + 1}: ${isCorrect ? '✓ CORRECT' : '✗ WRONG'}`, {
+      type: currentQuestion.type,
+      answer: answerToCheck,
+      correct: isCorrect,
+      score: score + (isCorrect ? 1 : 0),
+    });
     
     // Save answer
     answersRef.current[currentIndex] = {
       questionId: currentQuestion.id,
-      answer: currentAnswer,
+      answer: answerToCheck,
       isCorrect,
       timestamp: Date.now(),
     };
     setAnswers({ ...answersRef.current });
+    
+    // Show feedback
+    setCurrentFeedback(isCorrect ? 'correct' : 'wrong');
     
     if (isCorrect) {
       // Correct answer
@@ -545,22 +683,37 @@ const ConsonantStage1Game = ({ navigation, route }) => {
       setXpEarned(newXp);
       setDiamondsEarned(newDiamonds);
 
-      // ไปข้อต่อไปทันที
-      nextQuestion();
+      // Auto-advance for simple types after delay, or wait for CHECK button for complex types
+      const isSimpleType = [QUESTION_TYPES.LISTEN_CHOOSE, QUESTION_TYPES.PICTURE_MATCH, QUESTION_TYPES.FILL_BLANK].includes(currentQuestion.type);
+      if (isSimpleType) {
+        setTimeout(() => {
+          setCurrentFeedback(null);
+          nextQuestion();
+        }, 600);
+      }
     } else {
       // Wrong answer
       const newHearts = Math.max(0, hearts - 1);
       setHearts(newHearts);
       setStreak(0);
       
+      // Show error effect then advance
+      const isSimpleType = [QUESTION_TYPES.LISTEN_CHOOSE, QUESTION_TYPES.PICTURE_MATCH, QUESTION_TYPES.FILL_BLANK].includes(currentQuestion.type);
+      const delayMs = isSimpleType ? 600 : 0;
+      
       if (newHearts === 0) {
-        // Game over
-        const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
-        finishLesson(elapsed);
-        return;
+        // Game over - still show feedback briefly
+        setTimeout(() => {
+          setCurrentFeedback(null);
+          const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+          finishLesson(elapsed);
+        }, delayMs);
       } else {
-        // ไปข้อต่อไปทันที
-        nextQuestion();
+        // Go to next question
+        setTimeout(() => {
+          setCurrentFeedback(null);
+          nextQuestion();
+        }, delayMs);
       }
     }
   };
@@ -569,7 +722,22 @@ const ConsonantStage1Game = ({ navigation, route }) => {
   useEffect(() => {
     setDmSelected({ leftId: null, rightId: null });
     setDmPairs([]);
+    setCurrentFeedback(null);
   }, [currentIndex]);
+
+  // Show Fire Streak Alert for milestone streaks
+  useEffect(() => {
+    if (gameFinished && streak > 0) {
+      const milestones = [5, 10, 20, 30, 50, 100];
+      if (milestones.includes(streak)) {
+        // Delay alert to show after game finishes
+        const timer = setTimeout(() => {
+          setShowFireStreakAlert(true);
+        }, 1500);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [gameFinished, streak]);
 
   // Next question
   const nextQuestion = () => {
@@ -607,6 +775,16 @@ const ConsonantStage1Game = ({ navigation, route }) => {
 
     gameFinishedRef.current = true;
     setGameFinished(true);
+    
+    console.debug(`[Game Complete] Lesson ${lessonId} finished`, {
+      score,
+      totalQuestions: questions.length,
+      accuracy: Math.round((score / questions.length) * 100),
+      xpEarned,
+      diamondsEarned,
+      maxStreak,
+      timeSpent: Math.floor((Date.now() - startTimeRef.current) / 1000),
+    });
 
     try {
       const totalQuestions = questions.length;
@@ -739,6 +917,7 @@ const ConsonantStage1Game = ({ navigation, route }) => {
     
     switch (question.type) {
       case QUESTION_TYPES.LISTEN_CHOOSE:
+        console.debug(`[Q${currentIndex + 1}/${questions.length}] LISTEN_CHOOSE`, { questionId: question.id, char: question.correctText });
         return (
           <View style={styles.questionContainer}>
             <View style={styles.questionCard}>
@@ -782,6 +961,7 @@ const ConsonantStage1Game = ({ navigation, route }) => {
         );
       
       case QUESTION_TYPES.PICTURE_MATCH:
+        console.debug(`[Q${currentIndex + 1}/${questions.length}] PICTURE_MATCH`, { questionId: question.id, imageKey: question.imageKey });
         return (
           <View style={styles.questionContainer}>
             <View style={styles.questionCard}>
@@ -828,6 +1008,7 @@ const ConsonantStage1Game = ({ navigation, route }) => {
         );
       
       case QUESTION_TYPES.DRAG_MATCH:
+        console.debug(`[Q${currentIndex + 1}/${questions.length}] DRAG_MATCH`, { questionId: question.id, pairCount: question.leftItems.length });
         return (
           <View style={styles.questionContainer}>
             <Text style={styles.instruction}>{question.instruction}</Text>
@@ -931,6 +1112,7 @@ const ConsonantStage1Game = ({ navigation, route }) => {
         );
       
       case QUESTION_TYPES.FILL_BLANK:
+        console.debug(`[Q${currentIndex + 1}/${questions.length}] FILL_BLANK`, { questionId: question.id, correctText: question.correctText });
         return (
           <View style={styles.questionContainer}>
             <View style={styles.questionCard}>
@@ -989,6 +1171,94 @@ const ConsonantStage1Game = ({ navigation, route }) => {
                   <Text style={styles.choiceText}>{part}</Text>
                 </TouchableOpacity>
               ))}
+            </View>
+          </View>
+        );
+      
+      case QUESTION_TYPES.SYLLABLE_BUILDER:
+        console.debug(`[Q${currentIndex + 1}/${questions.length}] SYLLABLE_BUILDER`, { questionId: question.id, initial: question.correct.initial });
+        return (
+          <View style={styles.questionContainer}>
+            <View style={styles.questionCard}>
+              <Text style={styles.instruction}>{question.instruction}</Text>
+              <Text style={styles.hintText}>{getHintText(question.type)}</Text>
+
+              <View style={styles.arrangeContainer}>
+                <Text style={styles.arrangeText}>
+                  {currentAnswer 
+                    ? toRenderedSyllable(currentAnswer)
+                    : 'ประกอบพยางค์...'}
+                </Text>
+              </View>
+
+              {question.slots.map((slot) => (
+                <View key={slot.key} style={{ marginBottom: 12 }}>
+                  <Text style={{ marginBottom: 6, fontWeight: '700', fontSize: 14, color: COLORS.dark }}>
+                    {slot.label}
+                  </Text>
+                  <View style={styles.choicesContainer}>
+                    {slot.options.map((opt) => (
+                      <TouchableOpacity
+                        key={opt || 'none'}
+                        style={[
+                          styles.choiceButton,
+                          currentAnswer && currentAnswer[slot.key] === opt && styles.choiceSelected,
+                        ]}
+                        onPress={() => {
+                          const next = currentAnswer 
+                            ? { ...currentAnswer, [slot.key]: opt }
+                            : { initial: '', vowel: '', tone: '', final: '', [slot.key]: opt };
+                          setCurrentAnswer(next);
+                        }}
+                      >
+                        <Text style={styles.choiceText}>{opt || '—'}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              ))}
+            </View>
+          </View>
+        );
+      
+      case QUESTION_TYPES.ORDER_TILES:
+        console.debug(`[Q${currentIndex + 1}/${questions.length}] ORDER_TILES`, { questionId: question.id, patternCount: question.correctOrders.length });
+        return (
+          <View style={styles.questionContainer}>
+            <View style={styles.questionCard}>
+              <Text style={styles.instruction}>{question.instruction}</Text>
+              <Text style={styles.hintText}>{getHintText(question.type)}</Text>
+
+              <View style={styles.arrangeContainer}>
+                <Text style={styles.arrangeText}>
+                  {currentAnswer && currentAnswer.length > 0
+                    ? currentAnswer.join(' ')
+                    : 'ยังไม่ได้เลือก'}
+                </Text>
+              </View>
+
+              <View style={styles.choicesContainer}>
+                {question.allParts.map((part, index) => (
+                  <TouchableOpacity
+                    key={`${part}-${index}`}
+                    style={[
+                      styles.choiceButton,
+                      currentAnswer && currentAnswer.includes(part) && styles.choiceSelected,
+                    ]}
+                    onPress={() => {
+                      if (!currentAnswer) {
+                        setCurrentAnswer([part]);
+                      } else if (currentAnswer.includes(part)) {
+                        setCurrentAnswer(currentAnswer.filter(p => p !== part));
+                      } else {
+                        setCurrentAnswer([...currentAnswer, part]);
+                      }
+                    }}
+                  >
+                    <Text style={styles.choiceText}>{part}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
           </View>
         );
@@ -1121,13 +1391,23 @@ const ConsonantStage1Game = ({ navigation, route }) => {
       
       {/* Check Button */}
       <View style={styles.checkContainer}>
+        {currentFeedback && (
+          <View style={[
+            styles.feedbackBadge,
+            currentFeedback === 'correct' ? styles.feedbackCorrect : styles.feedbackWrong
+          ]}>
+            <Text style={styles.feedbackText}>
+              {currentFeedback === 'correct' ? '✓ ถูก!' : '✗ ผิด'}
+            </Text>
+          </View>
+        )}
         <TouchableOpacity
           style={[
             styles.checkButton,
             currentAnswer === null && styles.checkButtonDisabled,
           ]}
-          onPress={handleCheckAnswer}
-          disabled={currentAnswer === null}
+          onPress={() => handleCheckAnswer()}
+          disabled={currentAnswer === null || currentFeedback !== null}
           activeOpacity={0.9}
         >
           <LinearGradient
@@ -1140,6 +1420,11 @@ const ConsonantStage1Game = ({ navigation, route }) => {
           </LinearGradient>
         </TouchableOpacity>
       </View>
+      <FireStreakAlert
+        visible={showFireStreakAlert}
+        onClose={() => setShowFireStreakAlert(false)}
+        streak={streak}
+      />
     </SafeAreaView>
   );
 };
@@ -1579,6 +1864,36 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: COLORS.white,
     letterSpacing: 0.5,
+  },
+  feedbackBadge: {
+    position: 'absolute',
+    top: -30, // Adjust as needed
+    left: '50%',
+    transform: [{ translateX: -50 }],
+    backgroundColor: COLORS.white,
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: COLORS.lightGray,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  feedbackCorrect: {
+    borderColor: COLORS.success,
+    backgroundColor: 'rgba(88,204,2,0.1)',
+  },
+  feedbackWrong: {
+    borderColor: COLORS.error,
+    backgroundColor: 'rgba(255,75,75,0.1)',
+  },
+  feedbackText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.dark,
   },
 });
 
