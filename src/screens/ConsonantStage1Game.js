@@ -55,6 +55,9 @@ const QUESTION_TYPES = {
   FILL_BLANK: 'FILL_BLANK',
   SYLLABLE_BUILDER: 'SYLLABLE_BUILDER',
   ORDER_TILES: 'ORDER_TILES',
+  A_OR_B: 'A_OR_B',
+  MEMORY_MATCH: 'MEMORY_MATCH',
+  CHALLENGE: 'CHALLENGE',
 };
 
 // Colors
@@ -103,6 +106,12 @@ const getHintText = (type) => {
       return 'เลือกให้ครบทุกช่องเพื่อประกอบพยางค์';
     case QUESTION_TYPES.ORDER_TILES:
       return 'แตะคำตามลำดับ ถ้ากดพลาดแตะซ้ำเพื่อเอาออก';
+    case QUESTION_TYPES.A_OR_B:
+      return 'ฟังเสียงแล้วเลือก A หรือ B เร็ว ๆ';
+    case QUESTION_TYPES.MEMORY_MATCH:
+      return 'จับคู่การ์ดตัวอักษรกับชื่ออ่านให้ครบ';
+    case QUESTION_TYPES.CHALLENGE:
+      return 'ท้าทายต่อเนื่องกับคำถามหลายแบบ';
     default:
       return '';
   }
@@ -123,6 +132,9 @@ const getTypeLabel = (type) => {
     case QUESTION_TYPES.ARRANGE_SENTENCE: return 'เรียงคำ';
     case QUESTION_TYPES.SYLLABLE_BUILDER: return 'ประกอบพยางค์';
     case QUESTION_TYPES.ORDER_TILES: return 'เรียงบัตรคำ';
+    case QUESTION_TYPES.A_OR_B: return 'เลือก A หรือ B';
+    case QUESTION_TYPES.MEMORY_MATCH: return 'จับคู่ความจำ';
+    case QUESTION_TYPES.CHALLENGE: return 'ท้าทายรวม';
     default: return '';
   }
 };
@@ -326,13 +338,103 @@ const makeOrderTiles = (word) => {
   };
 };
 
-// Generate questions (target 15): LC×5, PM×4, DM×3, FB×2, SB×1, OT×1
+// A or B: Quick listen and choose between two
+const makeAorB = (word, pool = []) => {
+  const wrongChoice = pool.find(w => w.char !== word.char);
+  const choiceA = Math.random() > 0.5 ? word : (wrongChoice || word);
+  const choiceB = Math.random() > 0.5 ? wrongChoice : word;
+  
+  return {
+    id: `aob_${word.char}_${uid()}`,
+    type: QUESTION_TYPES.A_OR_B,
+    instruction: 'เลือก A หรือ B',
+    audioText: word.audioText,
+    choices: [
+      {
+        letter: 'A',
+        text: SHOW_ROMAN ? (choiceA.roman || choiceA.name) : choiceA.char,
+        isCorrect: choiceA.char === word.char,
+        char: choiceA.char,
+      },
+      {
+        letter: 'B',
+        text: SHOW_ROMAN ? (choiceB.roman || choiceB.name) : choiceB.char,
+        isCorrect: choiceB.char === word.char,
+        char: choiceB.char,
+      },
+    ],
+  };
+};
+
+// Memory Match: flip cards to match characters with their names
+const makeMemoryMatch = (wordList) => {
+  const cards = [];
+  const pairs = wordList.slice(0, 6).map(w => ({
+    char: w.char,
+    name: w.name,
+    audioText: w.audioText,
+  }));
+  
+  // Create card pairs (character + name for each word)
+  pairs.forEach((pair, idx) => {
+    cards.push({
+      id: `mm_char_${idx}`,
+      type: 'char',
+      front: pair.char,
+      back: pair.char,
+      pairId: idx,
+      audioText: pair.audioText,
+    });
+    cards.push({
+      id: `mm_name_${idx}`,
+      type: 'name',
+      front: '?',
+      back: pair.name,
+      pairId: idx,
+      audioText: pair.audioText,
+    });
+  });
+  
+  const shuffledCards = shuffle(cards);
+  
+  return {
+    id: `mm_${uid()}`,
+    type: QUESTION_TYPES.MEMORY_MATCH,
+    instruction: 'จับคู่ตัวอักษรกับชื่ออ่าน',
+    cards: shuffledCards,
+    pairCount: pairs.length,
+  };
+};
+
+// Challenge: mini game combining multiple quick question types
+const makeChallenge = (word, pool = []) => {
+  const subQuestions = [];
+  
+  // Add a quick A/B question
+  subQuestions.push(makeAorB(word, pool));
+  
+  // Add a LISTEN_CHOOSE
+  subQuestions.push(makeListenChoose(word, pool));
+  
+  // Add a FILL_BLANK
+  subQuestions.push(makeFillBlank(word, pool));
+  
+  return {
+    id: `ch_${word.char}_${uid()}`,
+    type: QUESTION_TYPES.CHALLENGE,
+    instruction: 'ท้าทายหลายแบบ',
+    subQuestions,
+    currentSubIndex: 0,
+  };
+};
+
+// Generate questions (target 15-18): LC×4, PM×3, DM×2, FB×2, A/B×2, SB×1, OT×1, MM×1, CHALLENGE×1
 const generateConsonantQuestions = (pool) => {
   const questions = [];
   const usedChars = new Set();
   
-  // LISTEN_CHOOSE × 5
-  for (let i = 0; i < 5; i++) {
+  // LISTEN_CHOOSE × 4
+  for (let i = 0; i < 4; i++) {
     const available = pool.filter(w => !usedChars.has(w.char));
     if (available.length === 0) break;
     const word = pick(available);
@@ -340,8 +442,8 @@ const generateConsonantQuestions = (pool) => {
     questions.push(makeListenChoose(word, pool));
   }
   
-  // PICTURE_MATCH × 4
-  for (let i = 0; i < 4; i++) {
+  // PICTURE_MATCH × 3
+  for (let i = 0; i < 3; i++) {
     const available = pool.filter(w => !usedChars.has(w.char));
     if (available.length === 0) break;
     const word = pick(available);
@@ -349,8 +451,8 @@ const generateConsonantQuestions = (pool) => {
     questions.push(makePictureMatch(word, pool));
   }
   
-  // DRAG_MATCH × 3
-  for (let i = 0; i < 3; i++) {
+  // DRAG_MATCH × 2
+  for (let i = 0; i < 2; i++) {
     const available = pool.filter(w => !usedChars.has(w.char));
     if (available.length === 0) break;
     const word = pick(available);
@@ -359,13 +461,21 @@ const generateConsonantQuestions = (pool) => {
   }
   
   // FILL_BLANK × 2
-  const available = pool.filter(w => !usedChars.has(w.char));
-  for (let i = 0; i < 2 && available.length > 0; i++) {
-    const remainder = pool.filter(w => !usedChars.has(w.char));
-    if (remainder.length === 0) break;
-    const word = pick(remainder);
+  for (let i = 0; i < 2; i++) {
+    const available = pool.filter(w => !usedChars.has(w.char));
+    if (available.length === 0) break;
+    const word = pick(available);
     usedChars.add(word.char);
     questions.push(makeFillBlank(word, pool));
+  }
+  
+  // A_OR_B × 2
+  for (let i = 0; i < 2; i++) {
+    const available = pool.filter(w => !usedChars.has(w.char));
+    if (available.length === 0) break;
+    const word = pick(available);
+    usedChars.add(word.char);
+    questions.push(makeAorB(word, pool));
   }
   
   // SYLLABLE_BUILDER × 1
@@ -382,6 +492,22 @@ const generateConsonantQuestions = (pool) => {
     const word = pick(available4);
     usedChars.add(word.char);
     questions.push(makeOrderTiles(word));
+  }
+  
+  // MEMORY_MATCH × 1 (uses multiple cards from pool)
+  const available5 = pool.filter(w => !usedChars.has(w.char));
+  if (available5.length >= 6) {
+    const selectedWords = available5.slice(0, 6);
+    selectedWords.forEach(w => usedChars.add(w.char));
+    questions.push(makeMemoryMatch(selectedWords));
+  }
+  
+  // CHALLENGE × 1
+  const available6 = pool.filter(w => !usedChars.has(w.char));
+  if (available6.length > 0) {
+    const word = pick(available6);
+    usedChars.add(word.char);
+    questions.push(makeChallenge(word, pool));
   }
   
   return shuffle(questions);
@@ -417,6 +543,18 @@ const checkAnswer = (question, userAnswer) => {
              userAnswer.length === pattern.length &&
              userAnswer.every((t, idx) => t === pattern[idx])
            );
+    
+    case QUESTION_TYPES.A_OR_B:
+      // userAnswer should be the choice object with isCorrect flag
+      return userAnswer && userAnswer.isCorrect;
+    
+    case QUESTION_TYPES.MEMORY_MATCH:
+      // userAnswer should be array of matched pair IDs
+      return Array.isArray(userAnswer) && userAnswer.length === question.pairCount;
+    
+    case QUESTION_TYPES.CHALLENGE:
+      // userAnswer is the result from last sub-question
+      return userAnswer === true;
     
     default:
       return false;
@@ -490,6 +628,13 @@ const ConsonantStage1Game = ({ navigation, route }) => {
   const [dmPairs, setDmPairs] = useState([]); // {leftId,rightId}
   const [showFireStreakAlert, setShowFireStreakAlert] = useState(false);
   const [currentFeedback, setCurrentFeedback] = useState(null); // 'correct'|'wrong'|null
+  
+  // Memory Match state
+  const [mmFlipped, setMmFlipped] = useState(new Set()); // card IDs that are flipped
+  const [mmMatched, setMmMatched] = useState(new Set()); // pair IDs that are matched
+  
+  // Challenge state
+  const [challengeSubIndex, setChallengeSubIndex] = useState(0); // current sub-question in challenge
   
   // Refs
   const startTimeRef = useRef(Date.now());
@@ -634,7 +779,7 @@ const ConsonantStage1Game = ({ navigation, route }) => {
     
     // Auto-check for simple question types
     const currentQuestion = questions[currentIndex];
-    if (currentQuestion && [QUESTION_TYPES.LISTEN_CHOOSE, QUESTION_TYPES.PICTURE_MATCH, QUESTION_TYPES.FILL_BLANK].includes(currentQuestion.type)) {
+    if (currentQuestion && [QUESTION_TYPES.LISTEN_CHOOSE, QUESTION_TYPES.PICTURE_MATCH, QUESTION_TYPES.FILL_BLANK, QUESTION_TYPES.A_OR_B].includes(currentQuestion.type)) {
       // Delay slightly to allow answer to be set in state first
       setTimeout(() => {
         handleCheckAnswer(answer);
@@ -684,7 +829,7 @@ const ConsonantStage1Game = ({ navigation, route }) => {
       setDiamondsEarned(newDiamonds);
 
       // Auto-advance for simple types after delay, or wait for CHECK button for complex types
-      const isSimpleType = [QUESTION_TYPES.LISTEN_CHOOSE, QUESTION_TYPES.PICTURE_MATCH, QUESTION_TYPES.FILL_BLANK].includes(currentQuestion.type);
+      const isSimpleType = [QUESTION_TYPES.LISTEN_CHOOSE, QUESTION_TYPES.PICTURE_MATCH, QUESTION_TYPES.FILL_BLANK, QUESTION_TYPES.A_OR_B].includes(currentQuestion.type);
       if (isSimpleType) {
         setTimeout(() => {
           setCurrentFeedback(null);
@@ -698,7 +843,7 @@ const ConsonantStage1Game = ({ navigation, route }) => {
       setStreak(0);
       
       // Show error effect then advance
-      const isSimpleType = [QUESTION_TYPES.LISTEN_CHOOSE, QUESTION_TYPES.PICTURE_MATCH, QUESTION_TYPES.FILL_BLANK].includes(currentQuestion.type);
+      const isSimpleType = [QUESTION_TYPES.LISTEN_CHOOSE, QUESTION_TYPES.PICTURE_MATCH, QUESTION_TYPES.FILL_BLANK, QUESTION_TYPES.A_OR_B].includes(currentQuestion.type);
       const delayMs = isSimpleType ? 600 : 0;
       
       if (newHearts === 0) {
@@ -723,6 +868,9 @@ const ConsonantStage1Game = ({ navigation, route }) => {
     setDmSelected({ leftId: null, rightId: null });
     setDmPairs([]);
     setCurrentFeedback(null);
+    setMmFlipped(new Set());
+    setMmMatched(new Set());
+    setChallengeSubIndex(0);
   }, [currentIndex]);
 
   // Show Fire Streak Alert for milestone streaks
@@ -1138,6 +1286,108 @@ const ConsonantStage1Game = ({ navigation, route }) => {
           </View>
         );
       
+      case QUESTION_TYPES.A_OR_B:
+        console.debug(`[Q${currentIndex + 1}/${questions.length}] A_OR_B`, { questionId: question.id });
+        return (
+          <View style={styles.questionContainer}>
+            <View style={styles.questionCard}>
+              <Text style={styles.instruction}>{question.instruction}</Text>
+              <Text style={styles.hintText}>{getHintText(question.type)}</Text>
+              
+              <TouchableOpacity
+                style={styles.speakerButton}
+                onPress={() => playTTS(question.audioText)}
+              >
+                <MaterialIcons name="volume-up" size={40} color={COLORS.primary} />
+              </TouchableOpacity>
+              
+              <View style={styles.aobContainer}>
+                {question.choices.map((choice) => (
+                  <TouchableOpacity
+                    key={choice.letter}
+                    style={[
+                      styles.aobButton,
+                      currentAnswer === choice && styles.aobButtonSelected,
+                    ]}
+                    onPress={() => handleAnswerSelect(choice)}
+                  >
+                    <Text style={styles.aobLetter}>{choice.letter}</Text>
+                    <Text style={styles.aobText}>{choice.text}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          </View>
+        );
+      
+      case QUESTION_TYPES.MEMORY_MATCH:
+        console.debug(`[Q${currentIndex + 1}/${questions.length}] MEMORY_MATCH`, { questionId: question.id, pairCount: question.pairCount });
+        return (
+          <View style={styles.questionContainer}>
+            <View style={styles.questionCard}>
+              <Text style={styles.instruction}>{question.instruction}</Text>
+              <Text style={styles.hintText}>{getHintText(question.type)}</Text>
+              
+              <View style={styles.memoryGrid}>
+                {question.cards.map((card) => (
+                  <TouchableOpacity
+                    key={card.id}
+                    style={[
+                      styles.memoryCard,
+                      mmMatched.has(card.pairId) && styles.memoryCardMatched,
+                    ]}
+                    onPress={() => {
+                      if (mmMatched.has(card.pairId)) return; // Already matched
+                      
+                      const newFlipped = new Set(mmFlipped);
+                      if (newFlipped.has(card.id)) {
+                        newFlipped.delete(card.id);
+                      } else {
+                        newFlipped.add(card.id);
+                      }
+                      setMmFlipped(newFlipped);
+                      
+                      // Check if 2 cards are flipped
+                      const flippedCards = question.cards.filter(c => newFlipped.has(c.id));
+                      if (flippedCards.length === 2) {
+                        const [card1, card2] = flippedCards;
+                        if (card1.pairId === card2.pairId) {
+                          // Match found!
+                          playTTS(card1.audioText);
+                          const newMatched = new Set(mmMatched);
+                          newMatched.add(card1.pairId);
+                          setMmMatched(newMatched);
+                          setMmFlipped(new Set());
+                          
+                          // Auto-check if all matched
+                          if (newMatched.size === question.pairCount) {
+                            setTimeout(() => {
+                              setCurrentAnswer(Array.from(newMatched));
+                              setCurrentFeedback('correct');
+                            }, 300);
+                          }
+                        } else {
+                          // No match, flip back
+                          setTimeout(() => {
+                            setMmFlipped(new Set());
+                          }, 800);
+                        }
+                      }
+                    }}
+                    disabled={mmMatched.has(card.pairId)}
+                  >
+                    {mmFlipped.has(card.id) || mmMatched.has(card.pairId) ? (
+                      <Text style={styles.memoryCardText}>{card.back}</Text>
+                    ) : (
+                      <Text style={styles.memoryCardFront}>?</Text>
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          </View>
+        );
+      
       case QUESTION_TYPES.ARRANGE_SENTENCE:
         return (
           <View style={styles.questionContainer}>
@@ -1259,6 +1509,149 @@ const ConsonantStage1Game = ({ navigation, route }) => {
                   </TouchableOpacity>
                 ))}
               </View>
+            </View>
+          </View>
+        );
+      
+      case QUESTION_TYPES.CHALLENGE:
+        console.debug(`[Q${currentIndex + 1}/${questions.length}] CHALLENGE`, { questionId: question.id, subCount: question.subQuestions.length });
+        const subQ = question.subQuestions[challengeSubIndex];
+        if (!subQ) return null;
+        
+        // Render the current sub-question
+        const renderSubQuestion = () => {
+          switch (subQ.type) {
+            case QUESTION_TYPES.A_OR_B:
+              return (
+                <View>
+                  <Text style={[styles.instruction, { fontSize: 16 }]}>
+                    ข้อที่ {challengeSubIndex + 1} / {question.subQuestions.length}
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.speakerButton}
+                    onPress={() => playTTS(subQ.audioText)}
+                  >
+                    <MaterialIcons name="volume-up" size={40} color={COLORS.primary} />
+                  </TouchableOpacity>
+                  <View style={styles.aobContainer}>
+                    {subQ.choices.map((choice) => (
+                      <TouchableOpacity
+                        key={choice.letter}
+                        style={[
+                          styles.aobButton,
+                          currentAnswer === choice && styles.aobButtonSelected,
+                        ]}
+                        onPress={() => {
+                          setCurrentAnswer(choice);
+                          const isCorrect = choice.isCorrect;
+                          setCurrentFeedback(isCorrect ? 'correct' : 'wrong');
+                          setTimeout(() => {
+                            if (challengeSubIndex < question.subQuestions.length - 1) {
+                              setChallengeSubIndex(challengeSubIndex + 1);
+                              setCurrentAnswer(null);
+                              setCurrentFeedback(null);
+                            } else {
+                              // Last sub-question, mark whole challenge as done
+                              setCurrentAnswer(isCorrect);
+                            }
+                          }, 600);
+                        }}
+                      >
+                        <Text style={styles.aobLetter}>{choice.letter}</Text>
+                        <Text style={styles.aobText}>{choice.text}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              );
+            case QUESTION_TYPES.LISTEN_CHOOSE:
+              return (
+                <View>
+                  <Text style={[styles.instruction, { fontSize: 16 }]}>
+                    ข้อที่ {challengeSubIndex + 1} / {question.subQuestions.length}
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.speakerButton}
+                    onPress={() => playTTS(subQ.audioText)}
+                  >
+                    <MaterialIcons name="volume-up" size={40} color={COLORS.primary} />
+                  </TouchableOpacity>
+                  <View style={styles.choicesContainer}>
+                    {subQ.choices.map((choice) => (
+                      <TouchableOpacity
+                        key={choice.id}
+                        style={[
+                          styles.choiceButton,
+                          currentAnswer === choice.text && styles.choiceSelected,
+                        ]}
+                        onPress={() => {
+                          setCurrentAnswer(choice.text);
+                          const isCorrect = choice.isCorrect;
+                          setCurrentFeedback(isCorrect ? 'correct' : 'wrong');
+                          setTimeout(() => {
+                            if (challengeSubIndex < question.subQuestions.length - 1) {
+                              setChallengeSubIndex(challengeSubIndex + 1);
+                              setCurrentAnswer(null);
+                              setCurrentFeedback(null);
+                            } else {
+                              setCurrentAnswer(isCorrect);
+                            }
+                          }, 600);
+                        }}
+                      >
+                        <Text style={styles.choiceText}>{choice.text}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              );
+            case QUESTION_TYPES.FILL_BLANK:
+              return (
+                <View>
+                  <Text style={[styles.instruction, { fontSize: 16 }]}>
+                    ข้อที่ {challengeSubIndex + 1} / {question.subQuestions.length}
+                  </Text>
+                  <Text style={styles.questionText}>{subQ.questionText}</Text>
+                  <View style={styles.choicesContainer}>
+                    {subQ.choices.map((choice) => (
+                      <TouchableOpacity
+                        key={choice.id}
+                        style={[
+                          styles.choiceButton,
+                          currentAnswer === choice.text && styles.choiceSelected,
+                        ]}
+                        onPress={() => {
+                          setCurrentAnswer(choice.text);
+                          const isCorrect = choice.isCorrect;
+                          setCurrentFeedback(isCorrect ? 'correct' : 'wrong');
+                          setTimeout(() => {
+                            if (challengeSubIndex < question.subQuestions.length - 1) {
+                              setChallengeSubIndex(challengeSubIndex + 1);
+                              setCurrentAnswer(null);
+                              setCurrentFeedback(null);
+                            } else {
+                              setCurrentAnswer(isCorrect);
+                            }
+                          }, 600);
+                        }}
+                      >
+                        <Text style={styles.choiceText}>{choice.text}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              );
+            default:
+              return null;
+          }
+        };
+        
+        return (
+          <View style={styles.questionContainer}>
+            <View style={styles.questionCard}>
+              <Text style={styles.instruction}>{question.instruction}</Text>
+              <Text style={styles.hintText}>{getHintText(question.type)}</Text>
+              {renderSubQuestion()}
             </View>
           </View>
         );
@@ -1893,6 +2286,79 @@ const styles = StyleSheet.create({
   feedbackText: {
     fontSize: 14,
     fontWeight: '700',
+    color: COLORS.dark,
+  },
+  aobContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 20,
+    paddingHorizontal: 10,
+  },
+  aobButton: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 15,
+    paddingHorizontal: 10,
+    borderRadius: 15,
+    backgroundColor: COLORS.cream,
+    borderWidth: 2,
+    borderColor: COLORS.lightGray,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  aobButtonSelected: {
+    borderColor: COLORS.primary,
+    backgroundColor: COLORS.cream,
+    transform: [{ scale: 1.02 }],
+  },
+  aobLetter: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: COLORS.primary,
+    marginBottom: 5,
+  },
+  aobText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.dark,
+  },
+  memoryGrid: {
+    display: 'flex',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  memoryCard: {
+    width: '48%',
+    height: 120,
+    backgroundColor: COLORS.white,
+    borderRadius: 10,
+    marginBottom: 15,
+    borderWidth: 2,
+    borderColor: COLORS.lightGray,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  memoryCardMatched: {
+    borderColor: COLORS.success,
+    backgroundColor: 'rgba(88,204,2,0.1)',
+  },
+  memoryCardFront: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: COLORS.dark,
+  },
+  memoryCardText: {
+    fontSize: 16,
+    fontWeight: '600',
     color: COLORS.dark,
   },
 });
