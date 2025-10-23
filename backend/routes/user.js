@@ -338,5 +338,70 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+// POST /api/user/reset-progress - Reset all user progress
+router.post('/reset-progress', async (req, res) => {
+  try {
+    const { userId } = req.body;
+    
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'userId is required',
+      });
+    }
+
+    console.log(`🔄 Resetting all progress for user: ${userId}`);
+
+    // Reset user stats
+    const user = await User.findByIdAndUpdate(
+      userId,
+      {
+        xp: 0,
+        level: 1,
+        streak: 0,
+        diamonds: 0,
+        hearts: 5,
+        lessonsCompleted: 0,
+        unlockedLevels: ['level1'], // Only level1 accessible
+        totalSessions: 0,
+        totalCorrectAnswers: 0,
+        totalWrongAnswers: 0,
+        averageAccuracy: 0,
+        totalTimeSpent: 0,
+      },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    console.log(`✅ All progress reset for user ${userId}`);
+
+    res.json({
+      success: true,
+      message: 'All progress reset successfully',
+      data: {
+        xp: 0,
+        level: 1,
+        streak: 0,
+        diamonds: 0,
+        hearts: 5,
+        unlockedLevels: ['level1'],
+      },
+    });
+  } catch (error) {
+    console.error('Error resetting progress:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to reset progress',
+      error: error.message,
+    });
+  }
+});
+
 module.exports = router;
 
