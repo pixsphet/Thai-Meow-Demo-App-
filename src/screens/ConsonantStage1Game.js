@@ -164,6 +164,10 @@ const makeListenChoose = (word, pool) => {
     questionText: 'แตะปุ่มลำโพงเพื่อฟัง',
     audioText: word.audioText,
     correctText: word.char,
+    // Rewards for this question
+    rewardXP: 15,      // XP for correct answer
+    rewardDiamond: 1,  // Diamond for correct answer
+    penaltyHeart: 1,   // Heart loss for wrong answer
     choices: choices.map((c, i) => ({
       id: i + 1,
       thai: c.char,
@@ -187,6 +191,10 @@ const makePictureMatch = (word, pool) => {
     instruction: 'ดูภาพแล้วเลือกพยัญชนะให้ถูกต้อง',
     imageKey: word.image,
     correctText: word.char,
+    // Rewards for this question
+    rewardXP: 15,      // XP for correct answer
+    rewardDiamond: 1,  // Diamond for correct answer
+    penaltyHeart: 1,   // Heart loss for wrong answer
     choices: choices.map((c, i) => ({
       id: i + 1,
       thai: c.char,
@@ -221,6 +229,10 @@ const makeDragMatch = (word, pool) => {
     id: `dm_${word.char}_${uid()}`,
     type: QUESTION_TYPES.DRAG_MATCH,
     instruction: 'จับคู่การอ่านกับพยัญชนะ',
+    // Rewards for this question
+    rewardXP: 15,
+    rewardDiamond: 1,
+    penaltyHeart: 1,
     leftItems,
     rightItems,
   };
@@ -236,8 +248,8 @@ const makeFillBlank = (word, pool) => {
   const template = pick(templates);
   const wrongChoices = pool
     .filter(w => w.char !== word.char)
-    .slice(0, 2);
-  const choices = shuffle([word, ...wrongChoices]).slice(0, 3);
+    .slice(0, 3); // Get 3 wrong choices (to make 4 total with correct)
+  const choices = shuffle([word, ...wrongChoices]).slice(0, 4); // 4 choices total
   
   return {
     id: `fb_${word.char}_${uid()}`,
@@ -245,6 +257,10 @@ const makeFillBlank = (word, pool) => {
     instruction: 'เติมคำในช่องว่าง',
     questionText: template,
     correctText: word.char,
+    // Rewards for this question
+    rewardXP: 15,      // XP for correct answer
+    rewardDiamond: 1,  // Diamond for correct answer
+    penaltyHeart: 1,   // Heart loss for wrong answer
     choices: choices.map((c, i) => ({
       id: i + 1,
       thai: c.char,
@@ -291,6 +307,10 @@ const makeSyllableBuilder = (word, pool = []) => {
     id: `sb_${word.char}_${uid()}`,
     type: QUESTION_TYPES.SYLLABLE_BUILDER,
     instruction: 'ประกอบพยางค์จากส่วนประกอบ',
+    // Rewards for this question
+    rewardXP: 15,
+    rewardDiamond: 1,
+    penaltyHeart: 1,
     correct: {
       initial: word.char,
       vowel,
@@ -340,6 +360,10 @@ const makeOrderTiles = (word) => {
     id: `ot_${word.char}_${uid()}`,
     type: QUESTION_TYPES.ORDER_TILES,
     instruction: 'เรียงคำให้ถูกต้อง',
+    // Rewards for this question
+    rewardXP: 15,
+    rewardDiamond: 1,
+    penaltyHeart: 1,
     correctOrders,
     allParts,
   };
@@ -356,6 +380,10 @@ const makeAorB = (word, pool = []) => {
     type: QUESTION_TYPES.A_OR_B,
     instruction: 'เลือก A หรือ B',
     audioText: word.audioText,
+    // Rewards for this question
+    rewardXP: 15,
+    rewardDiamond: 1,
+    penaltyHeart: 1,
     choices: [
       {
         letter: 'A',
@@ -412,6 +440,10 @@ const makeMemoryMatch = (wordList) => {
     id: `mm_${uid()}`,
     type: QUESTION_TYPES.MEMORY_MATCH,
     instruction: 'จับคู่ตัวอักษรกับชื่ออ่าน',
+    // Rewards for this question
+    rewardXP: 15,
+    rewardDiamond: 1,
+    penaltyHeart: 1,
     cards: shuffledCards,
     pairCount: pairs.length,
   };
@@ -434,6 +466,10 @@ const makeChallenge = (word, pool = []) => {
     id: `ch_${word.char}_${uid()}`,
     type: QUESTION_TYPES.CHALLENGE,
     instruction: 'ท้าทายหลายแบบ',
+    // Rewards for this question (for completing all 3 sub-questions)
+    rewardXP: 15,
+    rewardDiamond: 1,
+    penaltyHeart: 1,
     subQuestions,
     currentSubIndex: 0,
   };
@@ -811,14 +847,22 @@ const ConsonantStage1Game = ({ navigation, route }) => {
       answer: answerToCheck,
       correct: isCorrect,
       score: score + (isCorrect ? 1 : 0),
+      // Show rewards for this answer
+      xpReward: isCorrect ? (currentQuestion.rewardXP || 15) : 0,
+      diamondReward: isCorrect ? (currentQuestion.rewardDiamond || 1) : 0,
+      heartPenalty: !isCorrect ? (currentQuestion.penaltyHeart || 1) : 0,
     });
     
-    // Save answer
+    // Save answer with reward details
     answersRef.current[currentIndex] = {
       questionId: currentQuestion.id,
       answer: answerToCheck,
       isCorrect,
       timestamp: Date.now(),
+      // Include reward information
+      rewardXP: isCorrect ? (currentQuestion.rewardXP || 15) : 0,
+      rewardDiamond: isCorrect ? (currentQuestion.rewardDiamond || 1) : 0,
+      penaltyHeart: !isCorrect ? (currentQuestion.penaltyHeart || 1) : 0,
     };
     setAnswers({ ...answersRef.current });
     
@@ -830,8 +874,11 @@ const ConsonantStage1Game = ({ navigation, route }) => {
       const newScore = score + 1;
       const newStreak = streak + 1;
       const newMaxStreak = Math.max(maxStreak, newStreak);
-      const newXp = xpEarned + 15;
-      const newDiamonds = diamondsEarned + 1;
+      // Use question's reward data, default to 15 XP and 1 diamond if not specified
+      const xpReward = currentQuestion.rewardXP || 15;
+      const diamondReward = currentQuestion.rewardDiamond || 1;
+      const newXp = xpEarned + xpReward;
+      const newDiamonds = diamondsEarned + diamondReward;
 
       setScore(newScore);
       setStreak(newStreak);
@@ -849,7 +896,8 @@ const ConsonantStage1Game = ({ navigation, route }) => {
       }
     } else {
       // Wrong answer
-      const newHearts = Math.max(0, hearts - 1);
+      const heartPenalty = currentQuestion.penaltyHeart || 1;
+      const newHearts = Math.max(0, hearts - heartPenalty);
       setHearts(newHearts);
       setStreak(0);
       
