@@ -1182,107 +1182,230 @@ const ConsonantStage1Game = ({ navigation, route }) => {
       
       case QUESTION_TYPES.DRAG_MATCH:
         console.debug(`[Q${currentIndex + 1}/${questions.length}] DRAG_MATCH`, { questionId: question.id, pairCount: question.leftItems.length });
+        
+        // Helper: connection color based on index
+        const connectionColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F'];
+        const connectionSymbols = ['●', '▲', '■', '♦', '★', '◆', '▲', '●'];
+        
+        const getConnectionColor = (leftId) => {
+          const connectionIndex = Object.keys(dmPairs).indexOf(leftId.toString());
+          return connectionColors[connectionIndex % connectionColors.length];
+        };
+        
+        const getConnectionSymbol = (leftId) => {
+          const connectionIndex = Object.keys(dmPairs).indexOf(leftId.toString());
+          return connectionSymbols[connectionIndex % connectionSymbols.length];
+        };
+        
+        const isConnected = (leftId) => dmPairs.some(p => p.leftId === leftId);
+        const getConnectedRight = (leftId) => dmPairs.find(p => p.leftId === leftId)?.rightId;
+        
         return (
           <View style={styles.questionContainer}>
             <Text style={styles.instruction}>{question.instruction}</Text>
-            <Text style={styles.hintText}>{getHintText(question.type)}</Text>
+            {!!question.questionText && <Text style={styles.questionText}>{question.questionText}</Text>}
             
-            {/* Preview current pair selection */}
-            {(dmSelected.leftId || dmSelected.rightId || dmPairs.length > 0) && (
-              <View style={styles.pairPreview}>
-                {dmPairs.map((p, idx) => (
-                  <View key={`pair-${idx}`} style={{ flexDirection:'row', alignItems:'center', marginRight:8 }}>
-                    <Text style={styles.pairPreviewText}>{question.leftItems.find(i=>i.id===p.leftId)?.text || '—'}</Text>
-                    <Text style={styles.pairArrow}> ↔ </Text>
-                    <Text style={styles.pairPreviewText}>{question.rightItems.find(i=>i.id===p.rightId)?.text || '—'}</Text>
-                  </View>
-                ))}
-                {(dmSelected.leftId || dmSelected.rightId) && (
-                  <View style={{ flexDirection:'row', alignItems:'center' }}>
-                    <Text style={[styles.pairPreviewText,{opacity:0.6}]}>{question.leftItems.find(i=>i.id===dmSelected.leftId)?.text || '—'}</Text>
-                    <Text style={styles.pairArrow}> ↔ </Text>
-                    <Text style={[styles.pairPreviewText,{opacity:0.6}]}>{question.rightItems.find(i=>i.id===dmSelected.rightId)?.text || '—'}</Text>
-                  </View>
-                )}
-              </View>
-            )}
-
             <View style={styles.dragMatchContainer}>
+              {/* Left Column */}
               <View style={styles.leftColumn}>
-                {question.leftItems.map((item) => (
-                  <TouchableOpacity
-                    key={item.id}
-                    style={[
-                      styles.dragItem,
-                      (dmSelected.leftId === item.id) && styles.dragItemSelected,
-                      dmPairs.some(p=>p.leftId===item.id) && styles.dragItemPaired,
-                    ]}
-                    onPress={() => {
-                      playTTS(item.speakText);
-                      // if already paired, unpair
-                      if (dmPairs.some(p=>p.leftId===item.id)) {
-                        const filtered = dmPairs.filter(p=>p.leftId!==item.id);
-                        setDmPairs(filtered);
-                        setCurrentAnswer(filtered);
-                        return;
-                      }
-                      const next = { leftId: item.id, rightId: dmSelected.rightId };
-                      if (next.rightId) {
-                        // ensure right not already used
-                        const filtered = dmPairs.filter(p=>p.rightId!==next.rightId && p.leftId!==next.leftId);
-                        const updated = [...filtered, next];
-                        setDmPairs(updated);
-                        setCurrentAnswer(updated);
-                        setDmSelected({ leftId: null, rightId: null });
-                      } else {
-                        setDmSelected(next);
-                      }
-                    }}
-                  >
-                    <Text style={styles.dragItemText}>{SHOW_ROMAN ? (item.text) : item.correctMatch}</Text>
-                    <MaterialIcons name="volume-up" size={20} color={COLORS.gray} />
-                  </TouchableOpacity>
-                ))}
+                {question.leftItems?.map((item, index) => {
+                  const connected = isConnected(item.id);
+                  const color = connected ? getConnectionColor(item.id) : '#e0e0e0';
+                  const symbol = connected ? getConnectionSymbol(item.id) : '';
+                  const isSelected = dmSelected.leftId === item.id;
+                  
+                  return (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={[
+                        styles.dragItem,
+                        isSelected && styles.selectedDragItem,
+                        currentFeedback && (
+                          dmPairs.some(p => p.leftId === item.id && p.leftId !== item.id) 
+                            ? styles.correctDragItem 
+                            : styles.wrongDragItem
+                        ),
+                        { 
+                          backgroundColor: connected ? color : (isSelected ? '#fff5e6' : '#fff'),
+                          borderColor: connected ? color : (isSelected ? '#FF8000' : '#e0e0e0'),
+                          borderWidth: isSelected ? 4 : 3
+                        }
+                      ]}
+                      onPress={() => handleLeftPress(item)}
+                      disabled={currentFeedback !== null}
+                    >
+                      <View style={styles.dragItemContent}>
+                        {connected && (
+                          <TouchableOpacity
+                            style={styles.removeButton}
+                            onPress={() => {
+                              const filtered = dmPairs.filter(p => p.leftId !== item.id);
+                              setDmPairs(filtered);
+                              setCurrentAnswer(filtered);
+                            }}
+                          >
+                            <FontAwesome name="times" size={12} color="#fff" />
+                          </TouchableOpacity>
+                        )}
+                        <Text style={[
+                          styles.dragItemText,
+                          connected && { color: '#fff', fontWeight: 'bold' },
+                          isSelected && { color: '#FF8000', fontWeight: 'bold' }
+                        ]}>{item.text}</Text>
+                        {connected && (
+                          <Text style={[styles.connectionSymbol, { color: '#fff' }]}>
+                            {symbol}
+                          </Text>
+                        )}
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
-              
+
+              {/* Right Column */}
               <View style={styles.rightColumn}>
-                {question.rightItems.map((item) => (
-                  <TouchableOpacity
-                    key={item.id}
-                    style={[
-                      styles.dragItem,
-                      (dmSelected.rightId === item.id) && styles.dragItemSelected,
-                      dmPairs.some(p=>p.rightId===item.id) && styles.dragItemPaired,
-                    ]}
-                    onPress={() => {
-                      playTTS(item.speakText);
-                      // if already paired, unpair
-                      if (dmPairs.some(p=>p.rightId===item.id)) {
-                        const filtered = dmPairs.filter(p=>p.rightId!==item.id);
-                        setDmPairs(filtered);
-                        setCurrentAnswer(filtered);
-                        return;
-                      }
-                      const next = { leftId: dmSelected.leftId, rightId: item.id };
-                      if (next.leftId) {
-                        const filtered = dmPairs.filter(p=>p.rightId!==next.rightId && p.leftId!==next.leftId);
-                        const updated = [...filtered, next];
-                        setDmPairs(updated);
-                        setCurrentAnswer(updated);
-                        setDmSelected({ leftId: null, rightId: null });
-                      } else {
-                        setDmSelected(next);
-                      }
-                    }}
-                  >
-                    <Text style={styles.dragItemText}>{item.text}</Text>
-                    <MaterialIcons name="volume-up" size={20} color={COLORS.gray} />
-                  </TouchableOpacity>
-                ))}
+                {question.rightItems?.map((item, index) => {
+                  const connectedLeftId = dmPairs.find(p => p.rightId === item.id)?.leftId;
+                  const isCorrectMatch = connectedLeftId && 
+                    question.leftItems.find(l => l.id === connectedLeftId)?.correctMatch === item.text;
+                  const isWrongMatch = connectedLeftId && !isCorrectMatch;
+                  const color = connectedLeftId ? getConnectionColor(connectedLeftId) : '#e0e0e0';
+                  const symbol = connectedLeftId ? getConnectionSymbol(connectedLeftId) : '';
+                  const isSelected = dmSelected.rightId === item.id;
+                  
+                  return (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={[
+                        styles.dragItem,
+                        isSelected && styles.selectedDragItem,
+                        currentFeedback && isCorrectMatch && styles.correctDragItem,
+                        currentFeedback && isWrongMatch && styles.wrongDragItem,
+                        { 
+                          backgroundColor: connectedLeftId ? color : (isSelected ? '#fff5e6' : '#fff'),
+                          borderColor: connectedLeftId ? color : (isSelected ? '#FF8000' : '#e0e0e0'),
+                          borderWidth: isSelected ? 4 : 3
+                        }
+                      ]}
+                      onPress={() => handleRightPress(item)}
+                      disabled={currentFeedback !== null}
+                    >
+                      <View style={styles.dragItemContent}>
+                        <Text style={[
+                          styles.dragItemText,
+                          connectedLeftId && { color: '#fff', fontWeight: 'bold' },
+                          isSelected && { color: '#FF8000', fontWeight: 'bold' }
+                        ]}>{item.text}</Text>
+                        {connectedLeftId && (
+                          <Text style={[styles.connectionSymbol, { color: '#fff' }]}>
+                            {symbol}
+                          </Text>
+                        )}
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
             </View>
+
+            {/* Sound Buttons */}
+            <View style={styles.soundButtonsContainer}>
+              <TouchableOpacity 
+                style={styles.soundButton}
+                onPress={() => {
+                  if (question.leftItems && Array.isArray(question.leftItems)) {
+                    question.leftItems.forEach((item, index) => {
+                      if (item && item.text) {
+                        setTimeout(() => {
+                          try {
+                            playTTS(item.text);
+                          } catch (error) {
+                            console.log('TTS Error:', error);
+                          }
+                        }, index * 1000);
+                      }
+                    });
+                  }
+                }}
+              >
+                <FontAwesome name="volume-up" size={16} color="#fff" />
+                <Text style={styles.soundButtonText}>เล่นเสียงซ้าย</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.soundButton}
+                onPress={() => {
+                  if (question.rightItems && Array.isArray(question.rightItems)) {
+                    question.rightItems.forEach((item, index) => {
+                      if (item && item.text) {
+                        setTimeout(() => {
+                          try {
+                            playTTS(item.text);
+                          } catch (error) {
+                            console.log('TTS Error:', error);
+                          }
+                        }, index * 1000);
+                      }
+                    });
+                  }
+                }}
+              >
+                <FontAwesome name="volume-up" size={16} color="#fff" />
+                <Text style={styles.soundButtonText}>เล่นเสียงขวา</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Connection Info */}
+            {dmPairs.length > 0 && (
+              <View style={styles.connectionInfo}>
+                <Text style={styles.connectionText}>
+                  เชื่อมต่อแล้ว {dmPairs.length}/{question.leftItems.length} คู่
+                </Text>
+              </View>
+            )}
           </View>
         );
+
+      // Helper functions for DRAG_MATCH
+      const handleLeftPress = (leftItem) => {
+        if (currentFeedback) return;
+        
+        // Play sound
+        if (leftItem && leftItem.text) {
+          try {
+            playTTS(leftItem.text);
+          } catch (error) {
+            console.log('TTS Error:', error);
+          }
+        }
+        
+        setDmSelected({ leftId: leftItem.id, rightId: dmSelected.rightId });
+      };
+
+      const handleRightPress = (rightItem) => {
+        if (currentFeedback) return;
+        
+        // Play sound
+        if (rightItem && rightItem.text) {
+          try {
+            playTTS(rightItem.text);
+          } catch (error) {
+            console.log('TTS Error:', error);
+          }
+        }
+        
+        if (dmSelected.leftId) {
+          const newPairs = dmPairs.filter(p => p.rightId !== rightItem.id && p.leftId !== dmSelected.leftId);
+          const newPair = { leftId: dmSelected.leftId, rightId: rightItem.id };
+          const updated = [...newPairs, newPair];
+          setDmPairs(updated);
+          setCurrentAnswer(updated);
+          setDmSelected({ leftId: null, rightId: null });
+        } else {
+          setDmSelected({ leftId: null, rightId: rightItem.id });
+        }
+      };
       
       case QUESTION_TYPES.FILL_BLANK:
         console.debug(`[Q${currentIndex + 1}/${questions.length}] FILL_BLANK`, { questionId: question.id, correctText: question.correctText });
@@ -2461,6 +2584,56 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: COLORS.primary,
+  },
+  selectedDragItem: {
+    borderColor: COLORS.primary,
+    backgroundColor: 'rgba(255,127,80,0.1)',
+  },
+  correctDragItem: {
+    borderColor: COLORS.success,
+    backgroundColor: 'rgba(76,175,80,0.1)',
+  },
+  wrongDragItem: {
+    borderColor: COLORS.error,
+    backgroundColor: 'rgba(255,75,75,0.1)',
+  },
+  dragItemContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  removeButton: {
+    marginRight: 5,
+  },
+  connectionSymbol: {
+    fontSize: 12,
+    marginHorizontal: 5,
+  },
+  soundButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  soundButton: {
+    flex: 1,
+    backgroundColor: COLORS.primary,
+    paddingVertical: 10,
+    borderRadius: 15,
+    alignItems: 'center',
+    marginHorizontal: 5,
+  },
+  soundButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.white,
+  },
+  connectionInfo: {
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  connectionText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.dark,
   },
 });
 
