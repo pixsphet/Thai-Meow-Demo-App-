@@ -465,7 +465,7 @@ const EditProfileScreen = ({ navigation }) => {
           >
             <View style={[styles.modalContentWrapper, { shadowColor: theme.primary }]}>
               <LinearGradient
-                colors={[theme.surface, theme.surface]}
+                colors={['#FFF5E1', '#FFEAA7']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.modalContent}
