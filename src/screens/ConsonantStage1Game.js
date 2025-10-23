@@ -365,8 +365,8 @@ const makeOrderTiles = (word) => {
 // A or B: Quick listen and choose between two
 const makeAorB = (word, pool = [], usedChars = new Set()) => {
   const wrongOptions = pool.filter(w => w.char !== word.char && !usedChars.has(w.char));
-  const choiceB = pick(wrongOptions);
-  const choiceA = Math.random() > 0.5 ? word : (wrongOptions || word);
+  const choiceB = wrongOptions.length > 0 ? pick(wrongOptions) : word;
+  const choiceA = Math.random() > 0.5 ? word : choiceB;
   
   return {
     id: `aob_${word.char}_${uid()}`,
@@ -380,19 +380,19 @@ const makeAorB = (word, pool = [], usedChars = new Set()) => {
     choices: [
       {
         letter: 'A',
-        thai: choiceA.char,
-        roman: choiceA.roman || choiceA.name,
-        text: `${choiceA.char}\n${choiceA.roman || choiceA.name}`, // Thai on top, Roman below
-        isCorrect: choiceA.char === word.char,
-        char: choiceA.char,
+        thai: choiceA?.char || choiceA?.char || '',
+        roman: choiceA?.roman || choiceA?.name || '',
+        text: `${choiceA?.char}\n${choiceA?.roman || choiceA?.name}`, // Thai on top, Roman below
+        isCorrect: choiceA?.char === word.char,
+        char: choiceA?.char || '',
       },
       {
         letter: 'B',
-        thai: choiceB.char,
-        roman: choiceB.roman || choiceB.name,
-        text: `${choiceB.char}\n${choiceB.roman || choiceB.name}`, // Thai on top, Roman below
-        isCorrect: choiceB.char === word.char,
-        char: choiceB.char,
+        thai: choiceB?.char || choiceB?.char || '',
+        roman: choiceB?.roman || choiceB?.name || '',
+        text: `${choiceB?.char}\n${choiceB?.roman || choiceB?.name}`, // Thai on top, Roman below
+        isCorrect: choiceB?.char === word.char,
+        char: choiceB?.char || '',
       },
     ],
   };
