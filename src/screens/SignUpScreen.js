@@ -363,71 +363,75 @@ const SignUpScreen = ({ navigation }) => {
               theme={inputTheme(theme)}
             />
 
-            <TextInput
-              label="Password"
-              value={password}
-              onChangeText={setPassword}
-              mode="outlined"
-              secureTextEntry={!showPassword}
-              editable={true}
-              autoCapitalize="none"
-              autoCorrect={false}
-              returnKeyType="done"
-              left={
-                <TextInput.Icon
-                  icon={() => (
-                    <FontAwesome name="lock" size={20} color="#808080" />
-                  )}
-                />
-              }
-              right={
-                <TextInput.Icon
-                  icon={() => (
-                    <FontAwesome
-                      name={showPassword ? "eye" : "eye-slash"}
-                      size={20}
-                      color="#808080"
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 15 }}>
+              <View style={{ flex: 1 }}>
+                <TextInput
+                  label="Password"
+                  value={password}
+                  onChangeText={setPassword}
+                  mode="outlined"
+                  secureTextEntry={!showPassword}
+                  editable={true}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  returnKeyType="done"
+                  left={
+                    <TextInput.Icon
+                      icon={() => (
+                        <FontAwesome name="lock" size={20} color="#808080" />
+                      )}
                     />
-                  )}
-                  onPress={() => setShowPassword(!showPassword)}
+                  }
+                  style={[styles.textInput, { backgroundColor: theme.colors.background, marginBottom: 0 }]}
+                  theme={inputTheme(theme)}
                 />
-              }
-              style={[styles.textInput, { backgroundColor: theme.colors.background }]}
-              theme={inputTheme(theme)}
-            />
+              </View>
+              <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
+                style={{ marginLeft: -45, paddingRight: 10 }}
+              >
+                <FontAwesome
+                  name={showPassword ? "eye" : "eye-slash"}
+                  size={20}
+                  color="#808080"
+                />
+              </TouchableOpacity>
+            </View>
 
-            <TextInput
-              label="Confirm Password"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              mode="outlined"
-              secureTextEntry={!showConfirmPassword}
-              editable={true}
-              autoCapitalize="none"
-              autoCorrect={false}
-              returnKeyType="done"
-              left={
-                <TextInput.Icon
-                  icon={() => (
-                    <FontAwesome name="lock" size={20} color="#808080" />
-                  )}
-                />
-              }
-              right={
-                <TextInput.Icon
-                  icon={() => (
-                    <FontAwesome
-                      name={showConfirmPassword ? "eye" : "eye-slash"}
-                      size={20}
-                      color="#808080"
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 15 }}>
+              <View style={{ flex: 1 }}>
+                <TextInput
+                  label="Confirm Password"
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  mode="outlined"
+                  secureTextEntry={!showConfirmPassword}
+                  editable={true}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  returnKeyType="done"
+                  left={
+                    <TextInput.Icon
+                      icon={() => (
+                        <FontAwesome name="lock" size={20} color="#808080" />
+                      )}
                     />
-                  )}
-                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                  }
+                  style={[styles.textInput, { backgroundColor: theme.colors.background, marginBottom: 0 }]}
+                  theme={inputTheme(theme)}
                 />
-              }
-              style={[styles.textInput, { backgroundColor: theme.colors.background }]}
-              theme={inputTheme(theme)}
-            />
+              </View>
+              <TouchableOpacity
+                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                style={{ marginLeft: -45, paddingRight: 10 }}
+              >
+                <FontAwesome
+                  name={showConfirmPassword ? "eye" : "eye-slash"}
+                  size={20}
+                  color="#808080"
+                />
+              </TouchableOpacity>
+            </View>
 
             <TextInput
               label="ชื่อสัตว์เลี้ยงตัวแรกของคุณ?"
