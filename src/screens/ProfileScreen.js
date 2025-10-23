@@ -426,10 +426,22 @@ const ProfileScreen = ({ navigation }) => {
               </View>
 
               <TouchableOpacity
-                style={[styles.iconButton, { backgroundColor: '#FFFFFF40' }]}
-                onPress={() => navigation.navigate("Settings")}
+                style={[
+                  styles.editButton,
+                  {
+                    backgroundColor: theme.primary,
+                    shadowColor: theme.primary,
+                    shadowOffset: { width: 0, height: 6 },
+                    shadowOpacity: 0.35,
+                    shadowRadius: 12,
+                    elevation: 8,
+                  }
+                ]}
+                onPress={() => navigation.navigate("EditProfile")}
+                activeOpacity={0.8}
               >
-                <MaterialCommunityIcons name="cog" size={20} color={theme.text} />
+                <MaterialCommunityIcons name="pencil" size={18} color={theme.white} />
+                <Text style={[styles.editButtonText, { color: theme.white }]}>แก้ไข</Text>
               </TouchableOpacity>
             </View>
 
@@ -732,10 +744,12 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 5,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.04)',
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -957,6 +971,19 @@ const styles = StyleSheet.create({
   },
   sectionActionText: {
     fontSize: 12,
+    fontWeight: '600',
+  },
+  editButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    borderRadius: 14,
+    gap: 8,
+    marginTop: 10,
+  },
+  editButtonText: {
+    fontSize: 13,
     fontWeight: '600',
   },
 });
