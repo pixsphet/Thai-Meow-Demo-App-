@@ -356,3 +356,71 @@ exports.updateCurrentUserStats = async (req, res, next) => {
     next(err);
   }
 };
+
+// ✅ POST /api/user/change-password - Change user password
+exports.changePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user?.id || req.query.userId;
+
+    // ✅ Validation
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'กรุณากรอกรหัสผ่านปัจจุบันและรหัสผ่านใหม่'
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'รหัสผ่านใหม่ต้องมีอย่างน้อย 6 ตัวอักษร'
+      });
+    }
+
+    // ✅ Password strength validation
+    if (!/[a-z]/.test(newPassword) || !/[A-Z]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
+      return res.status(400).json({
+        success: false,
+        message: 'รหัสผ่านต้องมี: ตัวเล็ก, ตัวใหญ่, ตัวเลข'
+      });
+    }
+
+    if (currentPassword === newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'รหัสผ่านใหม่ต้องไม่เหมือนเดิม'
+      });
+    }
+
+    // ✅ Find user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'ไม่พบผู้ใช้'
+      });
+    }
+
+    // ✅ Verify current password
+    const isPasswordCorrect = await user.matchPassword(currentPassword);
+    if (!isPasswordCorrect) {
+      return res.status(401).json({
+        success: false,
+        message: 'รหัสผ่านปัจจุบันไม่ถูกต้อง'
+      });
+    }
+
+    // ✅ Update password
+    user.password = newPassword;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'เปลี่ยนรหัสผ่านสำเร็จ'
+    });
+  } catch (err) {
+    console.error('Error changing password:', err);
+    next(err);
+  }
+};

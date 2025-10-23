@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getUserStats, updateUserProfile, getCurrentUserStats, updateCurrentUserStats } = require('../controllers/user.controller');
+const { getUserStats, updateUserProfile, getCurrentUserStats, updateCurrentUserStats, changePassword } = require('../controllers/user.controller');
 const auth = require('../middleware/auth');
 
 // /api/user/stats/:userId
@@ -14,6 +14,9 @@ router.post('/stats', auth, updateCurrentUserStats);
 
 // /api/user/profile - Update user profile  
 router.put('/profile', auth, updateUserProfile);
+
+// /api/user/change-password - Change password (from JWT)
+router.post('/change-password', auth, changePassword);
 
 // /api/user/unlock-level - Unlock a level for user
 router.post('/unlock-level', async (req, res) => {

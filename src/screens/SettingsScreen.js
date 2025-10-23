@@ -361,7 +361,7 @@ const SettingsScreen = () => {
             icon="key"
             label="ความปลอดภัย"
             value={<MaterialCommunityIcons name="chevron-right" size={22} color="#B0BEC5" />}
-            onPress={() => alert('ฟีเจอร์กำลังพัฒนา')}
+            onPress={() => navigation.navigate('ChangePassword')}
             theme={flatTheme}
             isLast
           />

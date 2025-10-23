@@ -235,6 +235,20 @@ const userService = {
         error: error.message
       };
     }
+  },
+
+  changePassword: async (data) => {
+    try {
+      const response = await apiClient.post('/user/change-password', data);
+      return response.data;
+    } catch (error) {
+      console.error('Error changing password:', error.response?.data || error.message);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'ไม่สามารถเปลี่ยนรหัสผ่านได้',
+        error: error.message
+      };
+    }
   }
 };
 
