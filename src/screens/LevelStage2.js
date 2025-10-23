@@ -341,15 +341,9 @@ const LevelStage2 = ({ navigation }) => {
             let statusFromProgress = levelProgress.status;
 
             // ด่านถัดไป: ปลดล็อกก็ต่อเมื่อ prevPassed (ด่านก่อนหน้า ≥70%)
-            if (!statusFromProgress || statusFromProgress === 'locked') {
-              statusFromProgress = prevPassed ? 'current' : 'locked';
-            }
-
-            if (statusFromProgress === 'locked' && prevPassed) {
-              statusFromProgress = 'current';
-            }
-            
-            if (statusFromProgress === 'locked' && !prevPassed) {
+            // ถ้าด่านก่อนหน้าไม่ผ่าน 70% ให้ lock ไว้เสมอ
+            if (!prevPassed) {
+              // ด่านก่อนหน้าไม่ผ่าน 70% → lock ไว้
               return { 
                 ...s, 
                 status: 'locked', 
@@ -357,12 +351,15 @@ const LevelStage2 = ({ navigation }) => {
                 accuracy: levelProgress.accuracy ?? 0
               };
             }
+
+            // ด่านก่อนหน้าผ่าน 70% → ปลดล็อกด่านนี้
+            if (!statusFromProgress || statusFromProgress === 'locked') {
+              statusFromProgress = 'current';
+            }
             
             let status = statusFromProgress;
             if (levelProgress.completed) {
               status = 'done';
-            } else if (!prevPassed) {
-              status = 'locked';
             }
 
             const accuracyPercent =
