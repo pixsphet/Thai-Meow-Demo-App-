@@ -212,7 +212,7 @@ const makeDragMatch = (word, pool, usedChars = new Set()) => {
   
   const leftItems = allWords.map((w, i) => ({
     id: `left_${i + 1}`,
-    text: Math.random() > 0.5 ? w.name : w.roman,
+    text: `${w.char}\n${w.name}`, // Show Thai character with English name (for reading)
     correctMatch: w.char,
     speakText: w.audioText,
   }));
