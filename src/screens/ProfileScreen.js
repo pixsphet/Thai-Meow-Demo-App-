@@ -408,6 +408,19 @@ const ProfileScreen = ({ navigation }) => {
                 ) : null}
               </View>
 
+              <TouchableOpacity
+                style={[
+                  styles.settingsIconButton,
+                  {
+                    backgroundColor: theme.primary + '15',
+                    borderColor: theme.primary + '30',
+                  }
+                ]}
+                onPress={() => navigation.navigate("Settings")}
+                activeOpacity={0.7}
+              >
+                <MaterialCommunityIcons name="cog" size={20} color={theme.primary} />
+              </TouchableOpacity>
             </View>
 
             <View style={styles.actionButtonsRow}>
