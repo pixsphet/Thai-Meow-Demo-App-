@@ -457,10 +457,11 @@ const EditProfileScreen = ({ navigation }) => {
         animationType="fade"
         onRequestClose={() => setImagePickerVisible(false)}
       >
-        <View style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.6)' }]}>
+        <View style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.3)' }]}>
           <ScrollView 
             contentContainerStyle={styles.modalScrollContent}
             showsVerticalScrollIndicator={false}
+            scrollEnabled={true}
           >
             <View style={[styles.modalContentWrapper, { shadowColor: theme.primary }]}>
               <LinearGradient
@@ -774,16 +775,20 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
     alignItems: 'center',
+    paddingBottom: 20,
   },
   modalScrollContent: {
     flexGrow: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
     alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 20,
   },
   modalContentWrapper: {
-    width: width * 0.8,
+    width: '100%',
+    maxWidth: width * 0.85,
     borderRadius: 20,
     overflow: 'hidden',
     shadowOffset: { width: 0, height: 10 },
@@ -801,60 +806,66 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     width: '100%',
-    marginBottom: 20,
+    marginBottom: 15,
+    gap: 10,
   },
   modalIconWrapper: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 45,
+    height: 45,
+    borderRadius: 22.5,
     backgroundColor: 'rgba(0,0,0,0.05)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     flex: 1,
     textAlign: 'center',
   },
   modalCloseButton: {
     padding: 5,
+    width: 34,
+    height: 34,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalDivider: {
     width: '100%',
     height: 1,
     backgroundColor: 'rgba(0,0,0,0.1)',
-    marginVertical: 20,
+    marginVertical: 15,
   },
   modalButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     width: '100%',
-    paddingVertical: 15,
-    borderRadius: 15,
-    marginBottom: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    borderRadius: 12,
+    marginBottom: 8,
     borderWidth: 1,
     borderColor: 'transparent',
   },
   modalButtonIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 35,
+    height: 35,
+    borderRadius: 17.5,
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalButtonContent: {
     flex: 1,
-    marginLeft: 15,
+    marginLeft: 12,
   },
   modalButtonText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
   },
   modalButtonSubtext: {
-    fontSize: 12,
-    marginTop: 4,
+    fontSize: 11,
+    marginTop: 3,
   },
   uploadingOverlay: {
     position: 'absolute',
