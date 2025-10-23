@@ -1901,53 +1901,64 @@ const ConsonantStage1Game = ({ navigation, route }) => {
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => navigation.goBack()}
+          onPress={async () => {
+            await autosave();
+            navigation.goBack();
+          }}
         >
-          <Ionicons name="arrow-back" size={24} color={COLORS.dark} />
+          <FontAwesome name="times" size={24} color={COLORS.primary} />
         </TouchableOpacity>
         
         <View style={styles.progressContainer}>
           <View style={styles.progressBar}>
-            <View style={[styles.progressFill, { width: `${progress}%` }]} />
+            <LinearGradient
+              colors={[COLORS.primary, '#FFA24D', '#FFD700']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={[
+                styles.progressFill, 
+                { width: questions.length > 0 ? `${((currentIndex + 1) / questions.length) * 100}%` : '0%' }
+              ]}
+            />
           </View>
-          <View style={styles.headerMetaRow}>
-            <Text style={styles.progressText}>{currentIndex + 1} / {questions.length}</Text>
-            <View style={styles.typePill}><Text style={styles.typePillText}>{getTypeLabel(currentQuestion.type)}</Text></View>
+          <Text style={styles.progressText}>
+            {questions.length > 0 ? `${currentIndex + 1} / ${questions.length}` : '0 / 0'}
+          </Text>
+          
+          {/* Stats Row */}
+          <View style={styles.progressStats}>
+            <View style={styles.progressStatItem}>
+              <LottieView
+                source={require('../assets/animations/Star.json')}
+                autoPlay
+                loop
+                style={styles.progressStatAnimation}
+              />
+              <Text style={styles.progressStatText}>{xpEarned} XP</Text>
+            </View>
+            <View style={styles.progressStatItem}>
+              <LottieView
+                source={require('../assets/animations/Diamond.json')}
+                autoPlay
+                loop
+                style={styles.progressStatAnimation}
+              />
+              <Text style={styles.progressStatText}>{diamondsEarned}</Text>
+            </View>
+            <View style={styles.progressStatItem}>
+              <FontAwesome name="bullseye" size={12} color={COLORS.primary} />
+              <Text style={styles.progressStatText}>{Math.min(100, Math.max(0, Math.round((score / Math.max(1, currentIndex + 1)) * 100)))}%</Text>
+            </View>
+            <View style={styles.progressStatItem}>
+              <FontAwesome name="fire" size={12} color="#FF8C00" />
+              <Text style={styles.progressStatText}>{streak}</Text>
+            </View>
           </View>
         </View>
-      </View>
-      
-      {/* Stats Row */}
-      <View style={styles.statsRow}>
-        <View style={styles.statBadge}>
-          <LottieView
-            source={require('../assets/animations/Star.json')}
-            autoPlay
-            loop
-            style={styles.starAnimation}
-          />
-          <Text style={styles.statText}>{xpEarned} XP</Text>
-        </View>
-        <View style={styles.statBadge}>
-          <LottieView
-            source={require('../assets/animations/Diamond.json')}
-            autoPlay
-            loop
-            style={styles.diamondAnimation}
-          />
-          <Text style={styles.statText}>+{diamondsEarned}</Text>
-        </View>
-        <View style={styles.statBadge}>
-          <Text style={styles.statText}>🎯 {Math.min(100, Math.max(0, Math.round((score / Math.max(1, currentIndex)) * 100)))}%</Text>
-        </View>
-        <View style={styles.statBadge}>
-          <LottieView
-            source={require('../assets/animations/Streak-Fire1.json')}
-            autoPlay
-            loop
-            style={styles.streakAnimation}
-          />
-          <Text style={styles.statText}>{streak}</Text>
+
+        <View style={styles.heartsContainer}>
+          <FontAwesome name="heart" size={20} color="#ff4b4b" />
+          <Text style={styles.heartsText}>{hearts}</Text>
         </View>
       </View>
       
@@ -1957,38 +1968,30 @@ const ConsonantStage1Game = ({ navigation, route }) => {
       </ScrollView>
       
       {/* Check Button */}
-      <View style={styles.checkContainer}>
-        {currentFeedback && (
-          <View style={[
-            styles.feedbackBadge,
-            currentFeedback === 'correct' ? styles.feedbackCorrect : styles.feedbackWrong
-          ]}>
-            <Text style={styles.feedbackText}>
-              {currentFeedback === 'correct' ? '✓ ถูก!' : '✗ ผิด'}
-            </Text>
-          </View>
-        )}
+      {currentFeedback !== null ? (
+        <View style={[styles.feedbackBar, { backgroundColor: currentFeedback === 'correct' ? '#58cc02' : '#ff4b4b' }]}>
+          <Text style={styles.feedbackText}>
+            {currentFeedback === 'correct' ? 'ถูกต้อง!' : 'ผิด!'}
+          </Text>
+          <TouchableOpacity style={styles.continueButton} onPress={() => {
+            setCurrentFeedback(null);
+            if (hearts === 0) {
+              const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+              finishLesson(elapsed);
+            } else {
+              nextQuestion();
+            }
+          }}>
+            <Text style={styles.continueButtonText}>CONTINUE</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
         <TouchableOpacity
           style={[
             styles.checkButton,
             currentAnswer === null && styles.checkButtonDisabled,
           ]}
-          onPress={() => {
-            // If feedback is shown, advance to next question or finish game
-            if (currentFeedback !== null) {
-              setCurrentFeedback(null);
-              // Check if game is over (hearts = 0)
-              if (hearts === 0) {
-                const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
-                finishLesson(elapsed);
-              } else {
-                nextQuestion();
-              }
-            } else {
-              // Otherwise, check the answer
-              handleCheckAnswer();
-            }
-          }}
+          onPress={handleCheckAnswer}
           disabled={currentAnswer === null}
           activeOpacity={0.9}
         >
@@ -1999,11 +2002,11 @@ const ConsonantStage1Game = ({ navigation, route }) => {
             style={styles.checkGradient}
           >
             <Text style={styles.checkButtonText}>
-              {currentFeedback !== null ? (hearts === 0 ? 'จบเกม' : 'ต่อไป') : 'CHECK'}
+              CHECK
             </Text>
           </LinearGradient>
         </TouchableOpacity>
-      </View>
+      )}
       <FireStreakAlert
         visible={showFireStreakAlert}
         onClose={() => setShowFireStreakAlert(false)}
@@ -2634,6 +2637,53 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: COLORS.dark,
+  },
+  progressStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  progressStatItem: {
+    alignItems: 'center',
+  },
+  progressStatAnimation: {
+    width: 20,
+    height: 20,
+  },
+  progressStatText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.dark,
+    marginTop: 5,
+  },
+  heartsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  heartsText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.dark,
+    marginLeft: 5,
+  },
+  feedbackBar: {
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 10,
+    alignItems: 'center',
+  },
+  continueButton: {
+    backgroundColor: COLORS.primary,
+    paddingVertical: 10,
+    borderRadius: 10,
+    marginTop: 10,
+  },
+  continueButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: COLORS.white,
   },
 });
 
