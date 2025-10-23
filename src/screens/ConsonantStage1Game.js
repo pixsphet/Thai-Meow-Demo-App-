@@ -824,14 +824,8 @@ const ConsonantStage1Game = ({ navigation, route }) => {
       playTTS(speakText);
     }
     
-    // Auto-check for simple question types
-    const currentQuestion = questions[currentIndex];
-    if (currentQuestion && [QUESTION_TYPES.LISTEN_CHOOSE, QUESTION_TYPES.PICTURE_MATCH, QUESTION_TYPES.FILL_BLANK, QUESTION_TYPES.A_OR_B].includes(currentQuestion.type)) {
-      // Delay slightly to allow answer to be set in state first
-      setTimeout(() => {
-        handleCheckAnswer(answer);
-      }, 100);
-    }
+    // Just set the answer, user must click CHECK button to submit
+    // No auto-checking anymore
   };
   
   // Handle check answer
@@ -885,15 +879,8 @@ const ConsonantStage1Game = ({ navigation, route }) => {
       setMaxStreak(newMaxStreak);
       setXpEarned(newXp);
       setDiamondsEarned(newDiamonds);
-
-      // Auto-advance for simple types after delay, or wait for CHECK button for complex types
-      const isSimpleType = [QUESTION_TYPES.LISTEN_CHOOSE, QUESTION_TYPES.PICTURE_MATCH, QUESTION_TYPES.FILL_BLANK, QUESTION_TYPES.A_OR_B].includes(currentQuestion.type);
-      if (isSimpleType) {
-        setTimeout(() => {
-          setCurrentFeedback(null);
-          nextQuestion();
-        }, 600);
-      }
+      
+      // Show feedback - don't auto-advance, user must click CHECK to continue
     } else {
       // Wrong answer
       const heartPenalty = currentQuestion.penaltyHeart || 1;
@@ -901,23 +888,9 @@ const ConsonantStage1Game = ({ navigation, route }) => {
       setHearts(newHearts);
       setStreak(0);
       
-      // Show error effect then advance
-      const isSimpleType = [QUESTION_TYPES.LISTEN_CHOOSE, QUESTION_TYPES.PICTURE_MATCH, QUESTION_TYPES.FILL_BLANK, QUESTION_TYPES.A_OR_B].includes(currentQuestion.type);
-      const delayMs = isSimpleType ? 600 : 0;
-      
+      // Show feedback - don't auto-advance, user must click CHECK to continue
       if (newHearts === 0) {
-        // Game over - still show feedback briefly
-        setTimeout(() => {
-          setCurrentFeedback(null);
-          const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
-          finishLesson(elapsed);
-        }, delayMs);
-      } else {
-        // Go to next question
-        setTimeout(() => {
-          setCurrentFeedback(null);
-          nextQuestion();
-        }, delayMs);
+        // Game over - show feedback first, then require CHECK to finish
       }
     }
   };
@@ -1884,8 +1857,23 @@ const ConsonantStage1Game = ({ navigation, route }) => {
             styles.checkButton,
             currentAnswer === null && styles.checkButtonDisabled,
           ]}
-          onPress={() => handleCheckAnswer()}
-          disabled={currentAnswer === null || currentFeedback !== null}
+          onPress={() => {
+            // If feedback is shown, advance to next question or finish game
+            if (currentFeedback !== null) {
+              setCurrentFeedback(null);
+              // Check if game is over (hearts = 0)
+              if (hearts === 0) {
+                const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+                finishLesson(elapsed);
+              } else {
+                nextQuestion();
+              }
+            } else {
+              // Otherwise, check the answer
+              handleCheckAnswer();
+            }
+          }}
+          disabled={currentAnswer === null}
           activeOpacity={0.9}
         >
           <LinearGradient
@@ -1894,7 +1882,9 @@ const ConsonantStage1Game = ({ navigation, route }) => {
             end={{ x: 1, y: 1 }}
             style={styles.checkGradient}
           >
-            <Text style={styles.checkButtonText}>CHECK</Text>
+            <Text style={styles.checkButtonText}>
+              {currentFeedback !== null ? (hearts === 0 ? 'จบเกม' : 'ต่อไป') : 'CHECK'}
+            </Text>
           </LinearGradient>
         </TouchableOpacity>
       </View>
