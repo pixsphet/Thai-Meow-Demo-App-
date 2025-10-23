@@ -1047,11 +1047,17 @@ const ConsonantStage1Game = ({ navigation, route }) => {
       let unlockResult = null;
       if (unlockedNext) {
         try {
-          unlockResult = await levelUnlockService.checkAndUnlockNextLevel('level1', {
+          // Convert lessonId to levelId format (e.g., 1 -> 'level1')
+          const currentLevelId = `level${lessonId}`;
+          unlockResult = await levelUnlockService.checkAndUnlockNextLevel(currentLevelId, {
             accuracy: accuracyPercent,
             score: correctAnswers,
             attempts: 1,
           });
+          
+          if (unlockResult) {
+            console.log(`✅ Level unlocked! Next level: ${unlockResult.unlockedLevel}`);
+          }
         } catch (unlockError) {
           console.warn('Failed to unlock next level:', unlockError?.message || unlockError);
         }
