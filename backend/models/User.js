@@ -26,6 +26,11 @@ const UserSchema = new mongoose.Schema(
     badges: { type: [String], default: [] },
     achievements: { type: [mongoose.Schema.Types.Mixed], default: [] },
     friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    unlockedLevels: { 
+      type: [String], 
+      default: ['level1'], // Only level1 unlocked by default
+      enum: ['level1', 'level2', 'level3', 'level4', 'level5', 'level6', 'level7', 'level8', 'level9', 'level10']
+    },
   },
   { timestamps: true }
 );

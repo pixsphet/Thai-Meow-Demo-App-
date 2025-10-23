@@ -14,6 +14,7 @@ import { useUserData } from '../contexts/UserDataContext';
 import { useUnifiedStats } from '../contexts/UnifiedStatsContext';
 import userStatsService from '../services/userStatsService';
 import gameProgressService from '../services/gameProgressService';
+import unlockService from '../services/unlockService';
 // Removed Lesson3Game/Lesson4Game (files no longer exist)
 
 const { width } = Dimensions.get('window');
@@ -247,6 +248,16 @@ const LevelStage1 = ({ navigation }) => {
     try {
       setLoading(true);
       console.log('🔄 Starting to fetch stages...');
+      
+      // Fetch unlock status from backend first
+      if (user?.id) {
+        try {
+          const unlockedLevels = await unlockService.getUnlockedLevels(user.id);
+          console.log('🔓 Fetched unlocked levels from backend:', unlockedLevels);
+        } catch (error) {
+          console.warn('⚠️ Could not fetch unlocks from backend:', error.message);
+        }
+      }
       
       // ลองดึงข้อมูลจาก API ก่อน
       const response = await lessonService.getLessonsByLevel(levelType);
