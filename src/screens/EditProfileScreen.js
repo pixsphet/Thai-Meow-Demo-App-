@@ -138,21 +138,17 @@ const EditProfileScreen = ({ navigation }) => {
   };
 
   const handleEmailChange = (value) => {
-    handleInputChange('email', value);
-    // Real-time validation feedback
-    if (!value.trim()) {
-      setErrors(prev => ({ ...prev, email: '' }));
-    } else if (!validateEmail(value)) {
-      setErrors(prev => ({ ...prev, email: 'กรุณากรอกอีเมลที่ถูกต้อง' }));
-    } else {
-      setErrors(prev => ({ ...prev, email: '' }));
-    }
+    // Email is locked - do nothing
+    // User cannot change email
   };
 
   const validateForm = () => {
     let isValid = true;
     if (!formData.username.trim()) {
       setErrors(prev => ({ ...prev, username: 'กรุณากรอกชื่อผู้ใช้' }));
+      isValid = false;
+    } else if (formData.username.trim() !== user?.username && formData.username.length < 3) {
+      setErrors(prev => ({ ...prev, username: 'ชื่อผู้ใช้ต้องมีอย่างน้อย 3 ตัวอักษร' }));
       isValid = false;
     } else {
       setErrors(prev => ({ ...prev, username: '' }));
@@ -166,6 +162,15 @@ const EditProfileScreen = ({ navigation }) => {
     } else {
       setErrors(prev => ({ ...prev, email: '' }));
     }
+    if (!formData.petName.trim()) {
+      setErrors(prev => ({ ...prev, petName: 'กรุณากรอกชื่อสัตว์เลี้ยง' }));
+      isValid = false;
+    } else if (formData.petName.trim().length < 2) {
+      setErrors(prev => ({ ...prev, petName: 'ชื่อสัตว์เลี้ยงต้องมีอย่างน้อย 2 ตัวอักษร' }));
+      isValid = false;
+    } else {
+      setErrors(prev => ({ ...prev, petName: '' }));
+    }
     return isValid;
   };
 
@@ -176,9 +181,10 @@ const EditProfileScreen = ({ navigation }) => {
       setLoading(true);
       
       // Update user data via API
+      // Note: Email is LOCKED and cannot be changed
       const response = await userService.updateUserProfile({
         username: formData.username.trim(),
-        email: formData.email.trim(),
+        email: user?.email, // Keep original email (locked)
         petName: formData.petName.trim(),
         avatar: formData.avatar,
       });
@@ -188,7 +194,7 @@ const EditProfileScreen = ({ navigation }) => {
         updateUser({
           ...user,
           username: formData.username.trim(),
-          email: formData.email.trim(),
+          // Email stays the same (locked)
           petName: formData.petName.trim(),
           avatar: formData.avatar,
         });
@@ -349,22 +355,27 @@ const EditProfileScreen = ({ navigation }) => {
             )}
           </View>
 
-          {/* Email Input */}
+          {/* Email Input - LOCKED */}
           <View style={[styles.inputCard, { backgroundColor: theme.surface }]}>
             <View style={styles.inputLabelRow}>
               <MaterialCommunityIcons name="email" size={18} color={theme.primary} />
               <Text style={[styles.label, { color: theme.text, marginLeft: 8 }]}>
                 อีเมล
               </Text>
+              <View style={{ marginLeft: 'auto', flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <MaterialCommunityIcons name="lock" size={14} color="#FF9500" />
+                <Text style={{ fontSize: 11, color: '#FF9500', fontWeight: '600' }}>ล็อก</Text>
+              </View>
             </View>
             <TextInput
               style={[
                 styles.inputField,
                 {
-                  backgroundColor: theme.lightGray || '#f5f5f5',
-                  borderColor: errors.email ? '#EF4444' : theme.lightGray,
-                  color: theme.text,
+                  backgroundColor: '#f0f0f0',
+                  borderColor: '#cccccc',
+                  color: theme.textSecondary,
                   borderWidth: 1,
+                  opacity: 0.7,
                 }
               ]}
               value={formData.email}
@@ -374,7 +385,11 @@ const EditProfileScreen = ({ navigation }) => {
               placeholderTextColor={theme.textSecondary}
               keyboardType="email-address"
               autoCapitalize="none"
+              editable={false}
             />
+            <Text style={[styles.hintText, { color: theme.textSecondary, marginTop: 6 }]}>
+              💡 ไม่สามารถเปลี่ยนอีเมลได้ เพื่อความปลอดภัย
+            </Text>
             {errors.email && (
               <Text style={[styles.errorText, { color: '#EF4444' }]}>{errors.email}</Text>
             )}
@@ -899,6 +914,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 8,
+  },
+  hintText: {
+    fontSize: 12,
+    marginTop: 6,
   },
 });
 
