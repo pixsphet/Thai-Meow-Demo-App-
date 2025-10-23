@@ -366,6 +366,7 @@ const LevelStage3 = ({ navigation }) => {
             const prevAccuracyRatio = prevStage ? normalizeAccuracy(prevStage._accuracy ?? prevStage.accuracy) : 0;
             const prevPassed = prevFinished && prevAccuracyRatio >= 0.7;
 
+            // ด่านแรก: เปิดตลอด
             if (i === 0) {
               const accuracyPercent = Math.round((s._accuracy ?? 0) * 100);
               return { 
@@ -379,15 +380,16 @@ const LevelStage3 = ({ navigation }) => {
             const levelProgress = (await levelUnlockService.getLevelProgress(levelId)) || {};
             let statusFromProgress = levelProgress.status;
 
+            // ด่านถัดไป: ปลดล็อกก็ต่อเมื่อ prevPassed (ด่านก่อนหน้า ≥70%)
             if (!statusFromProgress || statusFromProgress === 'locked') {
-              statusFromProgress = (prevPassed || DEBUG_UNLOCK_ALL_STAGES) ? 'current' : 'locked';
+              statusFromProgress = prevPassed ? 'current' : 'locked';
             }
 
-            if (statusFromProgress === 'locked' && (prevPassed || DEBUG_UNLOCK_ALL_STAGES)) {
+            if (statusFromProgress === 'locked' && prevPassed) {
               statusFromProgress = 'current';
             }
             
-            if (statusFromProgress === 'locked' && !prevPassed && !DEBUG_UNLOCK_ALL_STAGES) {
+            if (statusFromProgress === 'locked' && !prevPassed) {
               return { 
                 ...s, 
                 status: 'locked', 
@@ -399,7 +401,7 @@ const LevelStage3 = ({ navigation }) => {
             let status = statusFromProgress;
             if (levelProgress.completed) {
               status = 'done';
-            } else if (!prevPassed && !DEBUG_UNLOCK_ALL_STAGES) {
+            } else if (!prevPassed) {
               status = 'locked';
             }
 
@@ -495,6 +497,7 @@ const LevelStage3 = ({ navigation }) => {
         const prevAccuracyRatio = prevStage ? normalizeAccuracy(prevStage._accuracy ?? prevStage.accuracy) : 0;
         const prevPassed = prevFinished && prevAccuracyRatio >= 0.7;
 
+        // ด่านแรก: เปิดตลอด
         if (i === 0) {
           const status = s._finished ? 'done' : 'current';
           const accuracyPercent = Math.round((s._accuracy ?? 0) * 100);
@@ -505,14 +508,15 @@ const LevelStage3 = ({ navigation }) => {
         const levelId = `level${s.lesson_id}`;
         const levelProgress = (await levelUnlockService.getLevelProgress(levelId)) || {};
         let statusFromProgress = levelProgress.status;
+        // ด่านถัดไป: ปลดล็อกก็ต่อเมื่อ prevPassed (ด่านก่อนหน้า ≥70%)
         if (!statusFromProgress || statusFromProgress === 'locked') {
-          statusFromProgress = (prevPassed || DEBUG_UNLOCK_ALL_STAGES) ? 'current' : 'locked';
+          statusFromProgress = prevPassed ? 'current' : 'locked';
         }
-        if (statusFromProgress === 'locked' && (prevPassed || DEBUG_UNLOCK_ALL_STAGES)) {
+        if (statusFromProgress === 'locked' && prevPassed) {
           statusFromProgress = 'current';
         }
         
-        if (statusFromProgress === 'locked' && !prevPassed && !DEBUG_UNLOCK_ALL_STAGES) {
+        if (statusFromProgress === 'locked' && !prevPassed) {
           return { 
             ...s, 
             status: 'locked', 
@@ -526,7 +530,7 @@ const LevelStage3 = ({ navigation }) => {
         let status = statusFromProgress;
         if (levelProgress.completed) {
           status = 'done';
-        } else if (!prevPassed && !DEBUG_UNLOCK_ALL_STAGES) {
+        } else if (!prevPassed) {
           status = 'locked';
         }
         const accuracyPercent =
