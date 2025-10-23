@@ -425,24 +425,46 @@ const ProfileScreen = ({ navigation }) => {
                 ) : null}
               </View>
 
-              <TouchableOpacity
-                style={[
-                  styles.editButton,
-                  {
-                    backgroundColor: theme.primary,
-                    shadowColor: theme.primary,
-                    shadowOffset: { width: 0, height: 6 },
-                    shadowOpacity: 0.35,
-                    shadowRadius: 12,
-                    elevation: 8,
-                  }
-                ]}
-                onPress={() => navigation.navigate("EditProfile")}
-                activeOpacity={0.8}
-              >
-                <MaterialCommunityIcons name="pencil" size={18} color={theme.white} />
-                <Text style={[styles.editButtonText, { color: theme.white }]}>แก้ไข</Text>
-              </TouchableOpacity>
+              <View style={styles.actionButtonsRow}>
+                <TouchableOpacity
+                  style={[
+                    styles.editButton,
+                    {
+                      backgroundColor: theme.primary,
+                      shadowColor: theme.primary,
+                      shadowOffset: { width: 0, height: 6 },
+                      shadowOpacity: 0.35,
+                      shadowRadius: 12,
+                      elevation: 8,
+                    }
+                  ]}
+                  onPress={() => navigation.navigate("EditProfile")}
+                  activeOpacity={0.8}
+                >
+                  <MaterialCommunityIcons name="pencil" size={18} color={theme.white} />
+                  <Text style={[styles.editButtonText, { color: theme.white }]}>แก้ไข</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.settingsButton,
+                    {
+                      backgroundColor: theme.primary + '20',
+                      borderColor: theme.primary,
+                      shadowColor: theme.primary,
+                      shadowOffset: { width: 0, height: 4 },
+                      shadowOpacity: 0.15,
+                      shadowRadius: 8,
+                      elevation: 4,
+                    }
+                  ]}
+                  onPress={() => navigation.navigate("Settings")}
+                  activeOpacity={0.8}
+                >
+                  <MaterialCommunityIcons name="cog" size={18} color={theme.primary} />
+                  <Text style={[styles.settingsButtonText, { color: theme.primary }]}>ตั้งค่า</Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
             <View style={styles.heroHighlightsRow}>
@@ -981,10 +1003,31 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     gap: 8,
     marginTop: 10,
+    flex: 1,
   },
   editButtonText: {
     fontSize: 13,
     fontWeight: '600',
+  },
+  settingsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    borderRadius: 14,
+    gap: 8,
+    marginTop: 10,
+    flex: 1,
+    borderWidth: 1.5,
+  },
+  settingsButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  actionButtonsRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 10,
   },
 });
 
