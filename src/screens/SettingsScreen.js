@@ -21,7 +21,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import LottieView from 'lottie-react-native';
 
 import levelUnlockService from '../services/levelUnlockService';
-import { resetAllLessonProgress, resetLessonProgress } from '../services/progressService';
+import { resetAllLessonProgress, resetLessonProgress, resetEverything } from '../services/progressService';
 import gameProgressService from '../services/gameProgressService';
 
 import { useTheme } from '../contexts/ThemeContext';
@@ -306,6 +306,30 @@ const SettingsScreen = () => {
     );
   };
 
+  const handleUltraReset = async () => {
+    Alert.alert(
+      '🔥 ULTRA RESET - เริ่มใหม่หมดเลย',
+      '⚠️ ⚠️ คำเตือนสำคัญ ⚠️ ⚠️\n\n🗑️ การดำเนินการนี้จะลบข้อมูลทั้งหมด:\n• ความคืบหน้าทั้งหมด\n• สถิติการเล่น\n• คะแนน XP\n• เพชร\n• ด่านที่ปลดล็อก\n• ทุกอย่าง!\n\n🔄 ผลลัพธ์: เริ่มเล่นใหม่จากด่านแรก\n\nคุณแน่ใจว่าต้องการทำเช่นนี้?',
+      [
+        { text: 'ยกเลิก', onPress: () => {}, style: 'cancel' },
+        {
+          text: 'รีเซ็ตโลกใหม่!',
+          onPress: async () => {
+            try {
+              console.log('🔥 ULTRA RESET INITIATED');
+              await resetEverything();
+              alert('🌟 ULTRA RESET เสร็จสิ้น!\n\nทุกอย่างถูกลบแล้ว\nเริ่มเล่นใหม่ได้เลย 🎮');
+            } catch (error) {
+              console.error('ULTRA RESET Error:', error);
+              alert('❌ เกิดข้อผิดพลาด: ' + error.message);
+            }
+          },
+          style: 'destructive',
+        },
+      ]
+    );
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: flatTheme.background }]}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
@@ -461,6 +485,17 @@ const SettingsScreen = () => {
             >
               <MaterialCommunityIcons name="alert" size={20} color="#F44336" />
               <Text style={[styles.resetButtonText, { color: '#F44336', fontWeight: '700' }]}>ลบทั้งหมด</Text>
+            </TouchableOpacity>
+
+            <View style={{ height: 8 }} />
+
+            <TouchableOpacity 
+              style={[styles.resetButton, { backgroundColor: 'rgba(255, 140, 0, 0.1)', borderColor: '#FF8C00' }]}
+              onPress={handleUltraReset}
+              activeOpacity={0.85}
+            >
+              <MaterialCommunityIcons name="delete-forever" size={20} color="#FF8C00" />
+              <Text style={[styles.resetButtonText, { color: '#FF8C00', fontWeight: '700' }]}>ลบโลกใหม่!</Text>
             </TouchableOpacity>
           </View>
           <Text style={[styles.resetHint, { color: flatTheme.textSecondary }]}>

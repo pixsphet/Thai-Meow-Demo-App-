@@ -241,6 +241,63 @@ export const resetLessonProgress = async (lessonId) => {
   }
 };
 
+/**
+ * ✨ NUCLEAR OPTION: Reset everything to starting state
+ * Clears all progress, unlocks, stats - back to level 1 only
+ */
+export const resetEverything = async () => {
+  try {
+    console.log('🔄 === RESETTING EVERYTHING ===');
+    
+    const allKeys = await AsyncStorage.getAllKeys();
+    console.log(`📋 Found ${allKeys.length} keys`);
+    
+    // Filter all progress-related keys
+    const keysToDelete = allKeys.filter(key => {
+      const toDelete = 
+        key.includes('progress') ||
+        key.includes('lesson') ||
+        key.includes('game_session') ||
+        key.includes('userStats') ||
+        key.includes('unlock') ||
+        key.includes('streak') ||
+        key.includes('xp') ||
+        key.includes('diamonds') ||
+        key.includes('hearts') ||
+        key.includes('accuracy') ||
+        key.includes('completed') ||
+        key.includes('attempts') ||
+        key.includes('questions');
+      
+      if (toDelete) {
+        console.log(`  🗑️  ${key}`);
+      }
+      return toDelete;
+    });
+    
+    console.log(`\n🗑️  Total keys to delete: ${keysToDelete.length}`);
+    
+    if (keysToDelete.length > 0) {
+      await AsyncStorage.multiRemove(keysToDelete);
+      console.log('✅ Deleted all progress keys');
+    }
+    
+    // Also try to reset via backend
+    try {
+      await apiClient.post('/user/reset-all-progress');
+      console.log('☁️  Backend reset completed');
+    } catch (err) {
+      console.warn('⚠️  Backend reset failed (offline?):', err?.message);
+    }
+    
+    console.log('✅ === EVERYTHING RESET! BACK TO SQUARE ONE ===\n');
+    return { success: true, cleared: keysToDelete.length };
+  } catch (error) {
+    console.error('❌ Error resetting everything:', error);
+    throw error;
+  }
+};
+
 export default {
   getUserStats,
   postUserStats,
@@ -253,5 +310,6 @@ export default {
   clearProgress,
   saveLocal,
   loadLocal,
-  fetchUserProgress
+  fetchUserProgress,
+  resetEverything
 };
