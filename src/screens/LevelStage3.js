@@ -17,7 +17,7 @@ import gameProgressService from '../services/gameProgressService';
 
 const { width } = Dimensions.get('window');
 const ITEM_OFFSET = 65;
-const DEBUG_UNLOCK_ALL_STAGES = true; // Temporarily enabled for testing
+const DEBUG_UNLOCK_ALL_STAGES = false; // Set to false for production - enable lock/unlock system
 
 const CUSTOM_STAGE_META = {
   // Advanced level stages
