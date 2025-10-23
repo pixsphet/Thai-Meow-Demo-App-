@@ -1211,6 +1211,46 @@ const ConsonantStage1Game = ({ navigation, route }) => {
         const isConnected = (leftId) => dmPairs.some(p => p.leftId === leftId);
         const getConnectedRight = (leftId) => dmPairs.find(p => p.leftId === leftId)?.rightId;
         
+        // Define handlers BEFORE using them
+        const handleLeftPress = (leftItem) => {
+          if (currentFeedback) return;
+          
+          // Play sound
+          if (leftItem && leftItem.text) {
+            try {
+              playTTS(leftItem.text);
+            } catch (error) {
+              console.log('TTS Error:', error);
+            }
+          }
+          
+          setDmSelected({ leftId: leftItem.id, rightId: dmSelected.rightId });
+        };
+
+        const handleRightPress = (rightItem) => {
+          if (currentFeedback) return;
+          
+          // Play sound
+          if (rightItem && rightItem.text) {
+            try {
+              playTTS(rightItem.text);
+            } catch (error) {
+              console.log('TTS Error:', error);
+            }
+          }
+          
+          if (dmSelected.leftId) {
+            const newPairs = dmPairs.filter(p => p.rightId !== rightItem.id && p.leftId !== dmSelected.leftId);
+            const newPair = { leftId: dmSelected.leftId, rightId: rightItem.id };
+            const updated = [...newPairs, newPair];
+            setDmPairs(updated);
+            setCurrentAnswer(updated);
+            setDmSelected({ leftId: null, rightId: null });
+          } else {
+            setDmSelected({ leftId: null, rightId: rightItem.id });
+          }
+        };
+        
         return (
           <View style={styles.questionContainer}>
             <Text style={styles.instruction}>{question.instruction}</Text>
@@ -1377,46 +1417,6 @@ const ConsonantStage1Game = ({ navigation, route }) => {
             )}
           </View>
         );
-
-      // Helper functions for DRAG_MATCH
-      const handleLeftPress = (leftItem) => {
-        if (currentFeedback) return;
-        
-        // Play sound
-        if (leftItem && leftItem.text) {
-          try {
-            playTTS(leftItem.text);
-          } catch (error) {
-            console.log('TTS Error:', error);
-          }
-        }
-        
-        setDmSelected({ leftId: leftItem.id, rightId: dmSelected.rightId });
-      };
-
-      const handleRightPress = (rightItem) => {
-        if (currentFeedback) return;
-        
-        // Play sound
-        if (rightItem && rightItem.text) {
-          try {
-            playTTS(rightItem.text);
-          } catch (error) {
-            console.log('TTS Error:', error);
-          }
-        }
-        
-        if (dmSelected.leftId) {
-          const newPairs = dmPairs.filter(p => p.rightId !== rightItem.id && p.leftId !== dmSelected.leftId);
-          const newPair = { leftId: dmSelected.leftId, rightId: rightItem.id };
-          const updated = [...newPairs, newPair];
-          setDmPairs(updated);
-          setCurrentAnswer(updated);
-          setDmSelected({ leftId: null, rightId: null });
-        } else {
-          setDmSelected({ leftId: null, rightId: rightItem.id });
-        }
-      };
       
       case QUESTION_TYPES.FILL_BLANK:
         console.debug(`[Q${currentIndex + 1}/${questions.length}] FILL_BLANK`, { questionId: question.id, correctText: question.correctText });
