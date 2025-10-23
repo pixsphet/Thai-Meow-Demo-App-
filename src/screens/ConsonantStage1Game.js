@@ -1685,6 +1685,32 @@ const ConsonantStage1Game = ({ navigation, route }) => {
             <Text style={styles.startTitle}>พยัญชนะ ก-ฮ</Text>
             <Text style={styles.startSubtitle}>เรียนรู้พยัญชนะไทยพื้นฐาน</Text>
           </View>
+
+          {/* Player Stats Display */}
+          <View style={styles.playerStatsContainer}>
+            <View style={styles.statsGrid}>
+              {/* Level */}
+              <View style={styles.statsGridItem}>
+                <Text style={styles.statsGridLabel}>Level</Text>
+                <Text style={styles.statsGridValue}>{stats?.level || 1}</Text>
+              </View>
+              {/* Total XP */}
+              <View style={styles.statsGridItem}>
+                <Text style={styles.statsGridLabel}>XP</Text>
+                <Text style={styles.statsGridValue}>{stats?.xp || 0}</Text>
+              </View>
+              {/* Diamonds */}
+              <View style={styles.statsGridItem}>
+                <Text style={styles.statsGridLabel}>💎</Text>
+                <Text style={styles.statsGridValue}>{stats?.diamonds || 0}</Text>
+              </View>
+              {/* Hearts */}
+              <View style={styles.statsGridItem}>
+                <Text style={styles.statsGridLabel}>❤️</Text>
+                <Text style={styles.statsGridValue}>{stats?.hearts || 5}</Text>
+              </View>
+            </View>
+          </View>
           
           {resumeData && (
             <TouchableOpacity style={styles.resumeButton} onPress={resumeGame} activeOpacity={0.9}>
@@ -2360,6 +2386,35 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: COLORS.dark,
+  },
+  playerStatsContainer: {
+    marginBottom: 20,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    backgroundColor: COLORS.white,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  statsGridItem: {
+    alignItems: 'center',
+  },
+  statsGridLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.dark,
+  },
+  statsGridValue: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.primary,
   },
 });
 
