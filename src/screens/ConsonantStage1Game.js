@@ -1460,7 +1460,11 @@ const ConsonantStage1Game = ({ navigation, route }) => {
                     onPress={() => handleAnswerSelect(choice)}
                   >
                     <Text style={styles.aobLetter}>{choice.letter}</Text>
-                    <Text style={styles.aobText}>{choice.text}</Text>
+                    <Text style={styles.aobText}>
+                      {choice.thai}
+                      {'\n'}
+                      {choice.roman}
+                    </Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -1706,7 +1710,11 @@ const ConsonantStage1Game = ({ navigation, route }) => {
                         }}
                       >
                         <Text style={styles.aobLetter}>{choice.letter}</Text>
-                        <Text style={styles.aobText}>{choice.text}</Text>
+                        <Text style={styles.aobText}>
+                          {choice.thai}
+                          {'\n'}
+                          {choice.roman}
+                        </Text>
                       </TouchableOpacity>
                     ))}
                   </View>
