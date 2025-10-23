@@ -370,13 +370,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
-    paddingRight: 50,
+    paddingRight: 45,
   },
   eyeButton: {
     position: 'absolute',
-    right: 16,
-    top: 50,
+    right: 12,
+    top: 38,
     padding: 8,
+    zIndex: 10,
   },
   errorText: {
     fontSize: 12,
