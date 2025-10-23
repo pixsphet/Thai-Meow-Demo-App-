@@ -408,19 +408,6 @@ const ProfileScreen = ({ navigation }) => {
                 ) : null}
               </View>
 
-              <TouchableOpacity
-                style={[
-                  styles.settingsIconButton,
-                  {
-                    backgroundColor: theme.primary + '15',
-                    borderColor: theme.primary + '30',
-                  }
-                ]}
-                onPress={() => navigation.navigate("Settings")}
-                activeOpacity={0.7}
-              >
-                <MaterialCommunityIcons name="cog" size={20} color={theme.primary} />
-              </TouchableOpacity>
             </View>
 
             <View style={styles.actionButtonsRow}>
@@ -441,21 +428,6 @@ const ProfileScreen = ({ navigation }) => {
               >
                 <MaterialCommunityIcons name="pencil" size={16} color={theme.white} />
                 <Text style={[styles.editButtonText, { color: theme.white }]}>แก้ไข</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  styles.settingsButton,
-                  {
-                    backgroundColor: theme.primary + '15',
-                    borderColor: theme.primary + '40',
-                  }
-                ]}
-                onPress={() => navigation.navigate("Settings")}
-                activeOpacity={0.8}
-              >
-                <MaterialCommunityIcons name="cog" size={16} color={theme.primary} />
-                <Text style={[styles.settingsButtonText, { color: theme.primary }]}>ตั้งค่า</Text>
               </TouchableOpacity>
             </View>
 
@@ -995,7 +967,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 12,
     gap: 8,
-    flex: 1,
+    width: '100%',
   },
   editButtonText: {
     fontSize: 14,
