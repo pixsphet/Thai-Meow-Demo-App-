@@ -1118,21 +1118,21 @@ const ConsonantStage1Game = ({ navigation, route }) => {
                     key={choice.id}
                     style={[
                       styles.choiceButton,
-                      currentAnswer === choice.text && styles.choiceSelected,
+                      currentAnswer === choice.thai && styles.choiceSelected,
                     ]}
-                  onPress={() => handleAnswerSelect(choice.text, choice.speakText)}
+                    onPress={() => handleAnswerSelect(choice.thai, choice.speakText)}
                   >
-                  <Text
-                    style={[
-                      styles.choiceText,
-                      isThaiText(choice.text) && { fontSize: 26, fontWeight: '900' }
-                    ]}
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
-                    minimumFontScale={0.7}
-                  >
-                    {choice.text}
-                  </Text>
+                    <Text
+                      style={[
+                        styles.choiceText,
+                        isThaiText(choice.text) && { fontSize: 26, fontWeight: '900' }
+                      ]}
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.7}
+                    >
+                      {choice.text}
+                    </Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -1168,18 +1168,18 @@ const ConsonantStage1Game = ({ navigation, route }) => {
                     key={choice.id}
                     style={[
                       styles.choiceButton,
-                      currentAnswer === choice.text && styles.choiceSelected,
+                      currentAnswer === choice.thai && styles.choiceSelected,
                     ]}
-                  onPress={() => handleAnswerSelect(choice.text, choice.speakText)}
+                    onPress={() => handleAnswerSelect(choice.thai, choice.speakText)}
                   >
-                  <Text
-                    style={[
-                      styles.choiceText,
-                      isThaiText(choice.text) && { fontSize: 26, fontWeight: '900' }
-                    ]}
-                  >
-                    {choice.text}
-                  </Text>
+                    <Text
+                      style={[
+                        styles.choiceText,
+                        isThaiText(choice.text) && { fontSize: 26, fontWeight: '900' }
+                      ]}
+                    >
+                      {choice.text}
+                    </Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -1306,9 +1306,9 @@ const ConsonantStage1Game = ({ navigation, route }) => {
                     key={choice.id}
                     style={[
                       styles.choiceButton,
-                      currentAnswer === choice.text && styles.choiceSelected,
+                      currentAnswer === choice.thai && styles.choiceSelected,
                     ]}
-                    onPress={() => handleAnswerSelect(choice.text)}
+                    onPress={() => handleAnswerSelect(choice.thai, choice.speakText)}
                   >
                     <Text style={styles.choiceText}>{choice.text}</Text>
                   </TouchableOpacity>
@@ -1614,10 +1614,10 @@ const ConsonantStage1Game = ({ navigation, route }) => {
                         key={choice.id}
                         style={[
                           styles.choiceButton,
-                          currentAnswer === choice.text && styles.choiceSelected,
+                          currentAnswer === choice.thai && styles.choiceSelected,
                         ]}
                         onPress={() => {
-                          setCurrentAnswer(choice.text);
+                          setCurrentAnswer(choice.thai);
                           const isCorrect = choice.isCorrect;
                           setCurrentFeedback(isCorrect ? 'correct' : 'wrong');
                           setTimeout(() => {
@@ -1650,10 +1650,10 @@ const ConsonantStage1Game = ({ navigation, route }) => {
                         key={choice.id}
                         style={[
                           styles.choiceButton,
-                          currentAnswer === choice.text && styles.choiceSelected,
+                          currentAnswer === choice.thai && styles.choiceSelected,
                         ]}
                         onPress={() => {
-                          setCurrentAnswer(choice.text);
+                          setCurrentAnswer(choice.thai);
                           const isCorrect = choice.isCorrect;
                           setCurrentFeedback(isCorrect ? 'correct' : 'wrong');
                           setTimeout(() => {
