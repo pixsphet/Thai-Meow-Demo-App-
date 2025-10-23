@@ -394,9 +394,20 @@ const ProfileScreen = ({ navigation }) => {
                 />
                 <TouchableOpacity
                   onPress={() => navigation.navigate("EditProfile")}
-                  style={[styles.avatarEdit, { backgroundColor: theme.primary }]}
+                  style={[
+                    styles.avatarEdit,
+                    {
+                      backgroundColor: theme.primary,
+                      shadowColor: theme.primary,
+                      shadowOffset: { width: 0, height: 6 },
+                      shadowOpacity: 0.4,
+                      shadowRadius: 12,
+                      elevation: 8,
+                    }
+                  ]}
+                  activeOpacity={0.8}
                 >
-                  <MaterialCommunityIcons name="pencil" size={16} color={theme.white} />
+                  <MaterialCommunityIcons name="pencil" size={18} color={theme.white} />
                 </TouchableOpacity>
               </View>
 
@@ -644,13 +655,15 @@ const styles = StyleSheet.create({
   },
   avatarEdit: {
     position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    bottom: -5,
+    right: -5,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
   },
   heroInfo: {
     flex: 1,
