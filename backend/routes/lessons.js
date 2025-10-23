@@ -66,6 +66,91 @@ const findLessonDocument = async (lessonId) => {
   return Lesson.findOne({ $or: query }).sort({ createdAt: 1 });
 };
 
+// ⭐ UNLOCK SYSTEM ROUTES (MUST BE BEFORE /level/:level)
+
+// GET /api/lessons/unlocked/:userId - Get unlocked levels for user
+router.get('/unlocked/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const User = require('../models/User');
+    
+    let user;
+    if (userId === 'demo') {
+      user = { unlockedLevels: ['level1'] };
+    } else {
+      user = await User.findById(userId).select('unlockedLevels');
+    }
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: {
+        unlockedLevels: user.unlockedLevels || ['level1'],
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching unlocked levels:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch unlocked levels',
+      error: error.message,
+    });
+  }
+});
+
+// POST /api/lessons/check-unlock/:userId/:levelId - Check if next level should unlock
+router.post('/check-unlock/:userId/:levelId', async (req, res) => {
+  try {
+    const { userId, levelId } = req.params;
+    const { accuracy, score } = req.body;
+    const User = require('../models/User');
+    
+    // Parse level number from levelId (e.g., 'level2' => 2)
+    const currentLevelNum = parseInt(levelId.replace('level', ''));
+    const nextLevelId = `level${currentLevelNum + 1}`;
+    
+    // Check if accuracy >= 70%
+    const shouldUnlock = accuracy >= 70;
+    
+    if (shouldUnlock && userId !== 'demo') {
+      // Update user's unlockedLevels in DB
+      await User.findByIdAndUpdate(
+        userId,
+        {
+          $addToSet: { unlockedLevels: nextLevelId }
+        },
+        { new: true }
+      );
+      
+      console.log(`✅ Level ${nextLevelId} unlocked for user ${userId} (accuracy: ${accuracy}%)`);
+    }
+    
+    res.json({
+      success: true,
+      data: {
+        currentLevel: levelId,
+        nextLevel: nextLevelId,
+        accuracy: accuracy,
+        shouldUnlock: shouldUnlock,
+        message: shouldUnlock ? `Congrats! Level ${nextLevelId} unlocked!` : `Need ≥70% to unlock (got ${accuracy}%)`,
+      },
+    });
+  } catch (error) {
+    console.error('Error checking unlock:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to check unlock',
+      error: error.message,
+    });
+  }
+});
+
 // GET /api/lessons/level/:level - fetch lessons by level
 router.get('/level/:level', async (req, res) => {
   try {
@@ -218,91 +303,6 @@ router.put('/:id/progress', auth, async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'ไม่สามารถอัปเดตความคืบหน้าได้',
-    });
-  }
-});
-
-// ⭐ UNLOCK SYSTEM ROUTES (must be before generic :id route)
-
-// GET /api/lessons/unlocked/:userId - Get unlocked levels for user
-router.get('/unlocked/:userId', async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const User = require('../models/User');
-    
-    let user;
-    if (userId === 'demo') {
-      user = { unlockedLevels: ['level1'] };
-    } else {
-      user = await User.findById(userId).select('unlockedLevels');
-    }
-    
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found',
-      });
-    }
-    
-    res.json({
-      success: true,
-      data: {
-        unlockedLevels: user.unlockedLevels || ['level1'],
-      },
-    });
-  } catch (error) {
-    console.error('Error fetching unlocked levels:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch unlocked levels',
-      error: error.message,
-    });
-  }
-});
-
-// POST /api/lessons/check-unlock/:userId/:levelId - Check if next level should unlock
-router.post('/check-unlock/:userId/:levelId', async (req, res) => {
-  try {
-    const { userId, levelId } = req.params;
-    const { accuracy, score } = req.body;
-    const User = require('../models/User');
-    
-    // Parse level number from levelId (e.g., 'level2' => 2)
-    const currentLevelNum = parseInt(levelId.replace('level', ''));
-    const nextLevelId = `level${currentLevelNum + 1}`;
-    
-    // Check if accuracy >= 70%
-    const shouldUnlock = accuracy >= 70;
-    
-    if (shouldUnlock && userId !== 'demo') {
-      // Update user's unlockedLevels in DB
-      await User.findByIdAndUpdate(
-        userId,
-        {
-          $addToSet: { unlockedLevels: nextLevelId }
-        },
-        { new: true }
-      );
-      
-      console.log(`✅ Level ${nextLevelId} unlocked for user ${userId} (accuracy: ${accuracy}%)`);
-    }
-    
-    res.json({
-      success: true,
-      data: {
-        currentLevel: levelId,
-        nextLevel: nextLevelId,
-        accuracy: accuracy,
-        shouldUnlock: shouldUnlock,
-        message: shouldUnlock ? `Congrats! Level ${nextLevelId} unlocked!` : `Need ≥70% to unlock (got ${accuracy}%)`,
-      },
-    });
-  } catch (error) {
-    console.error('Error checking unlock:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to check unlock',
-      error: error.message,
     });
   }
 });
