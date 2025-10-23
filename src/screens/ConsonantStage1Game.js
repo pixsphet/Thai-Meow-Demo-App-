@@ -151,9 +151,9 @@ const toRenderedSyllable = ({ initial, vowel, tone, final }) => {
 };
 
 // Question Generators
-const makeListenChoose = (word, pool) => {
+const makeListenChoose = (word, pool, usedChars = new Set()) => {
   const wrongChoices = pool
-    .filter(w => w.char !== word.char)
+    .filter(w => w.char !== word.char && !usedChars.has(w.char))
     .slice(0, 3);
   const choices = shuffle([word, ...wrongChoices]).slice(0, 4);
   
@@ -179,9 +179,9 @@ const makeListenChoose = (word, pool) => {
   };
 };
 
-const makePictureMatch = (word, pool) => {
+const makePictureMatch = (word, pool, usedChars = new Set()) => {
   const wrongChoices = pool
-    .filter(w => w.char !== word.char)
+    .filter(w => w.char !== word.char && !usedChars.has(w.char))
     .slice(0, 3);
   const choices = shuffle([word, ...wrongChoices]).slice(0, 4);
   
@@ -206,8 +206,8 @@ const makePictureMatch = (word, pool) => {
   };
 };
 
-const makeDragMatch = (word, pool) => {
-  const otherWords = pool.filter(w => w.char !== word.char).slice(0, 3);
+const makeDragMatch = (word, pool, usedChars = new Set()) => {
+  const otherWords = pool.filter(w => w.char !== word.char && !usedChars.has(w.char)).slice(0, 3);
   const allWords = shuffle([word, ...otherWords]);
   
   const leftItems = allWords.map((w, i) => ({
@@ -238,24 +238,17 @@ const makeDragMatch = (word, pool) => {
   };
 };
 
-const makeFillBlank = (word, pool) => {
-  const templates = [
-    `ตัวอักษร ____ อ่านว่า "${word.name}"`,
-    `____ (${word.roman}) คือพยัญชนะตัวใด`,
-    `พยัญชนะที่อ่านว่า "${word.name}" คือ ____`,
-  ];
-  
-  const template = pick(templates);
+const makeFillBlank = (word, pool, usedChars = new Set()) => {
   const wrongChoices = pool
-    .filter(w => w.char !== word.char)
-    .slice(0, 3); // Get 3 wrong choices (to make 4 total with correct)
-  const choices = shuffle([word, ...wrongChoices]).slice(0, 4); // 4 choices total
+    .filter(w => w.char !== word.char && !usedChars.has(w.char))
+    .slice(0, 3);
+  const choices = shuffle([word, ...wrongChoices]).slice(0, 4);
   
   return {
     id: `fb_${word.char}_${uid()}`,
     type: QUESTION_TYPES.FILL_BLANK,
     instruction: 'เติมคำในช่องว่าง',
-    questionText: template,
+    questionText: `ตัวอักษร ____ อ่านว่า "${word.name}"`,
     correctText: word.char,
     // Rewards for this question
     rewardXP: 15,      // XP for correct answer
@@ -370,10 +363,10 @@ const makeOrderTiles = (word) => {
 };
 
 // A or B: Quick listen and choose between two
-const makeAorB = (word, pool = []) => {
-  const wrongChoice = pool.find(w => w.char !== word.char);
-  const choiceA = Math.random() > 0.5 ? word : (wrongChoice || word);
-  const choiceB = Math.random() > 0.5 ? wrongChoice : word;
+const makeAorB = (word, pool = [], usedChars = new Set()) => {
+  const wrongOptions = pool.filter(w => w.char !== word.char && !usedChars.has(w.char));
+  const choiceB = pick(wrongOptions);
+  const choiceA = Math.random() > 0.5 ? word : (wrongOptions || word);
   
   return {
     id: `aob_${word.char}_${uid()}`,
@@ -450,17 +443,17 @@ const makeMemoryMatch = (wordList) => {
 };
 
 // Challenge: mini game combining multiple quick question types
-const makeChallenge = (word, pool = []) => {
+const makeChallenge = (word, pool = [], usedChars = new Set()) => {
   const subQuestions = [];
   
   // Add a quick A/B question
-  subQuestions.push(makeAorB(word, pool));
+  subQuestions.push(makeAorB(word, pool, usedChars));
   
   // Add a LISTEN_CHOOSE
-  subQuestions.push(makeListenChoose(word, pool));
+  subQuestions.push(makeListenChoose(word, pool, usedChars));
   
   // Add a FILL_BLANK
-  subQuestions.push(makeFillBlank(word, pool));
+  subQuestions.push(makeFillBlank(word, pool, usedChars));
   
   return {
     id: `ch_${word.char}_${uid()}`,
@@ -486,7 +479,7 @@ const generateConsonantQuestions = (pool) => {
     if (available.length === 0) break;
     const word = pick(available);
     usedChars.add(word.char);
-    questions.push(makeListenChoose(word, pool));
+    questions.push(makeListenChoose(word, pool, usedChars));
   }
   
   // PICTURE_MATCH × 3
@@ -495,7 +488,7 @@ const generateConsonantQuestions = (pool) => {
     if (available.length === 0) break;
     const word = pick(available);
     usedChars.add(word.char);
-    questions.push(makePictureMatch(word, pool));
+    questions.push(makePictureMatch(word, pool, usedChars));
   }
   
   // DRAG_MATCH × 2
@@ -504,7 +497,7 @@ const generateConsonantQuestions = (pool) => {
     if (available.length === 0) break;
     const word = pick(available);
     usedChars.add(word.char);
-    questions.push(makeDragMatch(word, pool));
+    questions.push(makeDragMatch(word, pool, usedChars));
   }
   
   // FILL_BLANK × 2
@@ -522,7 +515,7 @@ const generateConsonantQuestions = (pool) => {
     if (available.length === 0) break;
     const word = pick(available);
     usedChars.add(word.char);
-    questions.push(makeAorB(word, pool));
+    questions.push(makeAorB(word, pool, usedChars));
   }
   
   // SYLLABLE_BUILDER × 1
@@ -554,7 +547,7 @@ const generateConsonantQuestions = (pool) => {
   if (available6.length > 0) {
     const word = pick(available6);
     usedChars.add(word.char);
-    questions.push(makeChallenge(word, pool));
+    questions.push(makeChallenge(word, pool, usedChars));
   }
   
   return shuffle(questions);
