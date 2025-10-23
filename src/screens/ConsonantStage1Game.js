@@ -1898,68 +1898,93 @@ const ConsonantStage1Game = ({ navigation, route }) => {
         style={styles.bg}
       />
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={async () => {
-            await autosave();
-            navigation.goBack();
-          }}
-        >
-          <FontAwesome name="times" size={24} color={COLORS.primary} />
-        </TouchableOpacity>
-        
-        <View style={styles.progressContainer}>
-          <View style={styles.progressBar}>
-            <LinearGradient
-              colors={[COLORS.primary, '#FFA24D', '#FFD700']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={[
-                styles.progressFill, 
-                { width: questions.length > 0 ? `${((currentIndex + 1) / questions.length) * 100}%` : '0%' }
-              ]}
-            />
-          </View>
-          <Text style={styles.progressText}>
-            {questions.length > 0 ? `${currentIndex + 1} / ${questions.length}` : '0 / 0'}
-          </Text>
+      <LinearGradient
+        colors={['#FF8000', '#FFA24D', '#FFD700']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.headerGradient}
+      >
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <FontAwesome name="times" size={26} color={COLORS.white} />
+          </TouchableOpacity>
           
-          {/* Stats Row */}
-          <View style={styles.progressStats}>
-            <View style={styles.progressStatItem}>
-              <LottieView
-                source={require('../assets/animations/Star.json')}
-                autoPlay
-                loop
-                style={styles.progressStatAnimation}
+          <View style={styles.progressContainer}>
+            <View style={styles.progressBar}>
+              <LinearGradient
+                colors={['#58cc02', '#7FD14F']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={[styles.progressFill, { width: `${progress}%` }]}
               />
-              <Text style={styles.progressStatText}>{xpEarned} XP</Text>
             </View>
-            <View style={styles.progressStatItem}>
-              <LottieView
-                source={require('../assets/animations/Diamond.json')}
-                autoPlay
-                loop
-                style={styles.progressStatAnimation}
-              />
-              <Text style={styles.progressStatText}>{diamondsEarned}</Text>
-            </View>
-            <View style={styles.progressStatItem}>
-              <FontAwesome name="bullseye" size={12} color={COLORS.primary} />
-              <Text style={styles.progressStatText}>{Math.min(100, Math.max(0, Math.round((score / Math.max(1, currentIndex + 1)) * 100)))}%</Text>
+            <View style={styles.headerMetaRow}>
+              <Text style={styles.progressText}>{currentIndex + 1} / {questions.length}</Text>
+              <View style={styles.typePill}><Text style={styles.typePillText}>{getTypeLabel(currentQuestion.type)}</Text></View>
+              <View style={styles.heartsDisplayContainer}>
+                <FontAwesome name="heart" size={16} color="#ff4b4b" />
+                <Text style={styles.heartsDisplay}>{hearts}</Text>
+              </View>
             </View>
           </View>
         </View>
-
-        <View style={styles.rightHeaderContainer}>
-          <View style={styles.heartsContainer}>
-            <FontAwesome name="heart" size={20} color="#ff4b4b" />
-            <Text style={styles.heartsText}>{hearts}</Text>
+      </LinearGradient>
+      
+      {/* Stats Row - Enhanced */}
+      <View style={styles.statsRow}>
+        <View style={styles.statBadgeEnhanced}>
+          <LottieView
+            source={require('../assets/animations/Star.json')}
+            autoPlay
+            loop
+            style={styles.starAnimation}
+          />
+          <View style={styles.statTextContainer}>
+            <Text style={styles.statLabel}>XP</Text>
+            <Text style={styles.statValue}>{xpEarned}</Text>
           </View>
-          <View style={styles.streakContainer}>
-            <FontAwesome name="fire" size={16} color="#FF8C00" />
-            <Text style={styles.streakText}>{streak}</Text>
+        </View>
+        
+        <View style={styles.statDivider} />
+        
+        <View style={styles.statBadgeEnhanced}>
+          <LottieView
+            source={require('../assets/animations/Diamond.json')}
+            autoPlay
+            loop
+            style={styles.diamondAnimation}
+          />
+          <View style={styles.statTextContainer}>
+            <Text style={styles.statLabel}>Diamonds</Text>
+            <Text style={styles.statValue}>+{diamondsEarned}</Text>
+          </View>
+        </View>
+        
+        <View style={styles.statDivider} />
+        
+        <View style={styles.statBadgeEnhanced}>
+          <FontAwesome name="bullseye" size={18} color={COLORS.primary} />
+          <View style={styles.statTextContainer}>
+            <Text style={styles.statLabel}>Accuracy</Text>
+            <Text style={styles.statValue}>{Math.min(100, Math.max(0, Math.round((score / Math.max(1, currentIndex)) * 100)))}%</Text>
+          </View>
+        </View>
+        
+        <View style={styles.statDivider} />
+        
+        <View style={styles.statBadgeEnhanced}>
+          <LottieView
+            source={require('../assets/animations/Streak-Fire1.json')}
+            autoPlay
+            loop
+            style={styles.streakAnimation}
+          />
+          <View style={styles.statTextContainer}>
+            <Text style={styles.statLabel}>Streak</Text>
+            <Text style={styles.statValue}>{streak}</Text>
           </View>
         </View>
       </View>
@@ -1969,46 +1994,63 @@ const ConsonantStage1Game = ({ navigation, route }) => {
         {renderQuestionComponent()}
       </ScrollView>
       
-      {/* Check Button */}
-      {currentFeedback !== null ? (
-        <View style={[styles.feedbackBar, { backgroundColor: currentFeedback === 'correct' ? '#58cc02' : '#ff4b4b' }]}>
-          <Text style={styles.feedbackText}>
-            {currentFeedback === 'correct' ? 'ถูกต้อง!' : 'ผิด!'}
-          </Text>
-          <TouchableOpacity style={styles.continueButton} onPress={() => {
-            setCurrentFeedback(null);
-            if (hearts === 0) {
-              const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
-              finishLesson(elapsed);
-            } else {
-              nextQuestion();
-            }
-          }}>
-            <Text style={styles.continueButtonText}>CONTINUE</Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
+      {/* Check Button - Enhanced */}
+      <View style={styles.checkContainerEnhanced}>
+        {currentFeedback && (
+          <View style={[
+            styles.feedbackBadgeEnhanced,
+            currentFeedback === 'correct' ? styles.feedbackCorrectEnhanced : styles.feedbackWrongEnhanced
+          ]}>
+            <FontAwesome 
+              name={currentFeedback === 'correct' ? 'check-circle' : 'times-circle'} 
+              size={24} 
+              color={currentFeedback === 'correct' ? '#58cc02' : '#ff4b4b'}
+              style={{ marginRight: 8 }}
+            />
+            <Text style={styles.feedbackTextEnhanced}>
+              {currentFeedback === 'correct' ? 'ถูกต้อง! ยอดเยี่ยม' : 'พยายามอีกครั้ง'}
+            </Text>
+          </View>
+        )}
         <TouchableOpacity
           style={[
-            styles.checkButton,
-            currentAnswer === null && styles.checkButtonDisabled,
+            styles.checkButtonEnhanced,
+            currentAnswer === null && styles.checkButtonDisabledEnhanced,
           ]}
-          onPress={handleCheckAnswer}
+          onPress={() => {
+            if (currentFeedback !== null) {
+              setCurrentFeedback(null);
+              if (hearts === 0) {
+                const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+                finishLesson(elapsed);
+              } else {
+                nextQuestion();
+              }
+            } else {
+              handleCheckAnswer();
+            }
+          }}
           disabled={currentAnswer === null}
-          activeOpacity={0.9}
+          activeOpacity={0.85}
         >
           <LinearGradient
-            colors={[COLORS.primary, '#FFA24D']}
+            colors={currentAnswer === null ? ['#ddd', '#ccc'] : [COLORS.primary, '#FFA24D']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={styles.checkGradient}
+            style={styles.checkGradientEnhanced}
           >
-            <Text style={styles.checkButtonText}>
-              CHECK
+            <FontAwesome 
+              name={currentFeedback !== null ? 'arrow-right' : 'check'} 
+              size={20} 
+              color={COLORS.white}
+              style={{ marginRight: 8 }}
+            />
+            <Text style={styles.checkButtonTextEnhanced}>
+              {currentFeedback !== null ? (hearts === 0 ? 'จบเกม' : 'ต่อไป') : 'CHECK'}
             </Text>
           </LinearGradient>
         </TouchableOpacity>
-      )}
+      </View>
       <FireStreakAlert
         visible={showFireStreakAlert}
         onClose={() => setShowFireStreakAlert(false)}
@@ -2112,9 +2154,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 15,
-    backgroundColor: 'rgba(255,255,255,0.92)',
+    backgroundColor: 'transparent',
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.lightGray,
+    borderBottomColor: 'rgba(255,255,255,0.2)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
@@ -2123,6 +2165,9 @@ const styles = StyleSheet.create({
   },
   backButton: {
     marginRight: 15,
+  },
+  headerGradient: {
+    paddingTop: 15,
   },
   progressContainer: {
     flex: 1,
@@ -2143,7 +2188,7 @@ const styles = StyleSheet.create({
   progressText: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.dark,
+    color: COLORS.white,
     marginTop: 5,
   },
   headerMetaRow: {
@@ -2154,17 +2199,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between'
   },
   typePill: {
-    backgroundColor: COLORS.cream,
+    backgroundColor: 'rgba(255,255,255,0.25)',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#FFE3CC',
+    borderColor: 'rgba(255,255,255,0.4)',
   },
   typePillText: {
     fontSize: 12,
     fontWeight: '700',
-    color: COLORS.primary,
+    color: COLORS.white,
   },
   statsRow: {
     flexDirection: 'row',
@@ -2640,64 +2685,112 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.dark,
   },
-  progressStats: {
+  statBadgeEnhanced: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
     alignItems: 'center',
-    marginTop: 10,
+    backgroundColor: COLORS.white,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#F2F2F2',
   },
-  progressStatItem: {
-    alignItems: 'center',
+  statTextContainer: {
+    marginLeft: 5,
   },
-  progressStatAnimation: {
-    width: 20,
-    height: 20,
-  },
-  progressStatText: {
+  statLabel: {
     fontSize: 14,
     fontWeight: '600',
     color: COLORS.dark,
-    marginTop: 5,
   },
-  heartsContainer: {
+  statValue: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.primary,
+  },
+  statDivider: {
+    width: 1,
+    height: '100%',
+    backgroundColor: COLORS.lightGray,
+    marginHorizontal: 10,
+  },
+  heartsDisplayContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 10,
   },
-  heartsText: {
+  heartsDisplay: {
     fontSize: 16,
     fontWeight: '600',
     color: COLORS.dark,
     marginLeft: 5,
   },
-  feedbackBar: {
-    padding: 10,
-    borderRadius: 10,
-    marginBottom: 10,
+  checkContainerEnhanced: {
+    padding: 20,
+    backgroundColor: COLORS.white,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.lightGray,
+  },
+  checkButtonEnhanced: {
+    backgroundColor: COLORS.primary,
+    paddingVertical: 16,
+    borderRadius: 28,
+    alignItems: 'center',
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 8,
+  },
+  checkGradientEnhanced: {
+    width: '100%',
+    paddingVertical: 16,
+    borderRadius: 28,
     alignItems: 'center',
   },
-  continueButton: {
-    backgroundColor: COLORS.primary,
-    paddingVertical: 10,
-    borderRadius: 10,
-    marginTop: 10,
+  checkButtonDisabledEnhanced: {
+    backgroundColor: COLORS.lightGray,
+    shadowOpacity: 0,
+    elevation: 0,
   },
-  continueButtonText: {
-    fontSize: 16,
+  checkButtonTextEnhanced: {
+    fontSize: 18,
     fontWeight: 'bold',
     color: COLORS.white,
+    letterSpacing: 0.5,
   },
-  rightHeaderContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginLeft: 20,
+  feedbackBadgeEnhanced: {
+    position: 'absolute',
+    top: -30, // Adjust as needed
+    left: '50%',
+    transform: [{ translateX: -50 }],
+    backgroundColor: COLORS.white,
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: COLORS.lightGray,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  streakContainer: {
-    marginLeft: 10,
+  feedbackCorrectEnhanced: {
+    borderColor: COLORS.success,
+    backgroundColor: 'rgba(88,204,2,0.15)',
   },
-  streakText: {
-    fontSize: 16,
-    fontWeight: '600',
+  feedbackWrongEnhanced: {
+    borderColor: COLORS.error,
+    backgroundColor: 'rgba(255,75,75,0.15)',
+  },
+  feedbackTextEnhanced: {
+    fontSize: 14,
+    fontWeight: '700',
     color: COLORS.dark,
   },
 });
