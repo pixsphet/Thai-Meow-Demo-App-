@@ -230,7 +230,8 @@ export const resetLessonProgress = async (lessonId) => {
   try {
     console.log(`🔄 Resetting progress for lesson ${lessonId}...`);
     
-    const key = `${STORAGE_KEYS.LESSON_PROGRESS}_${lessonId}`;
+    // Use same key pattern as autosaveKey
+    const key = `autosave:demo:${lessonId}`;
     await AsyncStorage.removeItem(key);
     
     console.log(`✅ Lesson ${lessonId} progress cleared`);
