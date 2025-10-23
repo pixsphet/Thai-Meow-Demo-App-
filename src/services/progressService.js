@@ -192,6 +192,55 @@ export const fetchUserProgress = async () => {
   }
 };
 
+/**
+ * Reset all lesson progress for fresh start
+ */
+export const resetAllLessonProgress = async () => {
+  try {
+    console.log('🔄 Resetting all lesson progress...');
+    
+    // Get all keys from AsyncStorage
+    const allKeys = await AsyncStorage.getAllKeys();
+    
+    // Find all progress keys (they contain 'progress')
+    const progressKeys = allKeys.filter(key => 
+      key.includes('progress') || 
+      key.includes('lesson') ||
+      key.includes('game_session') ||
+      key.includes('userStats')
+    );
+    
+    // Remove all progress keys
+    if (progressKeys.length > 0) {
+      await AsyncStorage.multiRemove(progressKeys);
+      console.log(`✅ Cleared ${progressKeys.length} progress entries`);
+    }
+    
+    return { success: true, cleared: progressKeys.length };
+  } catch (error) {
+    console.error('❌ Error resetting all progress:', error);
+    throw error;
+  }
+};
+
+/**
+ * Reset specific lesson progress
+ */
+export const resetLessonProgress = async (lessonId) => {
+  try {
+    console.log(`🔄 Resetting progress for lesson ${lessonId}...`);
+    
+    const key = `${STORAGE_KEYS.LESSON_PROGRESS}_${lessonId}`;
+    await AsyncStorage.removeItem(key);
+    
+    console.log(`✅ Lesson ${lessonId} progress cleared`);
+    return { success: true };
+  } catch (error) {
+    console.error(`❌ Error resetting lesson ${lessonId}:`, error);
+    throw error;
+  }
+};
+
 export default {
   getUserStats,
   postUserStats,

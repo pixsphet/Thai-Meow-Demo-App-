@@ -14,6 +14,7 @@ import {
 import { TouchableWithoutFeedback } from 'react-native'; 
 import { useNavigation } from '@react-navigation/native';
 import { useUnifiedStats } from '../contexts/UnifiedStatsContext';
+import LottieView from 'lottie-react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -48,7 +49,6 @@ const GemShopScreen = () => {
       id: 1,
       hearts: 5,
       gemsNeeded: 10,
-      icon: '❤️',
       description: 'แพ็คเล็ก',
       color: '#FF6B6B',
     },
@@ -56,7 +56,6 @@ const GemShopScreen = () => {
       id: 2,
       hearts: 15,
       gemsNeeded: 25,
-      icon: '💗',
       description: 'แพ็คกลาง',
       color: '#FF8E8E',
     },
@@ -64,7 +63,6 @@ const GemShopScreen = () => {
       id: 3,
       hearts: 35,
       gemsNeeded: 50,
-      icon: '💖',
       description: 'แพ็คใหญ่',
       color: '#FFB3BA',
       bestValue: true,
@@ -73,7 +71,6 @@ const GemShopScreen = () => {
       id: 4,
       hearts: 80,
       gemsNeeded: 100,
-      icon: '💕',
       description: 'แพ็คสุดคุ้ม',
       color: '#FFCCCB',
       bestValue: false,
@@ -120,7 +117,25 @@ const GemShopScreen = () => {
             <Text style={styles.closeText}>✕</Text>
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>💖 Heart Shop 💖</Text>
+        <View style={styles.headerTitleContainer}>
+          <View style={styles.headerHeartIcon}>
+            <LottieView 
+              source={require('../assets/animations/Heart.json')} 
+              autoPlay 
+              loop 
+              style={styles.headerHeartAnimation}
+            />
+          </View>
+          <Text style={styles.headerTitle}>Heart Shop</Text>
+          <View style={styles.headerHeartIcon}>
+            <LottieView 
+              source={require('../assets/animations/Heart.json')} 
+              autoPlay 
+              loop 
+              style={styles.headerHeartAnimation}
+            />
+          </View>
+        </View>
         
         <View style={styles.statsRow}>
           <Animated.View 
@@ -130,7 +145,14 @@ const GemShopScreen = () => {
               { transform: [{ scale: scaleAnim }] }
             ]}
           >
-            <Text style={styles.statEmoji}>💎</Text>
+            <View style={styles.statAnimationContainer}>
+              <LottieView 
+                source={require('../assets/animations/Diamond.json')} 
+                autoPlay 
+                loop 
+                style={styles.statAnimation}
+              />
+            </View>
             <View>
               <Text style={styles.statLabel}>เพชร</Text>
               <Text style={styles.statValue}>{statsLoading ? '...' : diamonds}</Text>
@@ -144,7 +166,14 @@ const GemShopScreen = () => {
               { transform: [{ scale: scaleAnim }] }
             ]}
           >
-            <Text style={styles.statEmoji}>❤️</Text>
+            <View style={styles.statAnimationContainer}>
+              <LottieView 
+                source={require('../assets/animations/Heart.json')} 
+                autoPlay 
+                loop 
+                style={styles.statAnimation}
+              />
+            </View>
             <View>
               <Text style={styles.statLabel}>หัวใจ</Text>
               <Text style={styles.statValue}>{statsLoading ? '...' : hearts}</Text>
@@ -155,7 +184,15 @@ const GemShopScreen = () => {
 
       {/* Welcome Message */}
       <View style={styles.welcomeContainer}>
-        <Text style={styles.welcomeTitle}>🛍️ ร้านหัวใจ</Text>
+        <View style={styles.welcomeIconContainer}>
+          <LottieView 
+            source={require('../assets/animations/Heart.json')} 
+            autoPlay 
+            loop 
+            style={styles.welcomeIcon}
+          />
+        </View>
+        <Text style={styles.welcomeTitle}>ร้านหัวใจ</Text>
         <Text style={styles.welcomeSubtitle}>แลกเพชรเป็นหัวใจเพื่อเล่นเกมต่อได้!</Text>
       </View>
 
@@ -164,7 +201,7 @@ const GemShopScreen = () => {
         contentContainerStyle={styles.scrollContent}
       >
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>💝 เลือกแพ็คเกจหัวใจ</Text>
+          <Text style={styles.sectionTitle}>เลือกแพ็คเกจหัวใจ</Text>
           <View style={styles.heartPacksGrid}>
             {heartPacks.map((pack) => (
               <TouchableOpacity
@@ -186,21 +223,40 @@ const GemShopScreen = () => {
 
                 <View style={styles.heartCardContent}>
                   <View style={[styles.heartIconContainer, { backgroundColor: pack.color + '20' }]}>
-                    <Text style={styles.heartCardIcon}>{pack.icon}</Text>
+                    <LottieView 
+                      source={require('../assets/animations/Heart.json')} 
+                      autoPlay 
+                      loop 
+                      style={styles.heartCardLottie}
+                    />
                   </View>
                   
                   <View style={styles.heartCardInfo}>
                     <Text style={styles.heartCardTitle}>{pack.description}</Text>
                     <View style={styles.heartAmountContainer}>
                       {Array(Math.min(pack.hearts, 8)).fill(0).map((_, i) => (
-                        <Text key={i} style={[styles.heartIcon, { color: pack.color }]}>{pack.icon}</Text>
+                        <LottieView 
+                          key={i}
+                          source={require('../assets/animations/Heart.json')} 
+                          autoPlay 
+                          loop 
+                          style={[styles.heartIconSmall, { tintColor: pack.color }]}
+                        />
                       ))}
                       {pack.hearts > 8 && (
                         <Text style={styles.heartMore}>+{pack.hearts - 8}</Text>
                       )}
                     </View>
                     <Text style={styles.heartAmountText}>{pack.hearts} หัวใจ</Text>
-                    <Text style={styles.gemsPriceText}>💎 {pack.gemsNeeded} เม็ด</Text>
+                    <View style={styles.diamondPriceContainer}>
+                      <LottieView 
+                        source={require('../assets/animations/Diamond.json')} 
+                        autoPlay 
+                        loop 
+                        style={styles.diamondPriceIcon}
+                      />
+                      <Text style={styles.gemsPriceText}>{pack.gemsNeeded} เม็ด</Text>
+                    </View>
                   </View>
 
                   <View
@@ -221,7 +277,14 @@ const GemShopScreen = () => {
 
           {/* Tips Section */}
           <View style={styles.tipsCard}>
-            <Text style={styles.tipsIcon}>💡</Text>
+            <View style={styles.tipsIconContainer}>
+              <LottieView 
+                source={require('../assets/animations/Star.json')} 
+                autoPlay 
+                loop 
+                style={styles.tipsLottieIcon}
+              />
+            </View>
             <Text style={styles.tipsTitle}>เคล็ดลับการเล่น</Text>
             <Text style={styles.tipsText}>
               • หัวใจใช้เล่นเกมเรียนภาษาไทย{'\n'}
@@ -299,6 +362,22 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 10,
     elevation: 8,
+  },
+  headerTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 55,
+  },
+  headerHeartIcon: {
+    width: 50,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerHeartAnimation: {
+    width: '100%',
+    height: '100%',
   },
   headerTitle: {
     fontSize: 28,
@@ -575,6 +654,10 @@ const styles = StyleSheet.create({
   heartCardIcon: {
     fontSize: 30,
   },
+  heartCardLottie: {
+    width: '100%',
+    height: '100%',
+  },
   heartCardInfo: {
     flex: 1,
   },
@@ -589,6 +672,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 5,
     flexWrap: 'wrap',
+  },
+  heartIconSmall: {
+    width: 20,
+    height: 20,
   },
   heartCardActive: {
     backgroundColor: '#fff5f8',
@@ -615,6 +702,16 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#7c3aed',
     marginTop: 3,
+  },
+  diamondPriceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 5,
+  },
+  diamondPriceIcon: {
+    width: 15,
+    height: 15,
+    marginRight: 5,
   },
   exchangeButton: {
     paddingVertical: 12,
@@ -808,6 +905,42 @@ closeText: {
   fontWeight: 'bold',
   marginTop: -1,
 },
+  statAnimationContainer: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  statAnimation: {
+    width: '100%',
+    height: '100%',
+  },
+  welcomeIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#FF6B6B',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  welcomeIcon: {
+    width: '100%',
+    height: '100%',
+  },
+  tipsIconContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#FF6B6B',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  tipsLottieIcon: {
+    width: '100%',
+    height: '100%',
+  },
 });
 
 export default GemShopScreen;

@@ -98,13 +98,16 @@ const userService = {
       return {
         success: response.data?.success !== false,
         data: response.data?.data,
-        message: response.data?.message
+        message: response.data?.message,
+        error: response.data?.message
       };
     } catch (error) {
       console.error('Error updating user profile:', error);
+      const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message;
       return {
         success: false,
-        error: error.response?.data?.message || error.message
+        error: errorMessage,
+        message: errorMessage
       };
     }
   },

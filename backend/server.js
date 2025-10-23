@@ -123,6 +123,7 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/progress', progressRoutes); // Legacy routes (no auth)
 app.use('/api/progress/user', auth, progressPerUserRoutes); // Per-user progress routes (with auth)
+app.use('/api/progress/user', progressPerUserRoutes); // Fallback without auth (userId from query or auth header)
 app.use('/api', playerRoutes);
 app.use('/api/vocab', vocabRoutes);
 app.use('/api/lessons', lessonsRoutes);

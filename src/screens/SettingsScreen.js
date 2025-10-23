@@ -12,10 +12,17 @@ import {
   UIManager,
   Linking,
   Animated,
+  Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import LottieView from 'lottie-react-native';
+
+import levelUnlockService from '../services/levelUnlockService';
+import { resetAllLessonProgress, resetLessonProgress } from '../services/progressService';
+import gameProgressService from '../services/gameProgressService';
 
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -125,19 +132,69 @@ const SettingsScreen = () => {
   const navigation = useNavigation();
   const { theme, isDarkMode, toggleTheme } = useTheme();
 
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [selectedLanguage, setSelectedLanguage] = useState('TH');
-  const [selectedLevel, setSelectedLevel] = useState('Beginner');
   const [contactExpanded, setContactExpanded] = useState(false);
+
+  // Create flattened theme object for easier access
+  const flatTheme = {
+    background: theme.colors?.background || '#fff',
+    card: theme.colors?.surface || '#fff',
+    text: theme.colors?.text || '#333',
+    textSecondary: theme.colors?.textSecondary || '#666',
+    primary: theme.colors?.primary || '#FF8C00',
+    border: theme.colors?.border || 'rgba(0,0,0,0.06)',
+  };
+
+  // Load settings from storage on mount
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const savedLanguage = await AsyncStorage.getItem('selectedLanguage');
+        if (savedLanguage) {
+          setSelectedLanguage(savedLanguage);
+        }
+
+        const savedTheme = await AsyncStorage.getItem('isDarkMode');
+        if (savedTheme !== null) {
+          // If theme doesn't match, toggle it
+          const savedIsDark = JSON.parse(savedTheme);
+          if (savedIsDark !== isDarkMode) {
+            // Note: toggleTheme should be called if needed
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load settings:', error);
+      }
+    };
+    loadSettings();
+  }, []);
+
+  // Handle language change with persistence
+  const handleLanguageChange = async (code) => {
+    setSelectedLanguage(code);
+    try {
+      await AsyncStorage.setItem('selectedLanguage', code);
+      console.log('Language changed to:', code);
+    } catch (error) {
+      console.error('Failed to save language:', error);
+    }
+  };
+
+  // Handle theme toggle with persistence
+  const handleThemeToggle = async () => {
+    toggleTheme();
+    try {
+      await AsyncStorage.setItem('isDarkMode', JSON.stringify(!isDarkMode));
+      console.log('Theme switched to:', !isDarkMode ? 'dark' : 'light');
+    } catch (error) {
+      console.error('Failed to save theme preference:', error);
+    }
+  };
 
   const languageOptions = useMemo(() => ([
     { code: 'TH', label: 'ไทย', flag: '🇹🇭' },
     { code: 'EN', label: 'English', flag: '🇺🇸' },
   ]), []);
-
-  const levelOptions = useMemo(() => (
-    ['Basic Consonants', 'Beginner', 'Intermediate', 'Advanced']
-  ), []);
 
   const contactActions = useMemo(() => ([
     { icon: 'phone', label: 'โทรหาเรา', action: () => Linking.openURL('tel:020000000') },
@@ -151,8 +208,106 @@ const SettingsScreen = () => {
     setContactExpanded(prev => !prev);
   };
 
+  // Reset handlers for each level
+  const handleResetBeginnerProgress = async () => {
+    Alert.alert(
+      'รีเซ็ตความคืบหน้าระดับ Beginner',
+      'คุณแน่ใจหรือว่าต้องการรีเซ็ตทั้งหมด? ข้อมูลทั้งหมดจะถูกลบและเป็นแบบเริ่มใหม่',
+      [
+        { text: 'ยกเลิก', onPress: () => {}, style: 'cancel' },
+        {
+          text: 'รีเซ็ต',
+          onPress: async () => {
+            try {
+              await levelUnlockService.resetAllProgress();
+              await resetLessonProgress(1);
+              await resetLessonProgress(2);
+              await resetLessonProgress(3);
+              alert('✅ รีเซ็ต Beginner เสร็จสิ้น! เริ่มเล่นใหม่ได้เลย');
+            } catch (error) {
+              alert('❌ เกิดข้อผิดพลาด: ' + error.message);
+            }
+          },
+          style: 'destructive',
+        },
+      ]
+    );
+  };
+
+  const handleResetIntermediateProgress = async () => {
+    Alert.alert(
+      'รีเซ็ตความคืบหน้าระดับ Intermediate',
+      'คุณแน่ใจหรือว่าต้องการรีเซ็ต? ข้อมูลทั้งหมดจะถูกลบ',
+      [
+        { text: 'ยกเลิก', onPress: () => {}, style: 'cancel' },
+        {
+          text: 'รีเซ็ต',
+          onPress: async () => {
+            try {
+              await resetLessonProgress(4);
+              await resetLessonProgress(5);
+              await resetLessonProgress(6);
+              alert('✅ รีเซ็ต Intermediate เสร็จสิ้น!');
+            } catch (error) {
+              alert('❌ เกิดข้อผิดพลาด: ' + error.message);
+            }
+          },
+          style: 'destructive',
+        },
+      ]
+    );
+  };
+
+  const handleResetAdvancedProgress = async () => {
+    Alert.alert(
+      'รีเซ็ตความคืบหน้าระดับ Advanced',
+      'คุณแน่ใจหรือว่าต้องการรีเซ็ต? ข้อมูลทั้งหมดจะถูกลบ',
+      [
+        { text: 'ยกเลิก', onPress: () => {}, style: 'cancel' },
+        {
+          text: 'รีเซ็ต',
+          onPress: async () => {
+            try {
+              await resetLessonProgress(7);
+              await resetLessonProgress(8);
+              await resetLessonProgress(9);
+              await resetLessonProgress(10);
+              alert('✅ รีเซ็ต Advanced เสร็จสิ้น!');
+            } catch (error) {
+              alert('❌ เกิดข้อผิดพลาด: ' + error.message);
+            }
+          },
+          style: 'destructive',
+        },
+      ]
+    );
+  };
+
+  const handleResetAllProgress = async () => {
+    Alert.alert(
+      'รีเซ็ตความคืบหน้าทั้งหมด',
+      '⚠️ คำเตือน: การดำเนินการนี้จะลบข้อมูลทั้งหมดของคุณและเริ่มใหม่จากศูนย์\n\nคุณแน่ใจหรือ?',
+      [
+        { text: 'ยกเลิก', onPress: () => {}, style: 'cancel' },
+        {
+          text: 'ลบทั้งหมด',
+          onPress: async () => {
+            try {
+              await levelUnlockService.resetAllProgress();
+              await resetAllLessonProgress();
+              alert('✅ รีเซ็ตทั้งหมดเสร็จสิ้น! เริ่มเล่นใหม่ได้เลย');
+            } catch (error) {
+              alert('❌ เกิดข้อผิดพลาด: ' + error.message);
+            }
+          },
+          style: 'destructive',
+        },
+      ]
+    );
+  };
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: flatTheme.background }]}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
 
       <LinearGradient colors={['#FF8C00', '#FFB347']} style={styles.hero}>
@@ -170,25 +325,25 @@ const SettingsScreen = () => {
         contentContainerStyle={{ paddingBottom: 80 }}
         showsVerticalScrollIndicator={false}
       >
-        <SectionCard title="บัญชีผู้ใช้" theme={theme} isDark={isDarkMode}>
+        <SectionCard title="บัญชีผู้ใช้" theme={flatTheme} isDark={isDarkMode}>
           <SettingsRow
             icon="account-circle"
             label="โปรไฟล์"
             value={<MaterialCommunityIcons name="chevron-right" size={22} color="#B0BEC5" />}
             onPress={() => navigation.navigate('Profile')}
-            theme={theme}
+            theme={flatTheme}
           />
           <SettingsRow
             icon="key"
             label="ความปลอดภัย"
             value={<MaterialCommunityIcons name="chevron-right" size={22} color="#B0BEC5" />}
             onPress={() => alert('ฟีเจอร์กำลังพัฒนา')}
-            theme={theme}
+            theme={flatTheme}
             isLast
           />
         </SectionCard>
 
-        <SectionCard title="ภาษาและระดับการเรียน" theme={theme} isDark={isDarkMode}>
+        <SectionCard title="ภาษาและระดับการเรียน" theme={flatTheme} isDark={isDarkMode}>
         <View style={styles.languageRow}>
           {languageOptions.map((option, index) => {
             const selected = option.code === selectedLanguage;
@@ -200,18 +355,18 @@ const SettingsScreen = () => {
                 <TouchableOpacity
                   style={[
                     styles.languageChip,
-                    { backgroundColor: theme.card, borderColor: theme.border || '#E1E8ED' },
-                    selected && { backgroundColor: 'rgba(255,140,0,0.12)', borderColor: theme.primary },
+                    { backgroundColor: flatTheme.card, borderColor: flatTheme.border },
+                    selected && { backgroundColor: 'rgba(255,140,0,0.12)', borderColor: flatTheme.primary },
                   ]}
-                  onPress={() => setSelectedLanguage(option.code)}
+                  onPress={() => handleLanguageChange(option.code)}
                   activeOpacity={0.85}
                 >
                   <Text style={styles.languageFlag}>{option.flag}</Text>
                   <Text
                     style={[
                       styles.languageLabel,
-                      { color: theme.textSecondary },
-                      selected && [{ color: theme.primary, fontWeight: '600' }],
+                      { color: flatTheme.textSecondary },
+                      selected && [{ color: flatTheme.primary, fontWeight: '600' }],
                     ]}
                   >
                     {option.label}
@@ -221,64 +376,19 @@ const SettingsScreen = () => {
             );
           })}
         </View>
-
-        <View style={styles.levelGrid}>
-          {levelOptions.map(level => {
-            const selected = level === selectedLevel;
-            return (
-              <TouchableOpacity
-                key={level}
-                style={[
-                  styles.levelCardButton,
-                  { backgroundColor: theme.card, borderColor: theme.border || '#E1E8ED' },
-                  selected && { backgroundColor: theme.primary, borderColor: theme.primary },
-                ]}
-                onPress={() => setSelectedLevel(level)}
-              >
-                <MaterialCommunityIcons
-                  name={selected ? 'star-circle' : 'star-circle-outline'}
-                  size={22}
-                  color={selected ? '#fff' : '#FF8C00'}
-                  style={{ marginBottom: 6 }}
-                />
-                <Text
-                  style={[
-                    styles.levelLabel,
-                    { color: theme.textSecondary },
-                    selected && styles.levelLabelSelected,
-                  ]}
-                >
-                  {level}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
         </SectionCard>
 
-        <SectionCard title="การแจ้งเตือนและธีม" theme={theme} isDark={isDarkMode}>
-          <SettingsRow
-            icon="bell"
-            label="การแจ้งเตือน"
-            value={(
-              <AnimatedToggle
-                value={notificationsEnabled}
-                onToggle={() => setNotificationsEnabled(prev => !prev)}
-                mode="notification"
-              />
-            )}
-            theme={theme}
-          />
+        <SectionCard title="ธีม" theme={flatTheme} isDark={isDarkMode}>
           <SettingsRow
             icon="theme-light-dark"
             label="โหมดธีม"
-            value={<AnimatedToggle value={isDarkMode} onToggle={toggleTheme} mode="theme" />}
-            theme={theme}
+            value={<AnimatedToggle value={isDarkMode} onToggle={handleThemeToggle} mode="theme" />}
+            theme={flatTheme}
             isLast
           />
         </SectionCard>
 
-        <SectionCard title="ติดต่อและข้อมูลเพิ่มเติม" theme={theme} isDark={isDarkMode}>
+        <SectionCard title="ติดต่อและข้อมูลเพิ่มเติม" theme={flatTheme} isDark={isDarkMode}>
           <SettingsRow
             icon="headset"
             label="ช่องทางติดต่อ"
@@ -290,7 +400,7 @@ const SettingsScreen = () => {
               />
             )}
             onPress={toggleContact}
-            theme={theme}
+            theme={flatTheme}
             isLast
           />
           {contactExpanded && (
@@ -300,31 +410,76 @@ const SettingsScreen = () => {
                   key={action.icon}
                   style={[
                     styles.contactButton,
-                    { backgroundColor: theme.card, borderColor: theme.border || '#E1E8ED' },
+                    { backgroundColor: flatTheme.card, borderColor: flatTheme.border },
                   ]}
                   onPress={action.action}
                   activeOpacity={0.85}
                 >
                   <MaterialCommunityIcons name={action.icon} size={22} color="#FF8C00" />
-                  <Text style={[styles.contactLabel, { color: theme.textSecondary }]}>{action.label}</Text>
+                  <Text style={[styles.contactLabel, { color: flatTheme.textSecondary }]}>{action.label}</Text>
                 </TouchableOpacity>
               ))}
             </View>
           )}
         </SectionCard>
 
-        <SectionCard title="ข้อมูลแอป" theme={theme} isDark={isDarkMode}>
+        <SectionCard title="รีเซ็ตความคืบหน้า" theme={flatTheme} isDark={isDarkMode}>
+          <View style={styles.resetButtonsContainer}>
+            <TouchableOpacity 
+              style={[styles.resetButton, { backgroundColor: 'rgba(76, 175, 80, 0.1)', borderColor: '#4CAF50' }]}
+              onPress={handleResetBeginnerProgress}
+              activeOpacity={0.85}
+            >
+              <MaterialCommunityIcons name="refresh" size={20} color="#4CAF50" />
+              <Text style={[styles.resetButtonText, { color: '#4CAF50' }]}>Beginner</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={[styles.resetButton, { backgroundColor: 'rgba(33, 150, 243, 0.1)', borderColor: '#2196F3' }]}
+              onPress={handleResetIntermediateProgress}
+              activeOpacity={0.85}
+            >
+              <MaterialCommunityIcons name="refresh" size={20} color="#2196F3" />
+              <Text style={[styles.resetButtonText, { color: '#2196F3' }]}>Intermediate</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={[styles.resetButton, { backgroundColor: 'rgba(156, 39, 176, 0.1)', borderColor: '#9C27B0' }]}
+              onPress={handleResetAdvancedProgress}
+              activeOpacity={0.85}
+            >
+              <MaterialCommunityIcons name="refresh" size={20} color="#9C27B0" />
+              <Text style={[styles.resetButtonText, { color: '#9C27B0' }]}>Advanced</Text>
+            </TouchableOpacity>
+
+            <View style={{ height: 8 }} />
+
+            <TouchableOpacity 
+              style={[styles.resetButton, { backgroundColor: 'rgba(244, 67, 54, 0.1)', borderColor: '#F44336' }]}
+              onPress={handleResetAllProgress}
+              activeOpacity={0.85}
+            >
+              <MaterialCommunityIcons name="alert" size={20} color="#F44336" />
+              <Text style={[styles.resetButtonText, { color: '#F44336', fontWeight: '700' }]}>ลบทั้งหมด</Text>
+            </TouchableOpacity>
+          </View>
+          <Text style={[styles.resetHint, { color: flatTheme.textSecondary }]}>
+            💡 เมื่อรีเซ็ต คุณจะต้องเล่นผ่านแต่ละด่านใหม่ และต้องได้ ≥70% เพื่อปลดล็อกด่านถัดไป
+          </Text>
+        </SectionCard>
+
+        <SectionCard title="ข้อมูลแอป" theme={flatTheme} isDark={isDarkMode}>
         <View style={styles.infoRow}>
           <MaterialCommunityIcons name="alpha-t-circle" size={22} color="#FF8C00" />
-          <Text style={[styles.infoText, { color: theme.textSecondary }]}>Thai Meow เวอร์ชัน 2.0.0</Text>
+          <Text style={[styles.infoText, { color: flatTheme.textSecondary }]}>Thai Meow เวอร์ชัน 2.0.0</Text>
         </View>
         <View style={styles.infoRow}>
           <MaterialCommunityIcons name="shield-check" size={22} color="#FF8C00" />
-          <Text style={[styles.infoText, { color: theme.textSecondary }]}>นโยบายความเป็นส่วนตัว</Text>
+          <Text style={[styles.infoText, { color: flatTheme.textSecondary }]}>นโยบายความเป็นส่วนตัว</Text>
         </View>
         <View style={styles.infoRow}>
           <MaterialCommunityIcons name="file-document" size={22} color="#FF8C00" />
-          <Text style={[styles.infoText, { color: theme.textSecondary }]}>ข้อกำหนดการใช้งาน</Text>
+          <Text style={[styles.infoText, { color: flatTheme.textSecondary }]}>ข้อกำหนดการใช้งาน</Text>
         </View>
         </SectionCard>
 
@@ -576,6 +731,30 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '700',
+  },
+  resetButtonsContainer: {
+    marginTop: 12,
+    marginBottom: 12,
+  },
+  resetButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'transparent',
+    marginBottom: 8,
+  },
+  resetButtonText: {
+    marginLeft: 8,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  resetHint: {
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: 10,
   },
 });
 

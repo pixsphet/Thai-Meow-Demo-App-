@@ -398,6 +398,66 @@ class LevelUnlockService {
   }
 
   /**
+   * Reset all progress for fresh start (admin/debug feature)
+   * Clears all unlocked levels and game progress for user
+   */
+  async resetAllProgress() {
+    try {
+      if (!this.userId) {
+        throw new Error('User ID not set');
+      }
+
+      console.log('🔄 Resetting all progress for user:', this.userId);
+
+      // Clear unlocked levels
+      const unlockedKey = `${UNLOCK_KEYS.UNLOCKED_LEVELS}_${this.userId}`;
+      await AsyncStorage.removeItem(unlockedKey);
+
+      // Try to sync reset to server
+      try {
+        await apiClient.post('/user/reset-progress', {
+          userId: this.userId,
+        });
+        console.log('☁️ Reset synced to server');
+      } catch (error) {
+        console.warn('⚠️ Failed to sync reset to server, cleared locally');
+      }
+
+      console.log('✅ All progress reset successfully. Only level1 is now accessible.');
+      return { success: true, message: 'All progress has been reset' };
+    } catch (error) {
+      console.error('❌ Error resetting progress:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Reset progress for specific level
+   */
+  async resetLevelProgress(levelId) {
+    try {
+      if (!this.userId) {
+        throw new Error('User ID not set');
+      }
+
+      console.log(`🔄 Resetting progress for level: ${levelId}`);
+
+      // Remove this level from unlocked list
+      const key = `${UNLOCK_KEYS.UNLOCKED_LEVELS}_${this.userId}`;
+      const existingUnlocks = await this.getUnlockedLevels();
+      const filtered = existingUnlocks.filter(u => u.unlockedLevel !== levelId);
+      
+      await AsyncStorage.setItem(key, JSON.stringify(filtered));
+      console.log(`✅ Level ${levelId} progress reset`);
+      
+      return { success: true };
+    } catch (error) {
+      console.error('❌ Error resetting level progress:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Get previous level ID
    */
   getPreviousLevel(levelId) {

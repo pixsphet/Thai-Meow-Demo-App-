@@ -17,6 +17,7 @@ import { useTheme } from "../contexts/ThemeContext";
 import { useUser } from "../contexts/UserContext";
 import { useProgress } from "../contexts/ProgressContext";
 import dailyStreakService from "../services/dailyStreakService";
+import { getContrastText } from "../utils/contrastColors";
 
 const happyImage = require("../assets/images/happy.png");
 const cryImage = require("../assets/images/catcry.png");
@@ -116,18 +117,19 @@ const SignInScreen = () => {
   const [alertMessage, setAlertMessage] = useState("");
   const [alertImage, setAlertImage] = useState(null);
 
-  const { theme, darkTheme } = useTheme();
+  const { theme, isDarkMode } = useTheme();
+  const contrastText = getContrastText(theme.colors.background, isDarkMode);
 
   // สำหรับ animation ปุ่ม toggle theme เพิ่มไว้ก่อน
-  const translateX = useRef(new Animated.Value(darkTheme ? 22 : 0)).current;
+  const translateX = useRef(new Animated.Value(isDarkMode ? 22 : 0)).current;
 
   useEffect(() => {
     Animated.timing(translateX, {
-      toValue: darkTheme ? 22 : 0,
+      toValue: isDarkMode ? 22 : 0,
       duration: 300,
       useNativeDriver: true,
     }).start();
-  }, [darkTheme]);
+  }, [isDarkMode]);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -194,7 +196,7 @@ const SignInScreen = () => {
 
         <View style={[styles.bottomSection, { backgroundColor: theme.colors.background }]}>
           <Text style={[styles.title, { color: theme.colors.brand }]}>Welcome back</Text>
-          <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
+          <Text style={[styles.subtitle, { color: contrastText }]}>
             Login to your account
           </Text>
 

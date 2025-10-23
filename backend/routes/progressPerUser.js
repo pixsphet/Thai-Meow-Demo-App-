@@ -140,15 +140,26 @@ router.post('/finish', async (req, res) => {
   }
 });
 
-// Get all user progress
-router.get('/user', async (req, res) => {
+// GET all user progress - with optional auth
+router.get('/', async (req, res) => {
   try {
-    const userId = req.user.id;
-    const progress = await Progress.find({ userId }).lean();
-    res.json(progress);
+    // Get userId from auth header if available, otherwise from query
+    let userId = req.user?.id;
+    
+    if (!userId && req.query.userId) {
+      userId = req.query.userId;
+    }
+
+    if (!userId) {
+      console.warn('⚠️ [PROGRESS] No user ID provided (no auth & no userId param)');
+      return res.status(400).json({ error: 'User ID required' });
+    }
+
+    const progressDocs = await Progress.find({ userId }).lean();
+    res.json(progressDocs || []);
   } catch (error) {
-    console.error('Error fetching user progress:', error);
-    res.status(500).json({ error: 'Failed to fetch user progress' });
+    console.error('Error fetching all user progress:', error);
+    res.status(500).json({ error: 'Failed to fetch progress' });
   }
 });
 

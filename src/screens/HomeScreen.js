@@ -254,12 +254,6 @@ const HomeScreen = ({ navigation }) => {
         icon: 'user',
         screen: 'Profile',
       },
-      {
-        name: 'AddFriend',
-        label: 'เพิ่มเพื่อน',
-        icon: 'user-plus',
-        screen: 'AddFriend',
-      },
     ];
 
     return (

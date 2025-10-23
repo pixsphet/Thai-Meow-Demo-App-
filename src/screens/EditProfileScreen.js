@@ -10,17 +10,26 @@ import {
   Alert,
   ActivityIndicator,
   Image,
+  Modal,
+  Dimensions,
+  Animated,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useUser } from '../contexts/UserContext';
 import { useTheme } from '../contexts/ThemeContext';
 import userService from '../services/userService';
+import imageUploadService from '../services/imageUploadService';
+
+const { width } = Dimensions.get('window');
 
 const EditProfileScreen = ({ navigation }) => {
   const { user, updateUser } = useUser();
   const { theme } = useTheme();
   
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [imagePickerVisible, setImagePickerVisible] = useState(false);
   const usernameRef = useRef(null);
   const emailRef = useRef(null);
   const petNameRef = useRef(null);
@@ -32,6 +41,12 @@ const EditProfileScreen = ({ navigation }) => {
     avatar: null,
   });
 
+  const [errors, setErrors] = useState({
+    username: '',
+    email: '',
+    petName: '',
+  });
+
   useEffect(() => {
     // Initialize form with current user data
     setFormData({
@@ -40,12 +55,74 @@ const EditProfileScreen = ({ navigation }) => {
       petName: user?.petName || '',
       avatar: user?.avatar || null,
     });
+    setErrors({
+      username: '',
+      email: '',
+      petName: '',
+    });
   }, [user]);
+
+  const handlePickImageFromLibrary = async () => {
+    try {
+      setUploading(true);
+      setImagePickerVisible(false);
+      
+      const pickedImage = await imageUploadService.pickImageFromLibrary();
+      
+      if (pickedImage) {
+        // Convert to base64
+        const base64 = await imageUploadService.imageToBase64(pickedImage.uri);
+        setFormData(prev => ({
+          ...prev,
+          avatar: base64
+        }));
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('ข้อผิดพลาด', 'ไม่สามารถเลือกรูปภาพได้: ' + error.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleTakePhoto = async () => {
+    try {
+      setUploading(true);
+      setImagePickerVisible(false);
+      
+      const photo = await imageUploadService.takePhotoWithCamera();
+      
+      if (photo) {
+        // Convert to base64
+        const base64 = await imageUploadService.imageToBase64(photo.uri);
+        setFormData(prev => ({
+          ...prev,
+          avatar: base64
+        }));
+      }
+    } catch (error) {
+      console.error('Error taking photo:', error);
+      Alert.alert('ข้อผิดพลาด', 'ไม่สามารถถ่ายรูปได้: ' + error.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setFormData(prev => ({
+      ...prev,
+      avatar: null
+    }));
+  };
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
+    }));
+    setErrors(prev => ({
+      ...prev,
+      [field]: ''
     }));
   };
 
@@ -55,20 +132,41 @@ const EditProfileScreen = ({ navigation }) => {
     }
   };
 
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email.trim());
+  };
+
+  const handleEmailChange = (value) => {
+    handleInputChange('email', value);
+    // Real-time validation feedback
+    if (!value.trim()) {
+      setErrors(prev => ({ ...prev, email: '' }));
+    } else if (!validateEmail(value)) {
+      setErrors(prev => ({ ...prev, email: 'กรุณากรอกอีเมลที่ถูกต้อง' }));
+    } else {
+      setErrors(prev => ({ ...prev, email: '' }));
+    }
+  };
+
   const validateForm = () => {
+    let isValid = true;
     if (!formData.username.trim()) {
-      Alert.alert('ข้อผิดพลาด', 'กรุณากรอกชื่อผู้ใช้');
-      return false;
+      setErrors(prev => ({ ...prev, username: 'กรุณากรอกชื่อผู้ใช้' }));
+      isValid = false;
+    } else {
+      setErrors(prev => ({ ...prev, username: '' }));
     }
     if (!formData.email.trim()) {
-      Alert.alert('ข้อผิดพลาด', 'กรุณากรอกอีเมล');
-      return false;
+      setErrors(prev => ({ ...prev, email: 'กรุณากรอกอีเมล' }));
+      isValid = false;
+    } else if (!validateEmail(formData.email)) {
+      setErrors(prev => ({ ...prev, email: 'กรุณากรอกอีเมลที่ถูกต้อง' }));
+      isValid = false;
+    } else {
+      setErrors(prev => ({ ...prev, email: '' }));
     }
-    if (!formData.email.includes('@')) {
-      Alert.alert('ข้อผิดพลาด', 'กรุณากรอกอีเมลที่ถูกต้อง');
-      return false;
-    }
-    return true;
+    return isValid;
   };
 
   const handleSave = async () => {
@@ -78,7 +176,7 @@ const EditProfileScreen = ({ navigation }) => {
       setLoading(true);
       
       // Update user data via API
-      const response = await userService.updateProfile({
+      const response = await userService.updateUserProfile({
         username: formData.username.trim(),
         email: formData.email.trim(),
         petName: formData.petName.trim(),
@@ -106,11 +204,13 @@ const EditProfileScreen = ({ navigation }) => {
           ]
         );
       } else {
-        Alert.alert('ข้อผิดพลาด', response.message || 'ไม่สามารถอัพเดทโปรไฟล์ได้');
+        // Display server error message
+        const errorMessage = response.message || response.error || 'ไม่สามารถอัพเดทโปรไฟล์ได้';
+        Alert.alert('ข้อผิดพลาด', errorMessage);
       }
     } catch (error) {
       console.error('Error updating profile:', error);
-      Alert.alert('ข้อผิดพลาด', 'เกิดข้อผิดพลาดในการอัพเดทโปรไฟล์');
+      Alert.alert('ข้อผิดพลาด', error.message || 'เกิดข้อผิดพลาดในการอัพเดทโปรไฟล์');
     } finally {
       setLoading(false);
     }
@@ -129,8 +229,13 @@ const EditProfileScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
-      {/* Header */}
-      <View style={[styles.header, { backgroundColor: theme.primary }]}>
+      {/* Header with Gradient */}
+      <LinearGradient
+        colors={[theme.primary, theme.primary + 'dd']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[styles.header]}
+      >
         <TouchableOpacity
           style={styles.headerButton}
           onPress={handleCancel}
@@ -138,9 +243,12 @@ const EditProfileScreen = ({ navigation }) => {
           <MaterialCommunityIcons name="close" size={24} color={theme.white} />
         </TouchableOpacity>
         
-        <Text style={[styles.headerTitle, { color: theme.white }]}>
-          แก้ไขโปรไฟล์
-        </Text>
+        <View style={styles.headerTitleContainer}>
+          <MaterialCommunityIcons name="pencil-box" size={28} color={theme.white} />
+          <Text style={[styles.headerTitle, { color: theme.white }]}>
+            แก้ไขโปรไฟล์
+          </Text>
+        </View>
         
         <TouchableOpacity
           style={styles.headerButton}
@@ -150,10 +258,10 @@ const EditProfileScreen = ({ navigation }) => {
           {loading ? (
             <ActivityIndicator size="small" color={theme.white} />
           ) : (
-            <MaterialCommunityIcons name="check" size={24} color={theme.white} />
+            <MaterialCommunityIcons name="check-circle" size={24} color={theme.white} />
           )}
         </TouchableOpacity>
-      </View>
+      </LinearGradient>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={[styles.profilePreview, { backgroundColor: theme.surface }]}>
@@ -167,18 +275,25 @@ const EditProfileScreen = ({ navigation }) => {
                 }
                 style={[styles.avatar, { borderColor: theme.primary }]}
               />
-              <TouchableOpacity
-                style={[styles.changeAvatarButton, { backgroundColor: theme.primary }]}
-                onPress={() => {
-              Alert.alert('แจ้งเตือน', 'ฟีเจอร์เปลี่ยนรูปภาพจะเปิดใช้งานในเร็วๆ นี้');
-            }}
-          >
-            <MaterialCommunityIcons name="camera" size={16} color={theme.white} />
-            <Text style={[styles.changeAvatarText, { color: theme.white }]}>
-              เปลี่ยนรูป
-            </Text>
-          </TouchableOpacity>
-        </View>
+              <View style={styles.avatarButtonGroup}>
+                <TouchableOpacity
+                  style={[styles.changeAvatarButton, { backgroundColor: theme.primary }]}
+                  onPress={() => setImagePickerVisible(true)}
+                  disabled={uploading}
+                >
+                  <MaterialCommunityIcons name="camera-plus" size={14} color={theme.white} />
+                </TouchableOpacity>
+                {formData.avatar && (
+                  <TouchableOpacity
+                    style={[styles.removeAvatarButton, { backgroundColor: '#EF4444' }]}
+                    onPress={handleRemoveImage}
+                    disabled={uploading}
+                  >
+                    <MaterialCommunityIcons name="delete" size={14} color={theme.white} />
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
             <View style={styles.previewInfo}>
               <Text style={[styles.previewName, { color: theme.text }]}>
                 {formData.username || 'ผู้เรียน'}
@@ -204,17 +319,22 @@ const EditProfileScreen = ({ navigation }) => {
             ข้อมูลบัญชี
           </Text>
 
+          {/* Username Input */}
           <View style={[styles.inputCard, { backgroundColor: theme.surface }]}>
-            <Text style={[styles.label, { color: theme.text }]}>
-              ชื่อผู้ใช้
-            </Text>
+            <View style={styles.inputLabelRow}>
+              <MaterialCommunityIcons name="account" size={18} color={theme.primary} />
+              <Text style={[styles.label, { color: theme.text, marginLeft: 8 }]}>
+                ชื่อผู้ใช้
+              </Text>
+            </View>
             <TextInput
               style={[
                 styles.inputField,
                 {
-                  backgroundColor: theme.surface,
-                  borderColor: theme.lightGray,
+                  backgroundColor: theme.lightGray || '#f5f5f5',
+                  borderColor: errors.username ? '#EF4444' : theme.lightGray,
                   color: theme.text,
+                  borderWidth: 1,
                 }
               ]}
               value={formData.username}
@@ -224,60 +344,58 @@ const EditProfileScreen = ({ navigation }) => {
               placeholderTextColor={theme.textSecondary}
               maxLength={20}
             />
-            <TouchableOpacity
-              style={[styles.editFieldButton, { borderColor: theme.primary }]}
-              onPress={() => focusInput(usernameRef)}
-            >
-              <MaterialCommunityIcons name="pencil" size={16} color={theme.primary} />
-              <Text style={[styles.editFieldText, { color: theme.primary }]}>
-                แก้ไข
-              </Text>
-            </TouchableOpacity>
+            {errors.username && (
+              <Text style={[styles.errorText, { color: '#EF4444' }]}>{errors.username}</Text>
+            )}
           </View>
 
+          {/* Email Input */}
           <View style={[styles.inputCard, { backgroundColor: theme.surface }]}>
-            <Text style={[styles.label, { color: theme.text }]}>
-              อีเมล
-            </Text>
+            <View style={styles.inputLabelRow}>
+              <MaterialCommunityIcons name="email" size={18} color={theme.primary} />
+              <Text style={[styles.label, { color: theme.text, marginLeft: 8 }]}>
+                อีเมล
+              </Text>
+            </View>
             <TextInput
               style={[
                 styles.inputField,
                 {
-                  backgroundColor: theme.surface,
-                  borderColor: theme.lightGray,
+                  backgroundColor: theme.lightGray || '#f5f5f5',
+                  borderColor: errors.email ? '#EF4444' : theme.lightGray,
                   color: theme.text,
+                  borderWidth: 1,
                 }
               ]}
               value={formData.email}
               ref={emailRef}
-              onChangeText={(value) => handleInputChange('email', value)}
+              onChangeText={handleEmailChange}
               placeholder="กรอกอีเมล"
               placeholderTextColor={theme.textSecondary}
               keyboardType="email-address"
               autoCapitalize="none"
             />
-            <TouchableOpacity
-              style={[styles.editFieldButton, { borderColor: theme.primary }]}
-              onPress={() => focusInput(emailRef)}
-            >
-              <MaterialCommunityIcons name="pencil" size={16} color={theme.primary} />
-              <Text style={[styles.editFieldText, { color: theme.primary }]}>
-                แก้ไข
-              </Text>
-            </TouchableOpacity>
+            {errors.email && (
+              <Text style={[styles.errorText, { color: '#EF4444' }]}>{errors.email}</Text>
+            )}
           </View>
 
+          {/* Pet Name Input */}
           <View style={[styles.inputCard, { backgroundColor: theme.surface }]}>
-            <Text style={[styles.label, { color: theme.text }]}>
-              ชื่อสัตว์เลี้ยง
-            </Text>
+            <View style={styles.inputLabelRow}>
+              <MaterialCommunityIcons name="cat" size={18} color={theme.primary} />
+              <Text style={[styles.label, { color: theme.text, marginLeft: 8 }]}>
+                ชื่อสัตว์เลี้ยง
+              </Text>
+            </View>
             <TextInput
               style={[
                 styles.inputField,
                 {
-                  backgroundColor: theme.surface,
-                  borderColor: theme.lightGray,
+                  backgroundColor: theme.lightGray || '#f5f5f5',
+                  borderColor: errors.petName ? '#EF4444' : theme.lightGray,
                   color: theme.text,
+                  borderWidth: 1,
                 }
               ]}
               value={formData.petName}
@@ -287,45 +405,139 @@ const EditProfileScreen = ({ navigation }) => {
               placeholderTextColor={theme.textSecondary}
               maxLength={15}
             />
-            <TouchableOpacity
-              style={[styles.editFieldButton, { borderColor: theme.primary }]}
-              onPress={() => focusInput(petNameRef)}
-            >
-              <MaterialCommunityIcons name="pencil" size={16} color={theme.primary} />
-              <Text style={[styles.editFieldText, { color: theme.primary }]}>
-                แก้ไข
-              </Text>
-            </TouchableOpacity>
+            {errors.petName && (
+              <Text style={[styles.errorText, { color: '#EF4444' }]}>{errors.petName}</Text>
+            )}
           </View>
         </View>
 
         {/* Action Buttons */}
         <View style={styles.actionButtons}>
           <TouchableOpacity
-            style={[styles.button, styles.cancelButton, { borderColor: theme.primary }]}
+            style={[styles.button, styles.cancelButton, { borderColor: theme.primary, borderWidth: 2 }]}
             onPress={handleCancel}
             disabled={loading}
           >
+            <MaterialCommunityIcons name="close" size={18} color={theme.primary} style={{ marginRight: 4 }} />
             <Text style={[styles.buttonText, { color: theme.primary }]}>
               ยกเลิก
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.button, styles.saveButton, { backgroundColor: theme.primary }]}
-            onPress={handleSave}
-            disabled={loading}
+          <LinearGradient
+            colors={[theme.primary, theme.primary + 'cc']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[styles.button, styles.saveButton]}
           >
-            {loading ? (
-              <ActivityIndicator size="small" color={theme.white} />
-            ) : (
-              <Text style={[styles.buttonText, { color: theme.white }]}>
-                บันทึก
-              </Text>
-            )}
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.saveButtonContent}
+              onPress={handleSave}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator size="small" color={theme.white} />
+              ) : (
+                <>
+                  <MaterialCommunityIcons name="check" size={18} color={theme.white} style={{ marginRight: 4 }} />
+                  <Text style={[styles.buttonText, { color: theme.white }]}>
+                    บันทึก
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </LinearGradient>
         </View>
       </ScrollView>
+
+      {/* Image Picker Modal */}
+      <Modal
+        visible={imagePickerVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setImagePickerVisible(false)}
+      >
+        <View style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
+          <ScrollView 
+            contentContainerStyle={styles.modalScrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={[styles.modalContent, { backgroundColor: theme.surface }]}>
+              <View style={styles.modalHeader}>
+                <Text style={[styles.modalTitle, { color: theme.text }]}>
+                  เลือกรูปโปรไฟล์
+                </Text>
+                <TouchableOpacity onPress={() => setImagePickerVisible(false)}>
+                  <MaterialCommunityIcons name="close" size={24} color={theme.text} />
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity
+                style={[styles.modalButton, { backgroundColor: theme.primary + '20' }]}
+                onPress={handleTakePhoto}
+                disabled={uploading}
+              >
+                <MaterialCommunityIcons name="camera" size={24} color={theme.primary} />
+                <View style={styles.modalButtonContent}>
+                  <Text style={[styles.modalButtonText, { color: theme.text }]}>
+                    ถ่ายรูปใหม่
+                  </Text>
+                  <Text style={[styles.modalButtonSubtext, { color: theme.textSecondary }]}>
+                    ใช้กล้องเพื่อถ่ายรูปโปรไฟล์
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.modalButton, { backgroundColor: theme.primary + '20' }]}
+                onPress={handlePickImageFromLibrary}
+                disabled={uploading}
+              >
+                <MaterialCommunityIcons name="image" size={24} color={theme.primary} />
+                <View style={styles.modalButtonContent}>
+                  <Text style={[styles.modalButtonText, { color: theme.text }]}>
+                    เลือกจากไลบรารี่
+                  </Text>
+                  <Text style={[styles.modalButtonSubtext, { color: theme.textSecondary }]}>
+                    เลือกรูปภาพที่มีอยู่แล้ว
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.modalButton, { backgroundColor: '#EF4444' + '20' }]}
+                onPress={() => {
+                  setImagePickerVisible(false);
+                  handleRemoveImage();
+                }}
+                disabled={uploading || !formData.avatar}
+              >
+                <MaterialCommunityIcons name="trash-can" size={24} color="#EF4444" />
+                <View style={styles.modalButtonContent}>
+                  <Text style={[styles.modalButtonText, { color: theme.text }]}>
+                    ลบรูปปัจจุบัน
+                  </Text>
+                  <Text style={[styles.modalButtonSubtext, { color: theme.textSecondary }]}>
+                    ใช้รูปค่าเริ่มต้น
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </View>
+      </Modal>
+
+      {/* Uploading Indicator */}
+      {uploading && (
+        <View style={[styles.uploadingOverlay, { backgroundColor: 'rgba(0,0,0,0.6)' }]}>
+          <View style={[styles.uploadingBox, { backgroundColor: theme.surface }]}>
+            <ActivityIndicator size="large" color={theme.primary} />
+            <Text style={[styles.uploadingText, { color: theme.text, marginTop: 12 }]}>
+              กำลังประมวลผลรูปภาพ...
+            </Text>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 };
@@ -349,6 +561,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  headerTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   headerTitle: {
     fontSize: 18,
@@ -382,21 +599,36 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     borderWidth: 4,
   },
-  changeAvatarButton: {
+  avatarButtonGroup: {
     position: 'absolute',
     bottom: -10,
     right: -8,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 16,
-    gap: 4,
+    gap: 8,
   },
-  changeAvatarText: {
-    fontSize: 14,
-    fontWeight: '600',
+  changeAvatarButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+    gap: 0,
+  },
+  removeAvatarButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+    gap: 0,
   },
   previewInfo: {
     flex: 1,
@@ -474,13 +706,97 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     borderWidth: 1,
+    flexDirection: 'row',
   },
   saveButton: {
-    // backgroundColor will be set dynamically
+    overflow: 'hidden',
+  },
+  saveButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    paddingVertical: 12,
   },
   buttonText: {
     fontSize: 16,
     fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalScrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: width * 0.8,
+    borderRadius: 20,
+    padding: 20,
+    alignItems: 'center',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  modalButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    paddingVertical: 15,
+    borderRadius: 15,
+    marginBottom: 10,
+    gap: 10,
+  },
+  modalButtonContent: {
+    alignItems: 'center',
+  },
+  modalButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  modalButtonSubtext: {
+    fontSize: 12,
+    marginTop: 4,
+  },
+  uploadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  uploadingBox: {
+    width: width * 0.7,
+    padding: 20,
+    borderRadius: 15,
+    alignItems: 'center',
+  },
+  uploadingText: {
+    fontSize: 16,
+    marginTop: 10,
+  },
+  errorText: {
+    fontSize: 12,
+    marginTop: 4,
+  },
+  inputLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
   },
 });
 

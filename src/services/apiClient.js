@@ -74,7 +74,12 @@ const resolveApiOrigin = () => {
   }
 
   if (Platform.OS === 'ios') {
-    return `http://127.0.0.1:${DEFAULT_PORT}`;
+    // Try to get host from Expo first, fallback to localhost
+    const expoHost = resolveHostFromExpo();
+    if (expoHost) {
+      return `http://${expoHost}:${DEFAULT_PORT}`;
+    }
+    return `http://localhost:${DEFAULT_PORT}`;
   }
 
   return `http://localhost:${DEFAULT_PORT}`;

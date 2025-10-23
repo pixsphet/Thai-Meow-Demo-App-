@@ -84,44 +84,34 @@ class RealUserStatsService {
     console.log('📊 RealUserStatsService: Getting user stats for user ID:', this.userId);
 
     try {
-      if (this.isOnline) {
-        console.log('🌐 Fetching stats from server...');
-        console.log('🔗 API URL:', `/user/stats/${this.userId}`); // Fixed: removed /api prefix
-        const response = await apiClient.get(`/user/stats/${this.userId}`);
-        const stats = response.data?.stats || response.data?.data || response.data;
-        
-        // Save to local storage as backup
-        await this.saveLocalStats(stats);
-        
-        console.log('🌐 User stats loaded from server:', stats);
-        return stats;
-      } else {
-        console.log('📱 Offline mode - loading from local storage...');
-        // Load from local storage
-        const localStats = await this.loadLocalStats();
-        if (localStats) {
-          console.log('💾 User stats loaded from local storage:', localStats);
-          return localStats;
-        }
-        
-        // Return default stats if no local data
-        const defaultStats = this.getDefaultStats();
-        console.log('🔧 Using default stats:', defaultStats);
-        return defaultStats;
-      }
+      // Try to fetch from server
+      console.log('🌐 Fetching stats from server...');
+      console.log('🔗 API URL:', `/user/stats/${this.userId}`);
+      
+      const response = await apiClient.get(`/user/stats/${this.userId}`);
+      const stats = response.data?.stats || response.data?.data || response.data;
+      
+      // Save to local storage as backup
+      await this.saveLocalStats(stats);
+      
+      console.log('🌐 User stats loaded from server:', stats);
+      this.isOnline = true;
+      return stats;
     } catch (error) {
-      console.error('❌ Error loading user stats:', error);
+      console.error('❌ Error loading user stats:', error?.message);
       this.isOnline = false;
       
-      // Fallback to local storage
+      // Try loading from local storage
+      console.log('📱 Attempting to load from local storage...');
       const localStats = await this.loadLocalStats();
       if (localStats) {
-        console.log('💾 Fallback to local stats:', localStats);
+        console.log('💾 User stats loaded from local storage:', localStats);
         return localStats;
       }
       
+      // Return default stats as final fallback
+      console.log('🔧 Returning default stats (backend offline)');
       const defaultStats = this.getDefaultStats();
-      console.log('🔧 Fallback to default stats:', defaultStats);
       return defaultStats;
     } finally {
       this.isFetching = false;

@@ -26,7 +26,6 @@ const tabItems = [
   { name: 'Minigame', label: 'เกม', icon: 'gamepad', screen: 'Minigame' },
   { name: 'Progress', label: 'ความคืบหน้า', icon: 'trophy', screen: 'Progress' },
   { name: 'Profile', label: 'โปรไฟล์', icon: 'user', screen: 'Profile' },
-  { name: 'AddFriend', label: 'เพิ่มเพื่อน', icon: 'user-plus', screen: 'AddFriend' }
 ];
 
 const CustomTabBar = ({ activeTab, navigation, theme }) => {

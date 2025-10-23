@@ -14,6 +14,7 @@ import LottieView from 'lottie-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useProgress } from '../contexts/ProgressContext';
 import { getLevelRewards, getXpProgress } from '../utils/leveling';
+import FireStreakAlert from '../components/FireStreakAlert';
 
 const { width, height } = Dimensions.get('window');
 
@@ -56,6 +57,7 @@ const LessonCompleteScreen = ({ navigation, route }) => {
   const [achievements, setAchievements] = useState([]);
   const [levelSummary, setLevelSummary] = useState(null);
   const [nextRewards, setNextRewards] = useState(null);
+  const [showFireStreakAlert, setShowFireStreakAlert] = useState(false);
   
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
@@ -137,6 +139,20 @@ const LessonCompleteScreen = ({ navigation, route }) => {
       setShowRewards(true);
     });
   }, [fadeAnim, scaleAnim]);
+
+  // Show Fire Streak Alert for milestone streaks
+  useEffect(() => {
+    if (showRewards && maxStreak > 0) {
+      const milestones = [5, 10, 20, 30, 50, 100];
+      if (milestones.includes(maxStreak)) {
+        // Delay alert to show after rewards animation
+        const timer = setTimeout(() => {
+          setShowFireStreakAlert(true);
+        }, 2000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [showRewards, maxStreak]);
 
   const calculatedRewards = useMemo(
     () => calculateRewards(),
@@ -579,6 +595,11 @@ const LessonCompleteScreen = ({ navigation, route }) => {
           </Animated.View>
         </ScrollView>
       </SafeAreaView>
+      <FireStreakAlert
+        visible={showFireStreakAlert}
+        onClose={() => setShowFireStreakAlert(false)}
+        streak={maxStreak}
+      />
     </LinearGradient>
   );
 };

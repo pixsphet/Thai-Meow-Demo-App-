@@ -21,6 +21,51 @@ const DEBUG_UNLOCK_ALL_STAGES = false; // Set to false for production
 
 const CUSTOM_STAGE_META = {
   // Intermediate level stages can be added here if needed
+  1: {
+    lesson_id: 1,
+    title: 'อาหารและเครื่องดื่ม (Food & Drinks)',
+    key: 'intermediate1_food_drinks',
+    category: 'thai-food-drinks',
+    level: 'Intermediate',
+    description: 'เรียนรู้คำศัพท์อาหาร เครื่องดื่ม และวลีใช้ในร้านอาหาร',
+    gameScreen: 'Intermediate1FoodDrinksGame',
+  },
+  2: {
+    lesson_id: 2,
+    title: 'ความรู้สึกและอารมณ์ (Emotions & Feelings)',
+    key: 'intermediate_2_emotions',
+    category: 'thai-emotions',
+    level: 'Intermediate',
+    description: 'บอกอารมณ์ ถามความรู้สึก และปลอบโยกแบบไทย',
+    gameScreen: 'IntermediateEmotionsGame',
+  },
+  3: {
+    lesson_id: 3,
+    title: 'สถานที่ (Places & Location)',
+    key: 'intermediate_3_places',
+    category: 'thai-places',
+    level: 'Intermediate',
+    description: 'เรียนรู้คำศัพท์สถานที่และตำแหน่ง/ทิศทาง',
+    gameScreen: 'IntermediatePlacesGame',
+  },
+  4: {
+    lesson_id: 4,
+    title: 'กิจวัตรประจำวัน (Daily Routines)',
+    key: 'intermediate_4_routines',
+    category: 'thai-daily-routines',
+    level: 'Intermediate',
+    description: 'เรียนรู้คำกริยา วลีเวลา และความถี่ในชีวิตประจำวัน',
+    gameScreen: 'IntermediateRoutinesGame',
+  },
+  5: {
+    lesson_id: 5,
+    title: 'การเดินทาง (Transportation & Movement)',
+    key: 'intermediate_5_transport',
+    category: 'thai-transport',
+    level: 'Intermediate',
+    description: 'เรียนรู้ยานพาหนะ กริยาการเดินทาง และวลีที่เกี่ยวข้อง',
+    gameScreen: 'IntermediateTransportGame',
+  },
 };
 
 const applyCustomStageMeta = (stage) => {
@@ -103,7 +148,66 @@ const canUnlockNextByRule = ({ finished, accuracy }) => {
 };
 
 const ensureAllStagesExist = (stages) => {
-  // For Intermediate level, we don't enforce specific lesson IDs
+  // For Intermediate level, ensure ALL lessons 1-5 exist
+  const stageIds = stages.map(s => s.lesson_id);
+  
+  const requiredLessons = [
+    {
+      id: 'intermediate_food_drinks_1',
+      lesson_id: 1,
+      title: 'อาหารและเครื่องดื่ม (Food & Drinks)',
+      level: 2,
+      key: 'intermediate1_food_drinks',
+      category: 'thai-food-drinks',
+    },
+    {
+      id: 'intermediate_emotions_2',
+      lesson_id: 2,
+      title: 'ความรู้สึกและอารมณ์ (Emotions & Feelings)',
+      level: 2,
+      key: 'intermediate_2_emotions',
+      category: 'thai-emotions',
+    },
+    {
+      id: 'intermediate_places_3',
+      lesson_id: 3,
+      title: 'สถานที่ (Places & Location)',
+      level: 2,
+      key: 'intermediate_3_places',
+      category: 'thai-places',
+    },
+    {
+      id: 'intermediate_routines_4',
+      lesson_id: 4,
+      title: 'กิจวัตรประจำวัน (Daily Routines)',
+      level: 2,
+      key: 'intermediate_4_routines',
+      category: 'thai-daily-routines',
+    },
+    {
+      id: 'intermediate_transport_5',
+      lesson_id: 5,
+      title: 'การเดินทาง (Transportation & Movement)',
+      level: 2,
+      key: 'intermediate_5_transport',
+      category: 'thai-transport',
+    },
+  ];
+  
+  requiredLessons.forEach(lesson => {
+    if (!stageIds.includes(lesson.lesson_id)) {
+      const newStage = applyCustomStageMeta({
+        ...lesson,
+        status: DEBUG_UNLOCK_ALL_STAGES ? 'current' : 'locked',
+        progress: 0,
+        accuracy: 0,
+        type: 'lottie',
+        lottie: require('../assets/animations/stage_start.json'),
+      });
+      stages.push(newStage);
+    }
+  });
+  
   return stages;
 };
 
@@ -288,36 +392,54 @@ const LevelStage2 = ({ navigation }) => {
     
     // ใช้ fallback data เมื่อ API ไม่ทำงาน
     try {
-      const lessonsData = Array.from({ length: 10 }, (_, index) => ({
-        _id: `fallback-${index + 1}`,
-        lesson_id: index + 1,
-        title: `บทเรียนที่ ${index + 1}`,
-        level: 'Intermediate',
-        key: `lesson_${index + 1}`,
-        category: 'intermediate',
-      }));
+      const lessonsData = [
+        {
+          _id: 'fallback-1',
+          lesson_id: 1,
+          title: 'อาหารและเครื่องดื่ม (Food & Drinks)',
+          level: 'Intermediate',
+          key: 'intermediate1_food_drinks',
+          category: 'thai-food-drinks',
+        },
+        {
+          _id: 'fallback-2',
+          lesson_id: 2,
+          title: 'ความรู้สึกและอารมณ์ (Emotions & Feelings)',
+          level: 'Intermediate',
+          key: 'intermediate_2_emotions',
+          category: 'thai-emotions',
+        },
+        {
+          _id: 'fallback-3',
+          lesson_id: 3,
+          title: 'สถานที่ (Places & Location)',
+          level: 'Intermediate',
+          key: 'intermediate_3_places',
+          category: 'thai-places',
+        },
+        {
+          _id: 'fallback-4',
+          lesson_id: 4,
+          title: 'กิจวัตรประจำวัน (Daily Routines)',
+          level: 'Intermediate',
+          key: 'intermediate_4_routines',
+          category: 'thai-daily-routines',
+        },
+        {
+          _id: 'fallback-5',
+          lesson_id: 5,
+          title: 'การเดินทาง (Transportation & Movement)',
+          level: 'Intermediate',
+          key: 'intermediate_5_transport',
+          category: 'thai-transport',
+        },
+      ];
 
-      const currentStageIndex = 0;
-      let baseStages = lessonsData.map((lesson, index) => {
-        if (!lesson || typeof lesson !== 'object') {
-          console.warn(`Invalid lesson object at index ${index}:`, lesson);
-          return applyCustomStageMeta({
-            id: `lesson_${index}`,
-            lesson_id: index + 1,
-            title: `บทเรียน ${index + 1}`,
-            level: 2,
-            key: `lesson_${index}`,
-            category: 'intermediate',
-            status: 'locked',
-            progress: 0,
-            type: 'lottie',
-            lottie: require('../assets/animations/stage_start.json'),
-          });
-        }
-        return applyCustomStageMeta({
+      const baseStages = lessonsData.map((lesson, index) => 
+        applyCustomStageMeta({
           id: lesson?._id || `lesson_${index}`,
-          lesson_id: lesson?.lesson_id || lesson?.order || index + 1,
-          title: lesson?.title || lesson?.titleTH || `บทเรียน ${index + 1}`,
+          lesson_id: lesson?.lesson_id || index + 1,
+          title: lesson?.title || `บทเรียน ${index + 1}`,
           level: lesson?.level || 2,
           key: lesson?.key || `lesson_${index}`,
           category: lesson?.category || 'intermediate',
@@ -325,8 +447,8 @@ const LevelStage2 = ({ navigation }) => {
           progress: 0,
           type: 'lottie',
           lottie: require('../assets/animations/stage_start.json'),
-        });
-      });
+        })
+      );
 
       const withProgress = await Promise.all(
         baseStages.map(async (s) => {
@@ -340,62 +462,62 @@ const LevelStage2 = ({ navigation }) => {
         return value > 1 ? value / 100 : value;
       };
 
-      const computed = withProgress.map(async (s, i, arr) => {
-        const prevStage = i > 0 ? arr[i - 1] : null;
-        const prevFinished =
-          prevStage && (prevStage._finished || prevStage.status === 'done' || prevStage.completed);
-        const prevAccuracyRatio = prevStage ? normalizeAccuracy(prevStage._accuracy ?? prevStage.accuracy) : 0;
-        const prevPassed = prevFinished && prevAccuracyRatio >= 0.7;
+      const computedResults = await Promise.all(
+        withProgress.map(async (s, i, arr) => {
+          const prevStage = i > 0 ? arr[i - 1] : null;
+          const prevFinished =
+            prevStage && (prevStage._finished || prevStage.status === 'done' || prevStage.completed);
+          const prevAccuracyRatio = prevStage ? normalizeAccuracy(prevStage._accuracy ?? prevStage.accuracy) : 0;
+          const prevPassed = prevFinished && prevAccuracyRatio >= 0.7;
 
-        if (i === 0) {
-          const status = s._finished ? 'done' : 'current';
-          const accuracyPercent = Math.round((s._accuracy ?? 0) * 100);
-          return { ...s, status, accuracy: accuracyPercent, unlockMessage: false };
-        }
-        
-        const levelId = `level${s.lesson_id}`;
-        const levelProgress = (await levelUnlockService.getLevelProgress(levelId)) || {};
-        let statusFromProgress = levelProgress.status;
-        if (!statusFromProgress || statusFromProgress === 'locked') {
-          statusFromProgress = (prevPassed || DEBUG_UNLOCK_ALL_STAGES) ? 'current' : 'locked';
-        }
-        if (statusFromProgress === 'locked' && (prevPassed || DEBUG_UNLOCK_ALL_STAGES)) {
-          statusFromProgress = 'current';
-        }
-        
-        if (statusFromProgress === 'locked' && !prevPassed && !DEBUG_UNLOCK_ALL_STAGES) {
+          if (i === 0) {
+            const status = s._finished ? 'done' : 'current';
+            const accuracyPercent = Math.round((s._accuracy ?? 0) * 100);
+            return { ...s, status, accuracy: accuracyPercent, unlockMessage: false };
+          }
+          
+          const levelId = `level${s.lesson_id}`;
+          const levelProgress = (await levelUnlockService.getLevelProgress(levelId)) || {};
+          let statusFromProgress = levelProgress.status;
+          if (!statusFromProgress || statusFromProgress === 'locked') {
+            statusFromProgress = (prevPassed || DEBUG_UNLOCK_ALL_STAGES) ? 'current' : 'locked';
+          }
+          if (statusFromProgress === 'locked' && (prevPassed || DEBUG_UNLOCK_ALL_STAGES)) {
+            statusFromProgress = 'current';
+          }
+          
+          if (statusFromProgress === 'locked' && !prevPassed && !DEBUG_UNLOCK_ALL_STAGES) {
+            return { 
+              ...s, 
+              status: 'locked', 
+              progress: 0,
+              accuracy: levelProgress.accuracy ?? 0,
+              unlockMessage: false
+            };
+          }
+          
+          let status = statusFromProgress;
+          if (levelProgress.completed) {
+            status = 'done';
+          } else if (!prevPassed && !DEBUG_UNLOCK_ALL_STAGES) {
+            status = 'locked';
+          }
+          const accuracyPercent =
+            levelProgress.accuracy !== undefined
+              ? Math.round(normalizeAccuracy(levelProgress.accuracy) * 100)
+              : Math.round((s._accuracy ?? 0) * 100);
           return { 
             ...s, 
-            status: 'locked', 
-            progress: 0,
-            accuracy: levelProgress.accuracy ?? 0,
+            status,
+            progress: Math.max(0, Math.min(1, accuracyPercent / 100)),
+            accuracy: accuracyPercent,
+            attempts: levelProgress.attempts,
+            bestScore: levelProgress.bestScore,
+            lastPlayed: levelProgress.lastPlayed,
             unlockMessage: false
           };
-        }
-        
-        let status = statusFromProgress;
-        if (levelProgress.completed) {
-          status = 'done';
-        } else if (!prevPassed && !DEBUG_UNLOCK_ALL_STAGES) {
-          status = 'locked';
-        }
-        const accuracyPercent =
-          levelProgress.accuracy !== undefined
-            ? Math.round(normalizeAccuracy(levelProgress.accuracy) * 100)
-            : Math.round((s._accuracy ?? 0) * 100);
-        return { 
-          ...s, 
-          status,
-          progress: Math.max(0, Math.min(1, accuracyPercent / 100)),
-          accuracy: accuracyPercent,
-          attempts: levelProgress.attempts,
-          bestScore: levelProgress.bestScore,
-          lastPlayed: levelProgress.lastPlayed,
-          unlockMessage: false
-        };
-      });
-
-      const computedResults = await Promise.all(computed);
+        })
+      );
 
       console.log('✅ Stages with progress (fallback):', computedResults);
       const allStages = ensureAllStagesExist(computedResults);
@@ -624,12 +746,49 @@ const LevelStage2 = ({ navigation }) => {
                     }
                     console.log('Navigating to lesson screen with lessonId:', stage.lesson_id);
                     
-                    navigation.navigate('NewLessonGame', {
-                      lessonId: stage.lesson_id, 
-                      category: 'intermediate',
-                      level: stage.level,
-                      stageTitle: stage.title 
-                    });
+                    if (stage.gameScreen === 'Intermediate1FoodDrinksGame') {
+                      navigation.navigate('Intermediate1FoodDrinksGame', {
+                        lessonId: stage.lesson_id,
+                        category: stage.category,
+                        level: stage.level,
+                        stageTitle: stage.title
+                      });
+                    } else if (stage.gameScreen === 'IntermediateEmotionsGame') {
+                      navigation.navigate('IntermediateEmotionsGame', {
+                        lessonId: stage.lesson_id,
+                        category: stage.category,
+                        level: stage.level,
+                        stageTitle: stage.title
+                      });
+                    } else if (stage.gameScreen === 'IntermediatePlacesGame') {
+                      navigation.navigate('IntermediatePlacesGame', {
+                        lessonId: stage.lesson_id,
+                        category: stage.category,
+                        level: stage.level,
+                        stageTitle: stage.title
+                      });
+                    } else if (stage.gameScreen === 'IntermediateRoutinesGame') {
+                      navigation.navigate('IntermediateRoutinesGame', {
+                        lessonId: stage.lesson_id,
+                        category: stage.category,
+                        level: stage.level,
+                        stageTitle: stage.title
+                      });
+                    } else if (stage.gameScreen === 'IntermediateTransportGame') {
+                      navigation.navigate('IntermediateTransportGame', {
+                        lessonId: stage.lesson_id,
+                        category: stage.category,
+                        level: stage.level,
+                        stageTitle: stage.title
+                      });
+                    } else {
+                      navigation.navigate('NewLessonGame', {
+                        lessonId: stage.lesson_id, 
+                        category: 'intermediate',
+                        level: stage.level,
+                        stageTitle: stage.title 
+                      });
+                    }
                   }}
               activeOpacity={0.8}
             >

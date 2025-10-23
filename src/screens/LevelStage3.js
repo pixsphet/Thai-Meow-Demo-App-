@@ -30,6 +30,42 @@ const CUSTOM_STAGE_META = {
     description: 'เรียนรู้สำนวนไทยและการใช้ในบริบทจริง',
     gameScreen: 'Advanced1IdiomsGame',
   },
+  2: {
+    lesson_id: 2,
+    title: 'อาชีพ (Occupations)',
+    key: 'advanced2_occupations',
+    category: 'thai-occupations',
+    level: 'Advanced',
+    description: 'เรียนรู้คำศัพท์อาชีพและการบรรยาย',
+    gameScreen: 'Advanced2OccupationsGame',
+  },
+  3: {
+    lesson_id: 3,
+    title: 'ทิศทาง (Directions)',
+    key: 'advanced3_directions',
+    category: 'thai-directions',
+    level: 'Advanced',
+    description: 'เรียนรู้คำศัพท์ทิศทางและถามทาง',
+    gameScreen: 'Advanced3DirectionsGame',
+  },
+  4: {
+    lesson_id: 4,
+    title: 'กริยาซับซ้อน (Complex Verbs)',
+    key: 'advanced4_complex_verbs',
+    category: 'thai-complex-verbs',
+    level: 'Advanced',
+    description: 'เรียนรู้คำเชื่อมและโครงสร้างประโยคซับซ้อน',
+    gameScreen: 'Advanced4ComplexVerbsGame',
+  },
+  5: {
+    lesson_id: 5,
+    title: 'แสดงความคิดเห็น (Opinions)',
+    key: 'advanced5_opinions',
+    category: 'thai-opinions',
+    level: 'Advanced',
+    description: 'เรียนรู้วิธีการแสดงความคิดเห็นและการให้เหตุผล',
+    gameScreen: 'Advanced5OpinionsGame',
+  },
 };
 
 const applyCustomStageMeta = (stage) => {
@@ -115,8 +151,10 @@ const canUnlockNextByRule = ({ finished, accuracy }) => {
 };
 
 const ensureAllStagesExist = (stages) => {
-  // For Advanced level, ensure we always have lesson_id 1 (Idioms)
+  // For Advanced level, ensure we always have lesson_id 1, 2, 3 (Idioms, Occupations, Directions)
   const stageIds = stages.map(s => s.lesson_id).filter(Boolean);
+  
+  // Ensure lesson_id 1 (Idioms)
   if (!stageIds.includes(1)) {
     const idiomsStage = applyCustomStageMeta({
       id: 'advanced_idioms_1',
@@ -132,6 +170,79 @@ const ensureAllStagesExist = (stages) => {
     });
     stages.unshift(idiomsStage);
   }
+  
+  // Ensure lesson_id 2 (Occupations)
+  if (!stageIds.includes(2)) {
+    const occupationsStage = applyCustomStageMeta({
+      id: 'advanced_occupations_2',
+      lesson_id: 2,
+      title: 'อาชีพ (Occupations)',
+      level: 3,
+      key: 'advanced2_occupations',
+      category: 'thai-occupations',
+      status: DEBUG_UNLOCK_ALL_STAGES ? 'current' : 'locked',
+      progress: 0,
+      accuracy: 0,
+      type: 'lottie',
+      lottie: require('../assets/animations/stage_start.json'),
+    });
+    stages.push(occupationsStage);
+  }
+  
+  // Ensure lesson_id 3 (Directions)
+  if (!stageIds.includes(3)) {
+    const directionsStage = applyCustomStageMeta({
+      id: 'advanced_directions_3',
+      lesson_id: 3,
+      title: 'ทิศทาง (Directions)',
+      level: 3,
+      key: 'advanced3_directions',
+      category: 'thai-directions',
+      status: DEBUG_UNLOCK_ALL_STAGES ? 'current' : 'locked',
+      progress: 0,
+      accuracy: 0,
+      type: 'lottie',
+      lottie: require('../assets/animations/stage_start.json'),
+    });
+    stages.push(directionsStage);
+  }
+  
+  // Ensure lesson_id 4 (Complex Verbs)
+  if (!stageIds.includes(4)) {
+    const complexVerbsStage = applyCustomStageMeta({
+      id: 'advanced_complex_verbs_4',
+      lesson_id: 4,
+      title: 'กริยาซับซ้อน (Complex Verbs)',
+      level: 3,
+      key: 'advanced4_complex_verbs',
+      category: 'thai-complex-verbs',
+      status: DEBUG_UNLOCK_ALL_STAGES ? 'current' : 'locked',
+      progress: 0,
+      accuracy: 0,
+      type: 'lottie',
+      lottie: require('../assets/animations/stage_start.json'),
+    });
+    stages.push(complexVerbsStage);
+  }
+  
+  // Ensure lesson_id 5 (Opinions)
+  if (!stageIds.includes(5)) {
+    const opinionsStage = applyCustomStageMeta({
+      id: 'advanced_opinions_5',
+      lesson_id: 5,
+      title: 'แสดงความคิดเห็น (Opinions)',
+      level: 3,
+      key: 'advanced5_opinions',
+      category: 'thai-opinions',
+      status: DEBUG_UNLOCK_ALL_STAGES ? 'current' : 'locked',
+      progress: 0,
+      accuracy: 0,
+      type: 'lottie',
+      lottie: require('../assets/animations/stage_start.json'),
+    });
+    stages.push(opinionsStage);
+  }
+  
   return stages;
 };
 
@@ -687,6 +798,34 @@ const LevelStage3 = ({ navigation }) => {
                     // Navigate to appropriate game screen based on stage metadata
                     if (stage.gameScreen === 'Advanced1IdiomsGame') {
                       navigation.navigate('Advanced1IdiomsGame', {
+                        lessonId: stage.lesson_id,
+                        category: stage.category,
+                        level: stage.level,
+                        stageTitle: stage.title
+                      });
+                    } else if (stage.gameScreen === 'Advanced2OccupationsGame') {
+                      navigation.navigate('Advanced2OccupationsGame', {
+                        lessonId: stage.lesson_id,
+                        category: stage.category,
+                        level: stage.level,
+                        stageTitle: stage.title
+                      });
+                    } else if (stage.gameScreen === 'Advanced3DirectionsGame') {
+                      navigation.navigate('Advanced3DirectionsGame', {
+                        lessonId: stage.lesson_id,
+                        category: stage.category,
+                        level: stage.level,
+                        stageTitle: stage.title
+                      });
+                    } else if (stage.gameScreen === 'Advanced4ComplexVerbsGame') {
+                      navigation.navigate('Advanced4ComplexVerbsGame', {
+                        lessonId: stage.lesson_id,
+                        category: stage.category,
+                        level: stage.level,
+                        stageTitle: stage.title
+                      });
+                    } else if (stage.gameScreen === 'Advanced5OpinionsGame') {
+                      navigation.navigate('Advanced5OpinionsGame', {
                         lessonId: stage.lesson_id,
                         category: stage.category,
                         level: stage.level,

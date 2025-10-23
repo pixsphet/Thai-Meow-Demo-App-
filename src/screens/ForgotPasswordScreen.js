@@ -170,12 +170,14 @@ const ForgotPasswordScreen = () => {
                         placeholder={placeholder}
                         placeholderTextColor={theme.textSecondary}
                         autoCapitalize="words"
-                        autoCorrect={true}
+                        autoCorrect={false}
+                        spellCheck={false}
                         autoFocus={false}
                         blurOnSubmit={false}
-                        returnKeyType="next"
+                        returnKeyType="done"
                         onSubmitEditing={onSubmitEditing}
-                        enablesReturnKeyAutomatically={true}
+                        enablesReturnKeyAutomatically={false}
+                        selectionColor={theme.primary}
                     />
                     {icon && (
                         <View style={styles.eyeButton}>
@@ -214,15 +216,14 @@ const ForgotPasswordScreen = () => {
                         placeholderTextColor={theme.textSecondary}
                         secureTextEntry={!showPassword}
                         editable={true}
-                        textContentType="password"
-                        autoComplete="password"
                         autoCapitalize="none"
                         autoCorrect={false}
+                        spellCheck={false}
                         autoFocus={false}
                         blurOnSubmit={false}
-                        returnKeyType="next"
-                        onSubmitEditing={onSubmitEditing}
-                        enablesReturnKeyAutomatically={true}
+                        returnKeyType="done"
+                        enablesReturnKeyAutomatically={false}
+                        selectionColor={theme.primary}
                     />
                     <TouchableOpacity
                         style={styles.eyeButton}
@@ -507,7 +508,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         borderRadius: 12,
         paddingHorizontal: 16,
-        paddingVertical: 4,
+        paddingVertical: 12,
+        minHeight: 56,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.05,
@@ -518,6 +520,8 @@ const styles = StyleSheet.create({
         flex: 1,
         fontSize: 16,
         paddingVertical: 12,
+        paddingHorizontal: 0,
+        minHeight: 48,
     },
     continueButton: {
         marginTop: 20,
@@ -551,12 +555,20 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         borderRadius: 12,
         paddingHorizontal: 16,
-        marginTop: 8,
+        paddingVertical: 12,
+        minHeight: 56,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 3,
+        elevation: 2,
     },
     passwordInput: {
         flex: 1,
         fontSize: 16,
         paddingVertical: 12,
+        paddingHorizontal: 0,
+        minHeight: 48,
     },
     eyeButton: {
         padding: 8,

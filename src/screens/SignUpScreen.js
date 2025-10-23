@@ -369,6 +369,10 @@ const SignUpScreen = ({ navigation }) => {
               onChangeText={setPassword}
               mode="outlined"
               secureTextEntry={!showPassword}
+              editable={true}
+              autoCapitalize="none"
+              autoCorrect={false}
+              returnKeyType="done"
               left={
                 <TextInput.Icon
                   icon={() => (
@@ -398,6 +402,10 @@ const SignUpScreen = ({ navigation }) => {
               onChangeText={setConfirmPassword}
               mode="outlined"
               secureTextEntry={!showConfirmPassword}
+              editable={true}
+              autoCapitalize="none"
+              autoCorrect={false}
+              returnKeyType="done"
               left={
                 <TextInput.Icon
                   icon={() => (
@@ -606,6 +614,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 3,
     elevation: 3,
+    minHeight: 56,
   },
   privacyPolicyContainer: {
     flexDirection: "row",

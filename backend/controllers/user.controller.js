@@ -74,7 +74,24 @@ exports.getUserStats = async (req, res, next) => {
 // ✅ PUT /api/user/profile - Update user profile
 exports.updateUserProfile = async (req, res, next) => {
   try {
-    const userId = req.user.id;
+    // Get userId from auth or from request body/query
+    let userId = req.user?.id;
+    
+    if (!userId && req.body?.userId) {
+      userId = req.body.userId;
+    }
+    
+    if (!userId && req.query?.userId) {
+      userId = req.query.userId;
+    }
+
+    if (!userId) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Unauthorized - User ID required' 
+      });
+    }
+
     const { username, email, petName, avatar } = req.body;
 
     // Validate required fields
@@ -82,6 +99,15 @@ exports.updateUserProfile = async (req, res, next) => {
       return res.status(400).json({ 
         success: false, 
         message: 'Username and email are required' 
+      });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'กรุณากรอกอีเมลที่ถูกต้อง' 
       });
     }
 
@@ -95,6 +121,19 @@ exports.updateUserProfile = async (req, res, next) => {
       return res.status(400).json({ 
         success: false, 
         message: 'ชื่อผู้ใช้นี้มีผู้ใช้งานแล้ว' 
+      });
+    }
+
+    // Check if email already exists (excluding current user)
+    const existingEmail = await User.findOne({ 
+      email: email.trim(), 
+      _id: { $ne: userId } 
+    });
+    
+    if (existingEmail) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'อีเมลนี้มีผู้ใช้งานแล้ว' 
       });
     }
 
