@@ -1949,16 +1949,18 @@ const ConsonantStage1Game = ({ navigation, route }) => {
               <FontAwesome name="bullseye" size={12} color={COLORS.primary} />
               <Text style={styles.progressStatText}>{Math.min(100, Math.max(0, Math.round((score / Math.max(1, currentIndex + 1)) * 100)))}%</Text>
             </View>
-            <View style={styles.progressStatItem}>
-              <FontAwesome name="fire" size={12} color="#FF8C00" />
-              <Text style={styles.progressStatText}>{streak}</Text>
-            </View>
           </View>
         </View>
 
-        <View style={styles.heartsContainer}>
-          <FontAwesome name="heart" size={20} color="#ff4b4b" />
-          <Text style={styles.heartsText}>{hearts}</Text>
+        <View style={styles.rightHeaderContainer}>
+          <View style={styles.heartsContainer}>
+            <FontAwesome name="heart" size={20} color="#ff4b4b" />
+            <Text style={styles.heartsText}>{hearts}</Text>
+          </View>
+          <View style={styles.streakContainer}>
+            <FontAwesome name="fire" size={16} color="#FF8C00" />
+            <Text style={styles.streakText}>{streak}</Text>
+          </View>
         </View>
       </View>
       
@@ -2684,6 +2686,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: COLORS.white,
+  },
+  rightHeaderContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 20,
+  },
+  streakContainer: {
+    marginLeft: 10,
+  },
+  streakText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.dark,
   },
 });
 
