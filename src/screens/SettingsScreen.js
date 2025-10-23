@@ -25,6 +25,7 @@ import { resetAllLessonProgress, resetLessonProgress, resetEverything } from '..
 import gameProgressService from '../services/gameProgressService';
 
 import { useTheme } from '../contexts/ThemeContext';
+import ThemeToggleButton from '../components/ThemeToggleButton';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -334,15 +335,18 @@ const SettingsScreen = () => {
     <SafeAreaView style={[styles.container, { backgroundColor: flatTheme.background }]}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
 
-      <LinearGradient colors={['#FF8C00', '#FFB347']} style={styles.hero}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <MaterialCommunityIcons name="arrow-left" size={22} color="#fff" />
-        </TouchableOpacity>
-        <View style={styles.heroContent}>
-          <Text style={styles.heroTitle}>ตั้งค่า</Text>
-          <Text style={styles.heroSubtitle}>จัดการประสบการณ์การเรียนรู้ของคุณ</Text>
-        </View>
-      </LinearGradient>
+      <View style={styles.headerWithToggle}>
+        <LinearGradient colors={['#FF8C00', '#FFB347']} style={styles.hero}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <MaterialCommunityIcons name="arrow-left" size={22} color="#fff" />
+          </TouchableOpacity>
+          <View style={styles.heroContent}>
+            <Text style={styles.heroTitle}>ตั้งค่า</Text>
+            <Text style={styles.heroSubtitle}>จัดการประสบการณ์การเรียนรู้ของคุณ</Text>
+          </View>
+          <ThemeToggleButton size="small" style={{ marginRight: 10 }} />
+        </LinearGradient>
+      </View>
 
       <ScrollView
         style={styles.scroll}
@@ -533,6 +537,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  headerWithToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   hero: {
     paddingHorizontal: 20,
     paddingTop: 24,
@@ -541,6 +549,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
+    flex: 1,
   },
   backButton: {
     width: 42,

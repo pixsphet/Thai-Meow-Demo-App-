@@ -18,6 +18,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useUser } from '../contexts/UserContext';
 import { useTheme } from '../contexts/ThemeContext';
+import ThemeToggleButton from '../components/ThemeToggleButton';
 import userService from '../services/userService';
 import imageUploadService from '../services/imageUploadService';
 
@@ -255,6 +256,8 @@ const EditProfileScreen = ({ navigation }) => {
             แก้ไขโปรไฟล์
           </Text>
         </View>
+        
+        <ThemeToggleButton size="small" />
         
         <TouchableOpacity
           style={styles.headerButton}
