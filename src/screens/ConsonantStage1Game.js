@@ -1857,31 +1857,7 @@ const ConsonantStage1Game = ({ navigation, route }) => {
             <Text style={styles.startSubtitle}>เรียนรู้พยัญชนะไทยพื้นฐาน</Text>
           </View>
 
-          {/* Player Stats Display */}
-          <View style={styles.playerStatsContainer}>
-            <View style={styles.statsGrid}>
-              {/* Level */}
-              <View style={styles.statsGridItem}>
-                <Text style={styles.statsGridLabel}>Level</Text>
-                <Text style={styles.statsGridValue}>{stats?.level || 1}</Text>
-              </View>
-              {/* Total XP */}
-              <View style={styles.statsGridItem}>
-                <Text style={styles.statsGridLabel}>XP</Text>
-                <Text style={styles.statsGridValue}>{stats?.xp || 0}</Text>
-              </View>
-              {/* Diamonds */}
-              <View style={styles.statsGridItem}>
-                <Text style={styles.statsGridLabel}>💎</Text>
-                <Text style={styles.statsGridValue}>{stats?.diamonds || 0}</Text>
-              </View>
-              {/* Hearts */}
-              <View style={styles.statsGridItem}>
-                <Text style={styles.statsGridLabel}>❤️</Text>
-                <Text style={styles.statsGridValue}>{stats?.hearts || 5}</Text>
-              </View>
-            </View>
-          </View>
+          {/* Player Stats Display removed per request */}
           
           {resumeData && (
             <TouchableOpacity style={styles.resumeButton} onPress={resumeGame} activeOpacity={0.9}>
