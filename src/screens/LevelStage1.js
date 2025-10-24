@@ -364,26 +364,25 @@ const LevelStage1 = ({ navigation }) => {
             let statusFromProgress = levelProgress.status;
 
             // ด่านถัดไป: ปลดล็อกก็ต่อเมื่อ prevPassed (ด่านก่อนหน้า ≥70%)
-            // ถ้าด่านก่อนหน้าไม่ผ่าน 70% ให้ lock ไว้เสมอ
-            if (!prevPassed) {
-              // ด่านก่อนหน้าไม่ผ่าน 70% → lock ไว้
-              return { 
-                ...s, 
-                status: 'locked', 
-                progress: 0,
-                accuracy: levelProgress.accuracy ?? 0
-              };
-            }
+    // ถ้าด่านก่อนหน้าไม่ผ่าน 70% ให้ lock ไว้เสมอ (ใช้ accuracyPercent ที่ normalize แล้ว)
+    if (!prevPassed) {
+      return { 
+        ...s, 
+        status: 'locked', 
+        progress: 0,
+        accuracy: levelProgress.accuracyPercent ?? Math.round((levelProgress.accuracy ?? 0) * 100)
+      };
+    }
 
             // ด่านก่อนหน้าผ่าน 70% → ปลดล็อกด่านนี้
             if (!statusFromProgress || statusFromProgress === 'locked') {
               statusFromProgress = 'current';
             }
             
-            let status = statusFromProgress;
-            if (levelProgress.completed) {
-              status = 'done';
-            }
+    let status = statusFromProgress;
+    if (levelProgress.completed) {
+      status = 'done';
+    }
 
             const accuracyPercent =
               levelProgress.accuracy !== undefined
@@ -613,7 +612,14 @@ const LevelStage1 = ({ navigation }) => {
   useFocusEffect(
     React.useCallback(() => {
       // ทุกครั้งที่เข้าหน้านี้ ให้รีเฟรชความคืบหน้า
-      fetchStages();
+      (async () => {
+        try {
+          if (user?.id) {
+            await levelUnlockService.initialize(user.id);
+          }
+        } catch {}
+        await fetchStages();
+      })();
       return () => {};
     }, [])
   );

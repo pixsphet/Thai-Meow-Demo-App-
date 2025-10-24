@@ -249,12 +249,22 @@ class LevelUnlockService {
     try {
       const progress = await gameProgressService.getLessonProgress(levelId);
       const status = await this.getLevelStatus(levelId);
-      
+
+      // Normalize accuracy to both ratio (0..1) and percent (0..100)
+      const accuracyRatio = Number.isFinite(progress?.accuracy)
+        ? (progress.accuracy > 1 ? progress.accuracy / 100 : progress.accuracy)
+        : 0;
+      const accuracyPercent = Number.isFinite(progress?.accuracyPercent)
+        ? progress.accuracyPercent
+        : Math.round(accuracyRatio * 100);
+
       return {
         levelId,
         status,
         ...progress,
-        canUnlock: progress.accuracy >= this.unlockRules.accuracyThreshold,
+        accuracy: accuracyRatio,
+        accuracyPercent,
+        canUnlock: accuracyPercent >= this.unlockRules.accuracyThreshold,
         unlockThreshold: this.unlockRules.accuracyThreshold
       };
     } catch (error) {
@@ -264,6 +274,7 @@ class LevelUnlockService {
         status: 'locked',
         completed: false,
         accuracy: 0,
+        accuracyPercent: 0,
         bestScore: 0,
         attempts: 0,
         lastPlayed: null,
