@@ -479,47 +479,48 @@ const makeChallenge = (word, pool = [], usedChars = new Set()) => {
   };
 };
 
-// Generate questions (target 15-18): LC×4, PM×3, DM×2, FB×2, A/B×2, SB×1, OT×1, MM×1, CHALLENGE×1
+// Generate questions tailored for ก-ฮ (focus on recognition):
+// Target 16-17 total: LC×5, PM×4, DM×3, FB×3, A/B×2
 const generateConsonantQuestions = (pool) => {
   const questions = [];
   const usedChars = new Set();
-  
-  // LISTEN_CHOOSE × 4
-  for (let i = 0; i < 4; i++) {
+
+  // LISTEN_CHOOSE × 5
+  for (let i = 0; i < 5; i++) {
     const available = pool.filter(w => !usedChars.has(w.char));
     if (available.length === 0) break;
     const word = pick(available);
     usedChars.add(word.char);
     questions.push(makeListenChoose(word, pool, usedChars));
   }
-  
-  // PICTURE_MATCH × 3
-  for (let i = 0; i < 3; i++) {
+
+  // PICTURE_MATCH × 4
+  for (let i = 0; i < 4; i++) {
     const available = pool.filter(w => !usedChars.has(w.char));
     if (available.length === 0) break;
     const word = pick(available);
     usedChars.add(word.char);
     questions.push(makePictureMatch(word, pool, usedChars));
   }
-  
-  // DRAG_MATCH × 2
-  for (let i = 0; i < 2; i++) {
+
+  // DRAG_MATCH × 3
+  for (let i = 0; i < 3; i++) {
     const available = pool.filter(w => !usedChars.has(w.char));
     if (available.length === 0) break;
     const word = pick(available);
     usedChars.add(word.char);
     questions.push(makeDragMatch(word, pool, usedChars));
   }
-  
-  // FILL_BLANK × 2
-  for (let i = 0; i < 2; i++) {
+
+  // FILL_BLANK × 3
+  for (let i = 0; i < 3; i++) {
     const available = pool.filter(w => !usedChars.has(w.char));
     if (available.length === 0) break;
     const word = pick(available);
     usedChars.add(word.char);
-    questions.push(makeFillBlank(word, pool));
+    questions.push(makeFillBlank(word, pool, usedChars));
   }
-  
+
   // A_OR_B × 2
   for (let i = 0; i < 2; i++) {
     const available = pool.filter(w => !usedChars.has(w.char));
@@ -528,39 +529,8 @@ const generateConsonantQuestions = (pool) => {
     usedChars.add(word.char);
     questions.push(makeAorB(word, pool, usedChars));
   }
-  
-  // SYLLABLE_BUILDER × 1
-  let available3 = pool.filter(w => !usedChars.has(w.char));
-  if (available3.length > 0) {
-    const word = pick(available3);
-    usedChars.add(word.char);
-    questions.push(makeSyllableBuilder(word, pool));
-  }
-  
-  // ORDER_TILES × 1
-  const available4 = pool.filter(w => !usedChars.has(w.char));
-  if (available4.length > 0) {
-    const word = pick(available4);
-    usedChars.add(word.char);
-    questions.push(makeOrderTiles(word));
-  }
-  
-  // MEMORY_MATCH × 1 (uses multiple cards from pool)
-  const available5 = pool.filter(w => !usedChars.has(w.char));
-  if (available5.length >= 6) {
-    const selectedWords = available5.slice(0, 6);
-    selectedWords.forEach(w => usedChars.add(w.char));
-    questions.push(makeMemoryMatch(selectedWords));
-  }
-  
-  // CHALLENGE × 1
-  const available6 = pool.filter(w => !usedChars.has(w.char));
-  if (available6.length > 0) {
-    const word = pick(available6);
-    usedChars.add(word.char);
-    questions.push(makeChallenge(word, pool, usedChars));
-  }
-  
+
+  // Shuffle for varied flow
   return shuffle(questions);
 };
 
