@@ -128,6 +128,7 @@ export default function IntermediateEmotionsGame({ navigation, route }) {
   const [resumeData, setResumeData] = useState(null);
   const [dmSelected, setDmSelected] = useState({ leftId: null, rightId: null });
   const [dmPairs, setDmPairs] = useState([]);
+  const [currentFeedback, setCurrentFeedback] = useState(null);
   const [showFireStreakAlert, setShowFireStreakAlert] = useState(false);
   const [accuracy, setAccuracy] = useState(0);
   const [totalAnswered, setTotalAnswered] = useState(0);
@@ -492,70 +493,70 @@ export default function IntermediateEmotionsGame({ navigation, route }) {
   
   return (
     <SafeAreaView style={styles.container}>
-      <LinearGradient colors={['#fff9f0', '#fff']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#FFF5E5', '#FFFFFF']} style={StyleSheet.absoluteFill} />
       
-      {/* Header / HUD */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={COLORS.dark} />
-        </TouchableOpacity>
-        
-        <View style={styles.progressSection}>
-          <Text style={styles.progressText}>
-            ข้อ {currentIndex + 1} / {questions.length}
-          </Text>
-          <View style={styles.progressBar}>
-            <View
-              style={[
-                styles.progressFill,
-                { width: `${((currentIndex + 1) / questions.length) * 100}%` },
-              ]}
-            />
+      {/* Header with gradient like ConsonantStage1Game */}
+      <LinearGradient colors={[COLORS.primary, '#FFA24D', '#FFD700']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.headerGradient}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <FontAwesome name="times" size={26} color={COLORS.white} />
+          </TouchableOpacity>
+          
+          <View style={styles.progressSection}>
+            <Text style={[styles.progressText, { color: COLORS.white }]}>ข้อ {currentIndex + 1} / {questions.length}</Text>
+            <View style={styles.progressBar}>
+              <LinearGradient colors={['#58cc02', '#7FD14F']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={[styles.progressFill, { width: `${((currentIndex + 1) / questions.length) * 100}%` }]} />
+            </View>
+            <View style={styles.headerMetaRow}>
+              <View style={styles.typePill}><Text style={styles.typePillText}>อารมณ์/ความรู้สึก</Text></View>
+              <View style={styles.heartsDisplayContainer}>
+                <FontAwesome name="heart" size={16} color="#ff4b4b" />
+                <Text style={styles.heartsDisplay}>{hearts}</Text>
+              </View>
+            </View>
           </View>
         </View>
+      </LinearGradient>
 
-        <TouchableOpacity style={styles.settingsButton}>
-          <Ionicons name="settings-outline" size={24} color={COLORS.dark} />
-        </TouchableOpacity>
-      </View>
-
-      {/* HUD Badges */}
+      {/* Stats Row (XP, Diamonds, Accuracy) */}
       <View style={styles.statsRow}>
-        <View style={styles.statBadge}>
+        <View style={styles.statBadgeEnhanced}>
           <LottieView
             source={require('../assets/animations/Heart.json')}
             autoPlay
             loop
             style={styles.heartAnimation}
           />
-          <Text style={styles.statText}>{hearts}</Text>
+          <View style={styles.statTextContainer}>
+            <Text style={styles.statLabel}>XP</Text>
+            <Text style={styles.statValue}>{xpEarned}</Text>
+          </View>
         </View>
-        <View style={styles.statBadge}>
+        <View style={styles.statDivider} />
+        <View style={styles.statBadgeEnhanced}>
           <LottieView
             source={require('../assets/animations/Star.json')}
             autoPlay
             loop
             style={styles.starAnimation}
           />
-          <Text style={styles.statText}>{xpEarned} XP</Text>
+          <View style={styles.statTextContainer}>
+            <Text style={styles.statLabel}>Diamonds</Text>
+            <Text style={styles.statValue}>+{diamondsEarned}</Text>
+          </View>
         </View>
-        <View style={styles.statBadge}>
+        <View style={styles.statDivider} />
+        <View style={styles.statBadgeEnhanced}>
           <LottieView
             source={require('../assets/animations/Diamond.json')}
             autoPlay
             loop
             style={styles.diamondAnimation}
           />
-          <Text style={styles.statText}>+{diamondsEarned}</Text>
-        </View>
-        <View style={styles.statBadge}>
-          <LottieView
-            source={require('../assets/animations/Streak-Fire1.json')}
-            autoPlay
-            loop
-            style={styles.streakAnimation}
-          />
-          <Text style={styles.statText}>{streak}</Text>
+          <View style={styles.statTextContainer}>
+            <Text style={styles.statLabel}>Accuracy</Text>
+            <Text style={styles.statValue}>{accuracy}%</Text>
+          </View>
         </View>
       </View>
 
@@ -570,26 +571,26 @@ export default function IntermediateEmotionsGame({ navigation, route }) {
         {renderQuestion(currentQuestion, currentAnswer, handleAnswerSelect, setDmSelected, setDmPairs, dmSelected, dmPairs, playTTS)}
       </ScrollView>
 
-      {/* Bottom Actions */}
-      <View style={styles.bottomActions}>
+      {/* Enhanced Check Button with feedback */}
+      <View style={styles.checkContainerEnhanced}>
+        {currentFeedback && (
+          <View style={[styles.feedbackBadgeEnhanced, currentFeedback === 'correct' ? styles.feedbackCorrectEnhanced : styles.feedbackWrongEnhanced]}>
+            <FontAwesome name={currentFeedback === 'correct' ? 'check-circle' : 'times-circle'} size={24} color={currentFeedback === 'correct' ? '#58cc02' : '#ff4b4b'} style={{ marginRight: 8 }} />
+            <Text style={styles.feedbackTextEnhanced}>{currentFeedback === 'correct' ? 'ถูกต้อง! ยอดเยี่ยม' : 'พยายามอีกครั้ง'}</Text>
+          </View>
+        )}
         <TouchableOpacity
-          style={[
-            styles.checkButton,
-            currentAnswer === null && !checked && styles.checkButtonDisabled,
-          ]}
+          style={[styles.checkButtonEnhanced, currentAnswer === null && currentFeedback === null && styles.checkButtonDisabledEnhanced]}
           onPress={handleCheckAnswer}
-          disabled={currentAnswer === null && !checked}
+          disabled={currentAnswer === null && currentFeedback === null}
+          activeOpacity={0.85}
         >
-          <Text style={styles.checkButtonText}>{checked ? '→ ต่อไป' : '✓ ตรวจสอบ'}</Text>
+          <LinearGradient colors={currentAnswer === null && currentFeedback === null ? ['#ddd', '#ccc'] : [COLORS.primary, '#FFA24D']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.checkGradientEnhanced}>
+            <FontAwesome name={currentFeedback ? 'arrow-right' : 'check'} size={20} color={COLORS.white} style={{ marginRight: 8 }} />
+            <Text style={styles.checkButtonTextEnhanced}>{currentFeedback ? 'ต่อไป' : 'CHECK'}</Text>
+          </LinearGradient>
         </TouchableOpacity>
       </View>
-
-      {/* Fire Streak Alert */}
-      <FireStreakAlert
-        visible={showFireStreakAlert}
-        streak={maxStreak}
-        onClose={() => setShowFireStreakAlert(false)}
-      />
     </SafeAreaView>
   );
 }
@@ -841,7 +842,10 @@ function renderQuestion(question, currentAnswer, handleAnswerSelect, setDmSelect
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF9F0',
+    backgroundColor: 'transparent',
+  },
+  headerGradient: {
+    paddingTop: 15,
   },
   centerContainer: {
     flex: 1,
@@ -849,135 +853,71 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    backgroundColor: '#FFF9F0',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E8DCC8',
-  },
-  backButton: {
-    padding: 8,
-    marginRight: 8,
-  },
-  progressSection: {
-    flex: 1,
-    marginHorizontal: 12,
-  },
-  progressText: {
-    fontSize: 13,
-    color: COLORS.dark,
-    marginBottom: 6,
-    fontWeight: '600',
-  },
-  progressBar: {
-    height: 6,
-    backgroundColor: '#E8DCC8',
-    borderRadius: 3,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: COLORS.primary,
-  },
-  settingsButton: {
-    padding: 8,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    backgroundColor: '#FFF9F0',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E8DCC8',
-  },
-  statBadge: {
-    alignItems: 'center',
-    backgroundColor: COLORS.white,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E8DCC8',
-  },
-  heartAnimation: {
-    width: 24,
-    height: 24,
-    marginBottom: 4,
-  },
-  starAnimation: {
-    width: 24,
-    height: 24,
-    marginBottom: 4,
-  },
-  diamondAnimation: {
-    width: 24,
-    height: 24,
-    marginBottom: 4,
-  },
-  streakAnimation: {
-    width: 24,
-    height: 24,
-    marginBottom: 4,
-  },
-  statText: {
-    fontSize: 13,
-    fontWeight: 'bold',
-    color: COLORS.dark,
-  },
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 15, backgroundColor: 'transparent', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.2)' },
+  backButton: { marginRight: 15 },
+  progressSection: { flex: 1, marginHorizontal: 12 },
+  progressText: { fontSize: 13, marginBottom: 6, fontWeight: '600' },
+  progressBar: { height: 6, backgroundColor: '#E8DCC8', borderRadius: 3, overflow: 'hidden' },
+  progressFill: { height: '100%', backgroundColor: COLORS.primary },
+  headerMetaRow: { width: '100%', marginTop: 6, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  typePill: { backgroundColor: 'rgba(255,255,255,0.25)', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)' },
+  typePillText: { fontSize: 12, fontWeight: '700', color: COLORS.white },
+  heartsDisplayContainer: { flexDirection: 'row', alignItems: 'center' },
+  heartsDisplay: { fontSize: 16, fontWeight: '600', color: COLORS.white, marginLeft: 5 },
+  statsRow: { flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: 12, paddingVertical: 12, backgroundColor: 'rgba(255,245,229,0.9)', borderTopWidth: 1, borderBottomWidth: 1, borderColor: '#FFE3CC' },
+  statBadgeEnhanced: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white, paddingHorizontal: 10, paddingVertical: 7, borderRadius: 12, borderWidth: 1, borderColor: '#F2F2F2', minWidth: 85 },
+  statTextContainer: { marginLeft: 4 },
+  statLabel: { fontSize: 12, fontWeight: '600', color: COLORS.dark },
+  statValue: { fontSize: 14, fontWeight: '700', color: COLORS.primary },
+  statDivider: { width: 0.8, height: '100%', backgroundColor: '#E8DCC8', marginHorizontal: 6 },
+  heartAnimation: { width: 20, height: 20 },
+  starAnimation: { width: 20, height: 20 },
+  diamondAnimation: { width: 20, height: 20 },
   accuracyContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingHorizontal: 12,
+    backgroundColor: 'rgba(255, 128, 0, 0.1)',
     paddingVertical: 10,
-    backgroundColor: '#FFF9F0',
+    paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#E8DCC8',
+    borderBottomColor: '#FFE3CC',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   accuracyLabel: {
-    fontSize: 13,
-    color: COLORS.dark,
+    fontSize: 14,
     fontWeight: '600',
+    color: COLORS.primary,
   },
   accuracyPercent: {
     fontSize: 18,
     fontWeight: '700',
     color: COLORS.primary,
   },
-  content: {
-    flex: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-  },
+  content: { flex: 1, paddingHorizontal: 12, paddingVertical: 12 },
   questionContainer: {
     marginBottom: 20,
   },
-  questionCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#E8DCC8',
-  },
+  questionCard: { backgroundColor: COLORS.white, padding: 18, borderRadius: 20, borderWidth: 2, borderColor: '#FFE8CC' },
   instruction: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 17,
+    fontWeight: '600',
     color: COLORS.dark,
-    marginBottom: 8,
+    marginBottom: 12,
   },
   hintText: {
     fontSize: 12,
     color: '#999',
-    fontStyle: 'italic',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   speakerButton: {
-    alignItems: 'center',
+    alignSelf: 'center',
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: COLORS.cream,
     justifyContent: 'center',
-    paddingVertical: 16,
+    alignItems: 'center',
+    marginBottom: 20,
   },
   imageContainer: {
     alignItems: 'center',
@@ -1056,29 +996,15 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     textAlign: 'center',
   },
-  bottomActions: {
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#E8DCC8',
-    backgroundColor: '#FFF9F0',
-  },
-  checkButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    backgroundColor: COLORS.primary,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  checkButtonDisabled: {
-    backgroundColor: '#CCC',
-  },
-  checkButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.white,
-  },
+  checkContainerEnhanced: { padding: 20, backgroundColor: COLORS.white, borderTopWidth: 1, borderTopColor: '#E8DCC8' },
+  checkButtonEnhanced: { backgroundColor: COLORS.primary, paddingVertical: 18, borderRadius: 28, alignItems: 'center', flexDirection: 'row', justifyContent: 'center' },
+  checkGradientEnhanced: { width: '100%', paddingVertical: 18, borderRadius: 28, alignItems: 'center', flexDirection: 'row', justifyContent: 'center' },
+  checkButtonDisabledEnhanced: { backgroundColor: '#CCC' },
+  checkButtonTextEnhanced: { fontSize: 18, fontWeight: '800', color: COLORS.white, letterSpacing: 1 },
+  feedbackBadgeEnhanced: { position: 'absolute', top: -35, left: '50%', transform: [{ translateX: -50 }], backgroundColor: COLORS.white, paddingHorizontal: 18, paddingVertical: 10, borderRadius: 24, borderWidth: 3, borderColor: '#E8DCC8', flexDirection: 'row', alignItems: 'center' },
+  feedbackCorrectEnhanced: { borderColor: COLORS.success, backgroundColor: 'rgba(88,204,2,0.12)' },
+  feedbackWrongEnhanced: { borderColor: COLORS.error, backgroundColor: 'rgba(255,75,75,0.12)' },
+  feedbackTextEnhanced: { fontSize: 15, fontWeight: '700', color: COLORS.dark },
   startCard: {
     padding: 24,
     borderRadius: 16,
