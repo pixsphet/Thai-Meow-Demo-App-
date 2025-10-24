@@ -853,8 +853,7 @@ const ConsonantStage1Game = ({ navigation, route }) => {
     if (isCorrect) {
       // Correct answer
       const newScore = score + 1;
-      const newStreak = streak + 1;
-      const newMaxStreak = Math.max(maxStreak, newStreak);
+      // Daily streak is handled globally; do not increment per-question streak here
       // Use question's reward data, default to 15 XP and 1 diamond if not specified
       const xpReward = currentQuestion.rewardXP || 15;
       const diamondReward = currentQuestion.rewardDiamond || 1;
@@ -862,8 +861,6 @@ const ConsonantStage1Game = ({ navigation, route }) => {
       const newDiamonds = diamondsEarned + diamondReward;
 
       setScore(newScore);
-      setStreak(newStreak);
-      setMaxStreak(newMaxStreak);
       setXpEarned(newXp);
       setDiamondsEarned(newDiamonds);
       
@@ -873,7 +870,6 @@ const ConsonantStage1Game = ({ navigation, route }) => {
       const heartPenalty = currentQuestion.penaltyHeart || 1;
       const newHearts = Math.max(0, hearts - heartPenalty);
       setHearts(newHearts);
-      setStreak(0);
 
       // If hearts are depleted, prompt to buy more
       if (newHearts <= 0) {
