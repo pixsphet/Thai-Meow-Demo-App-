@@ -21,7 +21,7 @@ import { saveProgress, restoreProgress, clearProgress } from '../services/progre
 import gameProgressService from '../services/gameProgressService';
 import levelUnlockService from '../services/levelUnlockService';
 import userStatsService from '../services/userStatsService';
-import dailyStreakService from '../services/dailyStreakService';
+// daily streak service removed from in-game usage per request
 
 // Contexts
 import { useProgress } from '../contexts/ProgressContext';
@@ -31,7 +31,7 @@ import { useUserData } from '../contexts/UserDataContext';
 // Data
 import consonantsFallback from '../data/consonants_fallback.json';
 import { letterImages } from '../assets/letters';
-import FireStreakAlert from '../components/FireStreakAlert';
+// Remove FireStreakAlert from in-game
 
 const { width, height } = Dimensions.get('window');
 
@@ -650,6 +650,7 @@ const ConsonantStage1Game = ({ navigation, route }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentAnswer, setCurrentAnswer] = useState(null);
   const [hearts, setHearts] = useState(5);
+  // Streak counts kept for stats but UI/alerts removed
   const [streak, setStreak] = useState(0);
   const [maxStreak, setMaxStreak] = useState(0);
   const [score, setScore] = useState(0);
@@ -662,7 +663,7 @@ const ConsonantStage1Game = ({ navigation, route }) => {
   const [resumeData, setResumeData] = useState(null);
   const [dmSelected, setDmSelected] = useState({ leftId: null, rightId: null });
   const [dmPairs, setDmPairs] = useState([]); // {leftId,rightId}
-  const [showFireStreakAlert, setShowFireStreakAlert] = useState(false);
+  // const [showFireStreakAlert, setShowFireStreakAlert] = useState(false);
   const [currentFeedback, setCurrentFeedback] = useState(null); // 'correct'|'wrong'|null
   
   // Memory Match state
@@ -899,19 +900,7 @@ const ConsonantStage1Game = ({ navigation, route }) => {
     setChallengeSubIndex(0);
   }, [currentIndex]);
 
-  // Show Fire Streak Alert for milestone streaks
-  useEffect(() => {
-    if (gameFinished && streak > 0) {
-      const milestones = [5, 10, 20, 30, 50, 100];
-      if (milestones.includes(streak)) {
-        // Delay alert to show after game finishes
-        const timer = setTimeout(() => {
-          setShowFireStreakAlert(true);
-        }, 1500);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [gameFinished, streak]);
+  // Removed fire streak alert per request
 
   // Next question
   const nextQuestion = () => {
@@ -2011,20 +2000,7 @@ const ConsonantStage1Game = ({ navigation, route }) => {
           </View>
         </View>
         
-        <View style={styles.statDivider} />
-        
-        <View style={styles.statBadgeEnhanced}>
-          <LottieView
-            source={require('../assets/animations/Streak-Fire1.json')}
-            autoPlay
-            loop
-            style={styles.streakAnimation}
-          />
-          <View style={styles.statTextContainer}>
-            <Text style={styles.statLabel}>Streak</Text>
-            <Text style={styles.statValue}>{streak}</Text>
-          </View>
-        </View>
+        {/* Removed Streak UI */}
       </View>
       
       {/* Question */}
@@ -2089,11 +2065,7 @@ const ConsonantStage1Game = ({ navigation, route }) => {
           </LinearGradient>
         </TouchableOpacity>
       </View>
-      <FireStreakAlert
-        visible={showFireStreakAlert}
-        onClose={() => setShowFireStreakAlert(false)}
-        streak={streak}
-      />
+      {/* FireStreakAlert removed */}
     </SafeAreaView>
   );
 };
