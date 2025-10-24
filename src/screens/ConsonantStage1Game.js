@@ -220,14 +220,14 @@ const makeDragMatch = (word, pool, usedChars = new Set()) => {
   const allWords = shuffle([word, ...otherWords]);
 
   // Left = words (meanings), Right = pictures (emoji placeholder) → match by character
-  const leftItems = allWords.map((w, i) => ({
+  let leftItems = allWords.map((w, i) => ({
     id: `left_${i + 1}`,
     text: w.meaningTH || w.name || w.roman || w.char,
     correctMatch: w.char,
     speakText: w.meaningTH || w.audioText || w.name,
   }));
 
-  const rightItems = allWords.map((w, i) => ({
+  let rightItems = allWords.map((w, i) => ({
     id: `right_${i + 1}`,
     text: w.char,                 // used for correctness check
     display: CONSONANT_EMOJI[w.char] || w.char, // what we visually show
@@ -235,6 +235,10 @@ const makeDragMatch = (word, pool, usedChars = new Set()) => {
     roman: w.roman || w.name,
     speakText: w.audioText,
   }));
+
+  // Shuffle columns independently for better variety
+  leftItems = shuffle(leftItems);
+  rightItems = shuffle(rightItems);
 
   return {
     id: `dm_${word.char}_${uid()}`,
@@ -1178,17 +1182,22 @@ const ConsonantStage1Game = ({ navigation, route }) => {
       case QUESTION_TYPES.DRAG_MATCH:
         console.debug(`[Q${currentIndex + 1}/${questions.length}] DRAG_MATCH`, { questionId: question.id, pairCount: question.leftItems.length });
         
-        // Helper: connection color based on index
+        // Helper: connection color/symbol based on LEFT item fixed index
         const connectionColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F'];
-        const connectionSymbols = ['●', '▲', '■', '♦', '★', '◆', '▲', '●'];
+        const connectionSymbols = ['●', '▲', '■', '♦', '★', '◆', '⬟', '⬢'];
+
+        const getLeftIndex = (leftId) => {
+          const idx = (question.leftItems || []).findIndex(l => l.id === leftId);
+          return idx >= 0 ? idx : 0;
+        };
         
         const getConnectionColor = (leftId) => {
-          const connectionIndex = Object.keys(dmPairs).indexOf(leftId.toString());
+          const connectionIndex = getLeftIndex(leftId);
           return connectionColors[connectionIndex % connectionColors.length];
         };
         
         const getConnectionSymbol = (leftId) => {
-          const connectionIndex = Object.keys(dmPairs).indexOf(leftId.toString());
+          const connectionIndex = getLeftIndex(leftId);
           return connectionSymbols[connectionIndex % connectionSymbols.length];
         };
         
@@ -1288,6 +1297,15 @@ const ConsonantStage1Game = ({ navigation, route }) => {
                           isSelected && { color: '#FF8000', fontWeight: 'bold' }
                         ]}>{item.text}</Text>
                         {connected && (
+                          <View style={{
+                            marginLeft: 8,
+                            width: 14,
+                            height: 14,
+                            borderRadius: 7,
+                            backgroundColor: color,
+                          }} />
+                        )}
+                        {connected && (
                           <Text style={[styles.connectionSymbol, { color: '#fff' }]}>
                             {symbol}
                           </Text>
@@ -1332,6 +1350,15 @@ const ConsonantStage1Game = ({ navigation, route }) => {
                           connectedLeftId && { color: '#fff', fontWeight: 'bold' },
                           isSelected && { color: '#FF8000', fontWeight: 'bold' }
                         ]}>{item.display || item.text}</Text>
+                        {connectedLeftId && (
+                          <View style={{
+                            marginLeft: 8,
+                            width: 14,
+                            height: 14,
+                            borderRadius: 7,
+                            backgroundColor: color,
+                          }} />
+                        )}
                         {connectedLeftId && (
                           <Text style={[styles.connectionSymbol, { color: '#fff' }]}>
                             {symbol}
