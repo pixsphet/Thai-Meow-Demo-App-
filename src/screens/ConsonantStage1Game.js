@@ -873,11 +873,19 @@ const ConsonantStage1Game = ({ navigation, route }) => {
       const newHearts = Math.max(0, hearts - heartPenalty);
       setHearts(newHearts);
       setStreak(0);
-      
-      // Show feedback - don't auto-advance, user must click CHECK to continue
-      if (newHearts === 0) {
-        // Game over - show feedback first, then require CHECK to finish
+
+      // If hearts are depleted, prompt to buy more
+      if (newHearts <= 0) {
+        Alert.alert(
+          'หัวใจหมดแล้ว',
+          'ซื้อหัวใจเพิ่มเพื่อเล่นต่อ',
+          [
+            { text: 'ไปร้านหัวใจ', onPress: () => navigation.navigate('GemShop') },
+            { text: 'ยกเลิก', style: 'cancel' }
+          ]
+        );
       }
+      // Show feedback - don't auto-advance, user must click CHECK to continue
     }
   };
   
