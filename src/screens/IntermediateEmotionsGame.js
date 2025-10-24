@@ -522,27 +522,14 @@ export default function IntermediateEmotionsGame({ navigation, route }) {
       <View style={styles.statsRow}>
         <View style={styles.statBadgeEnhanced}>
           <LottieView
-            source={require('../assets/animations/Heart.json')}
-            autoPlay
-            loop
-            style={styles.heartAnimation}
-          />
-          <View style={styles.statTextContainer}>
-            <Text style={styles.statLabel}>XP</Text>
-            <Text style={styles.statValue}>{xpEarned}</Text>
-          </View>
-        </View>
-        <View style={styles.statDivider} />
-        <View style={styles.statBadgeEnhanced}>
-          <LottieView
             source={require('../assets/animations/Star.json')}
             autoPlay
             loop
             style={styles.starAnimation}
           />
           <View style={styles.statTextContainer}>
-            <Text style={styles.statLabel}>Diamonds</Text>
-            <Text style={styles.statValue}>+{diamondsEarned}</Text>
+            <Text style={styles.statLabel}>XP</Text>
+            <Text style={styles.statValue}>{xpEarned}</Text>
           </View>
         </View>
         <View style={styles.statDivider} />
@@ -554,17 +541,21 @@ export default function IntermediateEmotionsGame({ navigation, route }) {
             style={styles.diamondAnimation}
           />
           <View style={styles.statTextContainer}>
+            <Text style={styles.statLabel}>Diamonds</Text>
+            <Text style={styles.statValue}>+{diamondsEarned}</Text>
+          </View>
+        </View>
+        <View style={styles.statDivider} />
+        <View style={styles.statBadgeEnhanced}>
+          <FontAwesome name="bullseye" size={18} color={COLORS.primary} />
+          <View style={styles.statTextContainer}>
             <Text style={styles.statLabel}>Accuracy</Text>
             <Text style={styles.statValue}>{accuracy}%</Text>
           </View>
         </View>
       </View>
 
-      {/* Accuracy Display */}
-      <View style={styles.accuracyContainer}>
-        <Text style={styles.accuracyLabel}>แม่นยำ</Text>
-        <Text style={styles.accuracyPercent}>{accuracy}%</Text>
-      </View>
+      {/* Accuracy pill removed (merged into stats row) */}
 
       {/* Question Content */}
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
