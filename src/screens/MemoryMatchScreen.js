@@ -17,10 +17,16 @@ import { LinearGradient } from 'expo-linear-gradient';
 import LottieView from 'lottie-react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { awardDiamondsOnce, calculateDiamondReward } from '../services/minigameRewards';
+import { useUnifiedStats } from '../contexts/UnifiedStatsContext';
+import { getByCategory } from '../services/gameVocabService';
+import { resolveImage } from '../utils/imageResolver';
 
 const { width } = Dimensions.get('window');
 
-const MemoryMatchScreen = () => {
+const MemoryMatchScreen = ({ route }) => {
+  const category = route?.params?.category || 'Animals';
+  const { updateFromGameSession } = useUnifiedStats();
   const navigation = useNavigation();
   const [cards, setCards] = useState([]);
   const [flippedCards, setFlippedCards] = useState([]);
@@ -31,25 +37,37 @@ const MemoryMatchScreen = () => {
   const [gameOver, setGameOver] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [isWin, setIsWin] = useState(false);
+  const [rewardInfo, setRewardInfo] = useState(null);
   const [mismatchCount, setMismatchCount] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Sample data for the game
-  const gameData = [
-    { id: 1, thai: 'บ้าน', image: require('../add/picture/house.png'), type: 'word' },
-    { id: 2, thai: 'โรงเรียน', image: require('../add/picture/school.png'), type: 'word' },
-    { id: 3, thai: 'ตลาด', image: require('../add/picture/market.png'), type: 'word' },
-    { id: 4, thai: 'เครื่องบิน', image: require('../add/picture/airplane.png'), type: 'word' },
-    { id: 5, thai: 'แดง', image: require('../add/picture/red.png'), type: 'word' },
-    { id: 6, thai: 'เขียว', image: require('../add/picture/green.png'), type: 'word' },
-    { id: 7, thai: 'พ่อ', image: require('../add/picture/father.png'), type: 'word' },
-    { id: 8, thai: 'แม่', image: require('../add/picture/mother.png'), type: 'word' },
-  ];
+  const [gameData, setGameData] = useState([]);
+
+  // Simple emoji pools per category to avoid repeated placeholder images
+  const EMOJI_POOLS = {
+    'Animals': ['🐱','🐶','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🐔','🐧','🦉','🦆','🦅','🐢','🐙','🦋','🐝','🦀','🐟','🐬'],
+    'Food': ['🍎','🍊','🍌','🍉','🍇','🍓','🍒','🍑','🥭','🍍','🥝','🥑','🍅','🥕','🌽','🥔','🍞','🥐','🥞','🍗','🍔','🍟','🍕','🌭','🍝','🍜','🍱','🍣','🍧','🍨'],
+    'Places': ['🏠','🏫','🏥','🛕','🛍️','🏪','🏖️','🏔️','✈️','🚉','🛣️','🏟️','🏢','🏙️','🛤️','🏞️'],
+    'Colors': ['🟥','🟧','🟨','🟩','🟦','🟪','⬛','⬜','🟫'],
+    'Transportation': ['🚗','🚌','🚎','🚕','🚖','🚙','🚓','🚑','🚒','🚜','🚲','🛵','🏍️','🚂','✈️','🛥️','⛵️'],
+    'Weather': ['☀️','🌤️','⛅️','🌧️','⛈️','🌩️','❄️','🌪️','🌫️','🌈'],
+    'Objects': ['📱','💻','🖥️','📺','🧮','🕶️','⌚️','📷','🎧','📚','📝','✏️','✒️','🛏️','🪑','🗝️','🚪','🪟','🧦','👟'],
+    'Emotions': ['😀','😁','😅','😂','🥰','😍','🤩','😎','🤔','😴','😡','😢','😭','😱','😇','😌','😤','😜'],
+    'Activities': ['🏃‍♂️','🏃‍♀️','🚶‍♂️','🚶‍♀️','🧘‍♂️','🧘‍♀️','🏊‍♂️','🏊‍♀️','🚴‍♂️','🚴‍♀️','🎮','🎧','🎬','📚','✍️','🍳','🧼','🧹','🛒'],
+    'Technology': ['📱','💻','⌨️','🖱️','🎧','🎮','📡','🛰️','🖨️','🧠','🔐','🌐','🪪','📧','🔌'],
+  };
+
+  const getEmojiForWord = (thai, category) => {
+    const pool = EMOJI_POOLS[category] || EMOJI_POOLS['Objects'];
+    // Deterministic pick based on word to reduce repeats
+    const sum = Array.from(thai).reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+    return pool[sum % pool.length];
+  };
 
   // Create pairs for the game
-  const createGameCards = () => {
+  const createGameCards = (source = gameData) => {
     const pairs = [];
-    gameData.forEach((item, index) => {
+    source.forEach((item, index) => {
       // Add word card
       pairs.push({
         id: `word-${item.id}`,
@@ -63,6 +81,7 @@ const MemoryMatchScreen = () => {
         id: `image-${item.id}`,
         content: item.thai,
         image: item.image,
+        emoji: getEmojiForWord(item.thai, category),
         type: 'image',
         pairId: item.id,
       });
@@ -78,8 +97,46 @@ const MemoryMatchScreen = () => {
   };
 
   useEffect(() => {
-    setCards(createGameCards());
-  }, []);
+    let mounted = true;
+    (async () => {
+      try {
+        const words = await getByCategory(category, { count: 8 });
+        if (!mounted) return;
+        let items = [];
+        if (Array.isArray(words) && words.length) {
+          items = words.map((w, idx) => ({ id: idx + 1, thai: w.thai, image: resolveImage(w.thai, category), type: 'word' }));
+        }
+        if (!items.length) {
+          items = [
+            { id: 1, thai: 'บ้าน', image: require('../add/picture/house.png'), type: 'word' },
+            { id: 2, thai: 'โรงเรียน', image: require('../add/picture/school.png'), type: 'word' },
+            { id: 3, thai: 'ตลาด', image: require('../add/picture/market.png'), type: 'word' },
+            { id: 4, thai: 'เครื่องบิน', image: require('../add/picture/airplane.png'), type: 'word' },
+            { id: 5, thai: 'แดง', image: require('../add/picture/red.png'), type: 'word' },
+            { id: 6, thai: 'เขียว', image: require('../add/picture/green.png'), type: 'word' },
+            { id: 7, thai: 'พ่อ', image: require('../add/picture/father.png'), type: 'word' },
+            { id: 8, thai: 'แม่', image: require('../add/picture/mother.png'), type: 'word' },
+          ];
+        }
+        setGameData(items);
+        setCards(createGameCards(items));
+      } catch (_) {
+        const items = [
+          { id: 1, thai: 'บ้าน', image: require('../add/picture/house.png'), type: 'word' },
+          { id: 2, thai: 'โรงเรียน', image: require('../add/picture/school.png'), type: 'word' },
+          { id: 3, thai: 'ตลาด', image: require('../add/picture/market.png'), type: 'word' },
+          { id: 4, thai: 'เครื่องบิน', image: require('../add/picture/airplane.png'), type: 'word' },
+          { id: 5, thai: 'แดง', image: require('../add/picture/red.png'), type: 'word' },
+          { id: 6, thai: 'เขียว', image: require('../add/picture/green.png'), type: 'word' },
+          { id: 7, thai: 'พ่อ', image: require('../add/picture/father.png'), type: 'word' },
+          { id: 8, thai: 'แม่', image: require('../add/picture/mother.png'), type: 'word' },
+        ];
+        setGameData(items);
+        setCards(createGameCards(items));
+      }
+    })();
+    return () => { mounted = false; };
+  }, [category]);
 
   // Timer countdown
   useEffect(() => {
@@ -97,10 +154,23 @@ const MemoryMatchScreen = () => {
 
   // Check for win condition
   useEffect(() => {
-    if (matchedCards.length === gameData.length * 2) {
+    if (gameData.length > 0 && matchedCards.length === gameData.length * 2) {
       setGameOver(true);
       setIsWin(true);
       setShowResult(true);
+      // Prepare reward preview
+      const reward = calculateDiamondReward({
+        difficulty: 'Medium',
+        metrics: {
+          timeUsed: 120 - timeLeft,
+          timeTarget: 90,
+          score,
+          scoreTarget: gameData.length * 100,
+          accuracy: 100,
+          maxCombo: 0,
+        }
+      });
+      setRewardInfo(reward);
     }
   }, [matchedCards, gameData.length]);
 
@@ -161,6 +231,7 @@ const MemoryMatchScreen = () => {
     setIsWin(false);
     setMismatchCount(0);
     setIsProcessing(false);
+    setRewardInfo(null);
   };
 
   const formatTime = (seconds) => {
@@ -216,7 +287,11 @@ const MemoryMatchScreen = () => {
             {card.type === 'word' ? (
               <Text style={styles.cardText}>{card.content}</Text>
             ) : (
-              <Image source={card.image} style={styles.cardImage} resizeMode="contain" />
+              <View style={styles.cardImageWrap}>
+                {/* Try real image; if it ends up same for many, emoji ensures visual uniqueness */}
+                <Image source={card.image} style={styles.cardImage} resizeMode="contain" />
+                <Text style={styles.cardEmojiOverlay}>{card.emoji}</Text>
+              </View>
             )}
           </Animated.View>
         </View>
@@ -389,17 +464,95 @@ const MemoryMatchScreen = () => {
               </View>
             </View>
 
+            {/* Reward */}
+              {rewardInfo && (
+                <View style={[styles.statsCard, { marginTop: 6, alignItems: 'center' }]}> 
+                  <LottieView 
+                    source={require('../assets/animations/Diamond.json')} 
+                    autoPlay 
+                    loop 
+                    style={{ width: 36, height: 36 }} 
+                  />
+                  <View style={[styles.statRow, { width: '100%' }]}>
+                    <Text style={styles.statLabel}>รางวัลเพชร:</Text>
+                    <Text style={styles.statValue}>+{rewardInfo.diamonds}</Text>
+                  </View>
+                </View>
+              )}
+
             <View style={styles.buttonRow}>
               <TouchableOpacity 
                 style={[styles.modalButton, { backgroundColor: '#10b981' }]}
-                onPress={restartGame}
+                onPress={async () => {
+                  const sessionId = String(Date.now());
+                  const metrics = {
+                    timeUsed: 120 - timeLeft,
+                    timeTarget: 90,
+                    score,
+                    scoreTarget: gameData.length * 100,
+                    accuracy: isWin ? 100 : 0,
+                    maxCombo: 0,
+                  };
+                  const result = await awardDiamondsOnce({
+                    gameId: 'memory-match',
+                    difficulty: 'Medium',
+                    sessionId,
+                    metrics,
+                  });
+                  if (result && result.diamonds > 0) {
+                    try {
+                      await updateFromGameSession({
+                        gameType: 'minigame-memory-match',
+                        diamondsEarned: result.diamonds,
+                        xpEarned: 0,
+                        timeSpent: metrics.timeUsed,
+                        accuracy: metrics.accuracy,
+                        correctAnswers: gameData.length,
+                        wrongAnswers: mismatchCount,
+                        totalQuestions: gameData.length,
+                      });
+                    } catch (_) {}
+                  }
+                  restartGame();
+                }}
               >
                 <FontAwesome name="refresh" size={18} color="#fff" />
                 <Text style={styles.buttonText}>เล่นอีกครั้ง</Text>
               </TouchableOpacity>
               <TouchableOpacity 
                 style={[styles.modalButton, { backgroundColor: '#667eea' }]}
-                onPress={() => navigation.navigate('Minigame')}
+                onPress={async () => {
+                  const sessionId = String(Date.now());
+                  const metrics = {
+                    timeUsed: 120 - timeLeft,
+                    timeTarget: 90,
+                    score,
+                    scoreTarget: gameData.length * 100,
+                    accuracy: isWin ? 100 : 0,
+                    maxCombo: 0,
+                  };
+                  const result = await awardDiamondsOnce({
+                    gameId: 'memory-match',
+                    difficulty: 'Medium',
+                    sessionId,
+                    metrics,
+                  });
+                  if (result && result.diamonds > 0) {
+                    try {
+                      await updateFromGameSession({
+                        gameType: 'minigame-memory-match',
+                        diamondsEarned: result.diamonds,
+                        xpEarned: 0,
+                        timeSpent: metrics.timeUsed,
+                        accuracy: metrics.accuracy,
+                        correctAnswers: gameData.length,
+                        wrongAnswers: mismatchCount,
+                        totalQuestions: gameData.length,
+                      });
+                    } catch (_) {}
+                  }
+                  navigation.navigate('Miniggame');
+                }}
               >
                 <FontAwesome name="home" size={18} color="#fff" />
                 <Text style={styles.buttonText}>กลับเมนู</Text>
@@ -616,6 +769,16 @@ const styles = StyleSheet.create({
   cardImage: {
     width: 40,
     height: 40,
+  },
+  cardImageWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cardEmojiOverlay: {
+    position: 'absolute',
+    bottom: -6,
+    right: -6,
+    fontSize: 16,
   },
   instructionsCard: {
     backgroundColor: '#fff',

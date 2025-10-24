@@ -82,7 +82,7 @@ const authRoutes = require('./routes/auth');
 const progressRoutes = require('./routes/progress');
 const playerRoutes = require('./routes/player');
 const vocabRoutes = require('./routes/vocabRoutes');
-const lessonsRoutes = require('./routes/lesson');
+const lessonsRoutes = require('./routes/lessons');
 const streakRoutes = require('./routes/streak');
 const xpRoutes = require('./routes/xp');
 const userRoutes = require('./routes/user.routes');
@@ -93,6 +93,7 @@ const auth = require('./middleware/auth');
 const lesson3Routes = require('./routes/lesson3');
 const greetingsRoutes = require('./routes/greetings');
 const ttsRoutes = require('./routes/tts');
+const gameVocabRoutes = require('./routes/gameVocab');
 
 // ==============================
 // 🧩 Routes
@@ -135,6 +136,7 @@ app.use('/api/game-results', gameResultRoutes);
 app.use('/api', lesson3Routes);
 app.use('/api/greetings', greetingsRoutes);
 app.use('/api/tts', ttsRoutes);
+app.use('/api/game-vocab', gameVocabRoutes);
 
 // ตัวอย่าง Route Error (สำหรับ test)
 app.get('/error-test', (req, res, next) => {

@@ -310,8 +310,17 @@ const Lesson4ObjectsGame = ({ navigation, route }) => {
     if (incomingNextStageMeta) {
       return incomingNextStageMeta;
     }
-    return null;
-  }, [incomingNextStageMeta]);
+    // Default next after objects → Lesson5Body
+    return {
+      route: 'Lesson5BodyGame',
+      params: {
+        lessonId: 5,
+        category: 'body',
+        level: stageLevel,
+        stageTitle: 'ร่างกาย (Body Parts)',
+      },
+    };
+  }, [incomingNextStageMeta, stageLevel]);
 
   const resolvedReplayParams = useMemo(
     () => ({

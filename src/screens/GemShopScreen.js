@@ -19,6 +19,7 @@ import LottieView from 'lottie-react-native';
 const { width } = Dimensions.get('window');
 
 const GemShopScreen = () => {
+  // No maximum hearts cap
   const [scaleAnim] = useState(new Animated.Value(1));
 
   const [modalVisible, setModalVisible] = useState(false);
@@ -95,12 +96,14 @@ const GemShopScreen = () => {
 
   const buyHearts = (pack) => {
     if (diamonds >= pack.gemsNeeded) {
+      const newHearts = (hearts || 0) + pack.hearts;
+      const gained = pack.hearts;
       pulseAnimation();
       updateStats({ 
         diamonds: diamonds - pack.gemsNeeded,
-        hearts: hearts + pack.hearts 
+        hearts: newHearts 
       });
-      showModal('🎊 สำเร็จ!', `คุณได้หัวใจ ${pack.hearts} ลูก`);
+      showModal('🎊 สำเร็จ!', `เติมหัวใจ +${gained}`);
     } else {
       Alert.alert('⚠️ เพชรไม่พอ', `คุณต้องการเพชร ${pack.gemsNeeded} เม็ด แต่คุณมีแค่ ${diamonds} เม็ด`);
     }
@@ -208,7 +211,6 @@ const GemShopScreen = () => {
                 key={pack.id}
                 style={[
                   styles.heartCard,
-                  { borderColor: pack.color },
                   diamonds >= pack.gemsNeeded ? styles.heartCardActive : styles.heartCardDisabled,
                 ]}
                 onPress={() => buyHearts(pack)}
@@ -263,7 +265,7 @@ const GemShopScreen = () => {
                     style={[
                       styles.exchangeButton,
                       { backgroundColor: pack.color },
-                      diamonds < pack.gemsNeeded && styles.exchangeButtonDisabled,
+                      (diamonds < pack.gemsNeeded) && styles.exchangeButtonDisabled,
                     ]}
                   >
                     <Text style={styles.exchangeButtonText}>
@@ -305,6 +307,14 @@ const GemShopScreen = () => {
             <View style={styles.modalOverlay}>
             <TouchableWithoutFeedback onPress={() => {}}>
                 <View style={styles.modalBox}>
+                <View style={styles.modalIconWrap}>
+                  <LottieView
+                    source={require('../assets/animations/celebration.json')}
+                    autoPlay
+                    loop={false}
+                    style={styles.modalLottie}
+                  />
+                </View>
                 <Text style={styles.modalTitle}>{modalTitle}</Text>
                 <Text style={styles.modalMessage}>{modalMessage}</Text>
 
@@ -436,7 +446,9 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 20,
     alignItems: 'center',
-    shadowColor: '#FF6B6B',
+    borderWidth: 2,
+    borderColor: '#FFE8CC',
+    shadowColor: '#FF8000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -515,8 +527,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#e5e7eb',
-    shadowColor: '#000',
+    borderColor: '#FFE8CC',
+    shadowColor: '#FF8000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
@@ -633,7 +645,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 20,
     borderWidth: 3,
-    shadowColor: '#000',
+    borderColor: '#FFE8CC',
+    shadowColor: '#FF8000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -735,8 +748,8 @@ const styles = StyleSheet.create({
     padding: 20,
     marginTop: 20,
     borderWidth: 2,
-    borderColor: '#FFE4E1',
-    shadowColor: '#FF6B6B',
+    borderColor: '#FFE8CC',
+    shadowColor: '#FF8000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -837,54 +850,71 @@ const styles = StyleSheet.create({
   justifyContent: 'center',
   alignItems: 'center',
 },
-modalBox: {
+  modalBox: {
   width: '80%',
   backgroundColor: '#fff',
   borderRadius: 20,
   padding: 20,
   alignItems: 'center',
-  shadowColor: '#7c3aed',
+  borderWidth: 3,
+  borderColor: '#FFE8CC',
+  shadowColor: '#FF8000',
   shadowOffset: { width: 0, height: 4 },
   shadowOpacity: 0.3,
   shadowRadius: 8,
   elevation: 8,
 },
+  modalIconWrap: {
+    width: 100,
+    height: 100,
+    marginBottom: 6,
+  },
+  modalLottie: {
+    width: '100%',
+    height: '100%',
+  },
 modalTitle: {
-  fontSize: 20,
+  fontSize: 22,
   fontWeight: 'bold',
   color: '#7c3aed',
-  marginBottom: 8,
+  marginBottom: 6,
   textAlign: 'center',
 },
 modalMessage: {
-  fontSize: 14,
-  color: '#374151',
+  fontSize: 16,
+  color: '#1f2937',
   textAlign: 'center',
   marginBottom: 20,
 },
 modalButtons: {
   flexDirection: 'row',
   justifyContent: 'center',
-  gap: 10,
+  gap: 12,
 },
 modalButton: {
-  borderRadius: 10,
-  paddingVertical: 10,
-  paddingHorizontal: 20,
+  borderRadius: 14,
+  paddingVertical: 12,
+  paddingHorizontal: 26,
 },
 confirmButton: {
   backgroundColor: '#7c3aed',
+  shadowColor: '#7c3aed',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.25,
+  shadowRadius: 4,
 },
 cancelButton: {
-  backgroundColor: '#e5e7eb',
+  backgroundColor: '#eef2ff',
 },
 confirmText: {
   color: '#fff',
   fontWeight: 'bold',
+  fontSize: 16,
 },
 cancelText: {
   color: '#374151',
   fontWeight: 'bold',
+  fontSize: 16,
 },
 closeButton: {
   position: 'absolute',

@@ -135,25 +135,18 @@ class RealUserStatsService {
         lastUpdated: new Date().toISOString()
       };
 
+      // Remove hearts cap; allow unbounded positive hearts
+      const nextHearts = Number.isFinite(mergedStats.hearts)
+        ? mergedStats.hearts
+        : (Number.isFinite(currentStats.hearts) ? currentStats.hearts : 0);
       const currentMaxHearts = Number.isFinite(mergedStats.maxHearts)
         ? mergedStats.maxHearts
-        : Math.max(
-            Number.isFinite(mergedStats.hearts) ? mergedStats.hearts : (currentStats.hearts || 5),
-            Number.isFinite(currentStats.maxHearts) ? currentStats.maxHearts : 5,
-            5
-          );
-      const clampedHearts = Math.max(
-        0,
-        Math.min(
-          Number.isFinite(mergedStats.hearts) ? mergedStats.hearts : currentStats.hearts || currentMaxHearts,
-          currentMaxHearts
-        )
-      );
+        : (Number.isFinite(currentStats.maxHearts) ? currentStats.maxHearts : nextHearts);
 
       mergedStats = {
         ...mergedStats,
         maxHearts: currentMaxHearts,
-        hearts: clampedHearts
+        hearts: Math.max(0, nextHearts)
       };
 
       let updatedStats = mergedStats;
@@ -286,14 +279,15 @@ class RealUserStatsService {
 
     const xpEarned = safeNumber(gameResults.xpEarned);
     const diamondsEarned = safeNumber(gameResults.diamondsEarned);
+    // No cap: baseMaxHearts tracks highest seen but does not limit hearts
     const baseMaxHearts = safeNumber(
       currentStats.maxHearts,
-      Math.max(safeNumber(currentStats.hearts, 5), 5)
+      Math.max(safeNumber(currentStats.hearts, 0), 0)
     );
     const rawHeartsRemaining = gameResults.heartsRemaining !== undefined
       ? safeNumber(gameResults.heartsRemaining, currentStats.hearts || baseMaxHearts)
       : safeNumber(currentStats.hearts, baseMaxHearts);
-    const heartsRemaining = Math.max(0, Math.min(rawHeartsRemaining, baseMaxHearts));
+    const heartsRemaining = Math.max(0, rawHeartsRemaining);
     const timeSpent = safeNumber(gameResults.timeSpent);
     const correctAnswers = safeNumber(gameResults.correctAnswers);
     const wrongAnswers = safeNumber(gameResults.wrongAnswers);
@@ -351,10 +345,7 @@ class RealUserStatsService {
     if (levelDiff > 0) {
       console.log(`🎉 Level up! New level: ${xpSnapshot.level} (was ${previousLevel})`);
       const boostedMaxHearts = baseMaxHearts + levelDiff;
-      const boostedHearts = Math.min(
-        boostedMaxHearts,
-        Math.max(0, heartsRemaining + levelDiff)
-      );
+      const boostedHearts = Math.max(0, heartsRemaining + levelDiff);
       updates = {
         ...updates,
         hearts: boostedHearts,

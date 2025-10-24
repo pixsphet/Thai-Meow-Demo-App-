@@ -13,6 +13,9 @@ import { FontAwesome } from '@expo/vector-icons';
 import LottieView from "lottie-react-native";
 import { useNavigation } from "@react-navigation/native";
 import { MOCK_LEVELS } from "../add/Data/DataMiniGame.js";
+import { getByCategory } from '../services/gameVocabService';
+import { awardDiamondsOnce, calculateDiamondReward } from '../services/minigameRewards';
+import { useUnifiedStats } from '../contexts/UnifiedStatsContext';
 
 const { width } = Dimensions.get("window");
 const gridSize = 8;
@@ -138,7 +141,9 @@ const findWordCells = (grid, words) => {
   return wordLocations;
 };
 
-const Game1Screen = () => {
+const Game1Screen = ({ route }) => {
+  const category = route?.params?.category || 'Animals';
+  const { updateFromGameSession } = useUnifiedStats();
   const [levelIndex, setLevelIndex] = useState(0);
   const [grid, setGrid] = useState([]);
   const [selectedCells, setSelectedCells] = useState([]);
@@ -149,9 +154,28 @@ const Game1Screen = () => {
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
   const [showEndPopup, setShowEndPopup] = useState(false);
+  const [rewardInfo, setRewardInfo] = useState(null);
 
   const navigation = useNavigation();
-  const currentLevel = MOCK_LEVELS[levelIndex];
+  const [customLevel, setCustomLevel] = useState(null);
+  const currentLevel = customLevel || MOCK_LEVELS[levelIndex];
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const words = await getByCategory(category, { count: 8 });
+        if (!mounted) return;
+        if (Array.isArray(words) && words.length) {
+          const normalized = words.map((w, idx) => ({ id: idx + 1, word: w.thai, hint: `${category}` }));
+          setCustomLevel({ level: 1, name: `${category}`, words: normalized });
+          return;
+        }
+      } catch (_) {}
+      setCustomLevel(null);
+    })();
+    return () => { mounted = false; };
+  }, [category]);
 
   const generateGrid = (words) => {
     const newGrid = Array.from({ length: gridSize }, () =>
@@ -299,6 +323,19 @@ const Game1Screen = () => {
             setIsGameComplete(false);
           } else {
             setShowEndPopup(true);
+            // set reward preview for final completion
+            const reward = calculateDiamondReward({
+              difficulty: 'Medium',
+              metrics: {
+                score,
+                scoreTarget: currentLevel.words.length * 100,
+                accuracy: 100,
+                timeUsed: 0,
+                timeTarget: 0,
+                maxCombo: 0,
+              }
+            });
+            setRewardInfo(reward);
           }
         }, 3000);
       }
@@ -500,11 +537,47 @@ const Game1Screen = () => {
             <Text style={styles.endPopupText}>คุณผ่านทุกด่านแล้ว!</Text>
             <Text style={styles.endPopupScore}>คะแนนรวม: {score} คะแนน</Text>
 
+            {rewardInfo && (
+              <View style={{ backgroundColor: '#F8F9FA', padding: 12, borderRadius: 16, marginTop: 6, width: '100%', alignItems: 'center' }}>
+                <LottieView source={require('../assets/animations/Diamond.json')} autoPlay loop style={{ width: 36, height: 36 }} />
+                <Text style={{ textAlign: 'center', fontSize: 16, fontWeight: '800', color: '#1F2937' }}>+{rewardInfo.diamonds}</Text>
+              </View>
+            )}
+
             <View style={styles.popupButtonRow}>
               <TouchableOpacity
                 style={[styles.popupButton, { backgroundColor: "#FF6B9D" }]}
                 activeOpacity={0.8}
-                onPress={() => {
+                onPress={async () => {
+                  const sessionId = String(Date.now());
+                  const metrics = {
+                    score,
+                    scoreTarget: currentLevel.words.length * 100,
+                    accuracy: 100,
+                    timeUsed: 0,
+                    timeTarget: 0,
+                    maxCombo: 0,
+                  };
+                  const result = await awardDiamondsOnce({
+                    gameId: 'word-finder',
+                    difficulty: 'Medium',
+                    sessionId,
+                    metrics,
+                  });
+                  if (result && result.diamonds > 0) {
+                    try {
+                      await updateFromGameSession({
+                        gameType: 'minigame-word-finder',
+                        diamondsEarned: result.diamonds,
+                        xpEarned: 0,
+                        timeSpent: metrics.timeUsed,
+                        accuracy: metrics.accuracy,
+                        correctAnswers: currentLevel.words.length,
+                        wrongAnswers: 0,
+                        totalQuestions: currentLevel.words.length,
+                      });
+                    } catch (_) {}
+                  }
                   setShowEndPopup(false);
                   setLevelIndex(0);
                   setScore(0);
@@ -524,7 +597,36 @@ const Game1Screen = () => {
               <TouchableOpacity
                 style={[styles.popupButton, { backgroundColor: "#667eea" }]}
                 activeOpacity={0.8}
-                onPress={() => {
+                onPress={async () => {
+                  const sessionId = String(Date.now());
+                  const metrics = {
+                    score,
+                    scoreTarget: currentLevel.words.length * 100,
+                    accuracy: 100,
+                    timeUsed: 0,
+                    timeTarget: 0,
+                    maxCombo: 0,
+                  };
+                  const result = await awardDiamondsOnce({
+                    gameId: 'word-finder',
+                    difficulty: 'Medium',
+                    sessionId,
+                    metrics,
+                  });
+                  if (result && result.diamonds > 0) {
+                    try {
+                      await updateFromGameSession({
+                        gameType: 'minigame-word-finder',
+                        diamondsEarned: result.diamonds,
+                        xpEarned: 0,
+                        timeSpent: metrics.timeUsed,
+                        accuracy: metrics.accuracy,
+                        correctAnswers: currentLevel.words.length,
+                        wrongAnswers: 0,
+                        totalQuestions: currentLevel.words.length,
+                      });
+                    } catch (_) {}
+                  }
                   setShowEndPopup(false);
                   navigation.navigate('Minigame');
                 }}

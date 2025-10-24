@@ -9,21 +9,26 @@ import {
   Dimensions,
   SafeAreaView,
   StatusBar,
+  Modal,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import LottieView from 'lottie-react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { getRewardsTotal, getRewardsHistory, clearRewardsHistory } from '../services/minigameRewards';
+import { listCategories, GAME_CATEGORIES } from '../services/gameVocabService';
+import { useUnifiedStats } from '../contexts/UnifiedStatsContext';
 
 const { width } = Dimensions.get('window');
 
 const MinigameScreen = () => {
   const navigation = useNavigation();
-  const [userStats, setUserStats] = useState({
-    totalScore: 0,
-    gamesPlayed: 0,
-    bestStreak: 0,
-  });
+  const { xp, diamonds, stats, loading: statsLoading } = useUnifiedStats();
+  const [rewardTotal, setRewardTotal] = useState(0);
+  const [historyVisible, setHistoryVisible] = useState(false);
+  const [rewardHistory, setRewardHistory] = useState([]);
+  const [categories, setCategories] = useState(GAME_CATEGORIES);
+  const [selectedCategory, setSelectedCategory] = useState('Animals');
 
   const minigames = [
     {
@@ -82,7 +87,7 @@ const MinigameScreen = () => {
         style={[styles.gameCard, { marginTop: index === 0 ? 0 : 20 }]}
         onPress={() => {
           if (!isComingSoon && game.screen) {
-            navigation.navigate(game.screen);
+            navigation.navigate(game.screen, { category: selectedCategory });
           }
         }}
         disabled={isComingSoon}
@@ -171,6 +176,24 @@ const MinigameScreen = () => {
     );
   };
 
+  useEffect(() => {
+    const load = async () => {
+      const [total, hist] = await Promise.all([
+        getRewardsTotal(),
+        getRewardsHistory(),
+      ]);
+      setRewardTotal(total);
+      setRewardHistory(hist);
+      try {
+        const cats = await listCategories();
+        if (Array.isArray(cats) && cats.length) setCategories(cats);
+      } catch (_) {}
+    };
+    const unsubscribe = navigation.addListener('focus', load);
+    load();
+    return unsubscribe;
+  }, [navigation]);
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#667eea" />
@@ -197,13 +220,23 @@ const MinigameScreen = () => {
           
           <View style={styles.headerStats}>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>{userStats.totalScore}</Text>
+              <Text style={styles.statValue}>{statsLoading ? '...' : (xp || 0)}</Text>
               <Text style={styles.statLabel}>คะแนน</Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>{userStats.gamesPlayed}</Text>
+              <Text style={styles.statValue}>{statsLoading ? '...' : (stats?.totalSessions || 0)}</Text>
               <Text style={styles.statLabel}>เกม</Text>
             </View>
+            <TouchableOpacity style={styles.statItem} onPress={() => setHistoryVisible(true)}>
+              <LottieView
+                source={require('../assets/animations/Diamond.json')}
+                autoPlay
+                loop
+                style={styles.diamondLottie}
+              />
+              <Text style={styles.statValue}>{statsLoading ? '...' : (diamonds || 0)}</Text>
+              <Text style={styles.statLabel}>เพชรรวม</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </LinearGradient>
@@ -226,18 +259,31 @@ const MinigameScreen = () => {
           <Text style={styles.welcomeDescription}>
             เลือกเกมที่คุณชอบและสนุกไปกับการเรียนรู้ภาษาไทย
           </Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 10 }} contentContainerStyle={{ gap: 10 }}>
+            {categories.map((cat) => (
+              <TouchableOpacity
+                key={cat}
+                onPress={() => setSelectedCategory(cat)}
+                style={[styles.catChip, selectedCategory === cat && styles.catChipActive]}
+              >
+                <Text style={[styles.catChipText, selectedCategory === cat && styles.catChipTextActive]}>
+                  {cat}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
           <View style={styles.statsRow}>
             <View style={styles.statBadge}>
               <Text style={styles.statIcon}>🏆</Text>
-              <Text style={styles.statText}>{userStats.totalScore}</Text>
+              <Text style={styles.statText}>{statsLoading ? '...' : (xp || 0)}</Text>
             </View>
             <View style={styles.statBadge}>
               <Text style={styles.statIcon}>🎯</Text>
-              <Text style={styles.statText}>{userStats.gamesPlayed}</Text>
+              <Text style={styles.statText}>{statsLoading ? '...' : (stats?.totalSessions || 0)}</Text>
             </View>
             <View style={styles.statBadge}>
               <Text style={styles.statIcon}>🔥</Text>
-              <Text style={styles.statText}>{userStats.bestStreak}</Text>
+              <Text style={styles.statText}>{statsLoading ? '...' : (stats?.maxStreak || stats?.streak || 0)}</Text>
             </View>
           </View>
         </View>
@@ -268,6 +314,36 @@ const MinigameScreen = () => {
           </View>
         </View>
       </ScrollView>
+
+      {/* Rewards History Modal */}
+      <Modal transparent visible={historyVisible} animationType="fade">
+        <View style={styles.modalBackdrop}>
+          <View style={styles.historyModal}>
+            <Text style={styles.historyTitle}>ประวัติรางวัลเพชร</Text>
+            <Text style={styles.historyTotal}>รวมทั้งหมด: 💎 {rewardTotal}</Text>
+            <ScrollView style={{ maxHeight: 280, width: '100%' }}>
+              {rewardHistory.length === 0 ? (
+                <Text style={styles.historyEmpty}>ยังไม่มีประวัติ</Text>
+              ) : (
+                rewardHistory.map((r, idx) => (
+                  <View key={idx} style={styles.historyRow}>
+                    <Text style={styles.historyGame}>{r.gameId} ({r.difficulty})</Text>
+                    <Text style={styles.historyDiamonds}>+{r.diamonds}</Text>
+                  </View>
+                ))
+              )}
+            </ScrollView>
+            <View style={styles.historyButtons}>
+              <TouchableOpacity style={[styles.historyBtn, { backgroundColor: '#10b981' }]} onPress={() => setHistoryVisible(false)}>
+                <Text style={styles.historyBtnText}>ปิด</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.historyBtn, { backgroundColor: '#ef4444' }]} onPress={async () => { await clearRewardsHistory(); setRewardHistory([]); setRewardTotal(0); }}>
+                <Text style={styles.historyBtnText}>ล้างประวัติ</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -281,6 +357,9 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 20,
     paddingHorizontal: 20,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    overflow: 'hidden',
   },
   headerContent: {
     flexDirection: 'row',
@@ -297,8 +376,9 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginHorizontal: 20,
+    flexShrink: 1,
   },
   headerTitleText: {
     fontSize: 24,
@@ -310,21 +390,95 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: 'rgba(255,255,255,0.8)',
   },
+  catChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    backgroundColor: '#EEF2FF',
+    borderWidth: 1,
+    borderColor: '#C7D2FE',
+  },
+  catChipActive: {
+    backgroundColor: '#667eea',
+    borderColor: '#667eea',
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+  },
+  catChipText: {
+    color: '#374151',
+    fontWeight: '700',
+  },
+  catChipTextActive: {
+    color: '#fff',
+  },
   headerStats: {
     flexDirection: 'row',
-    gap: 20,
+    alignItems: 'flex-end',
+    gap: 18,
   },
+  modalBackdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.6)'
+  },
+  historyModal: {
+    width: '85%',
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 8,
+    alignItems: 'center'
+  },
+  historyTitle: { fontSize: 20, fontWeight: '800', color: '#111827', marginBottom: 6 },
+  historyTotal: { fontSize: 16, color: '#111827', marginBottom: 10 },
+  historyEmpty: { textAlign: 'center', color: '#6b7280', paddingVertical: 16 },
+  historyRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9'
+  },
+  historyGame: { fontSize: 14, color: '#374151', fontWeight: '600' },
+  historyDiamonds: { fontSize: 14, color: '#111827', fontWeight: '800' },
+  historyButtons: { flexDirection: 'row', gap: 12, marginTop: 14 },
+  historyBtn: { paddingVertical: 10, paddingHorizontal: 18, borderRadius: 12 },
+  historyBtnText: { color: '#fff', fontWeight: '800' },
   statItem: {
     alignItems: 'center',
+    minWidth: 64,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
   },
   statValue: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 22,
+    fontWeight: '800',
     color: '#fff',
+    textShadowColor: 'rgba(0,0,0,0.15)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   statLabel: {
     fontSize: 12,
-    color: 'rgba(255,255,255,0.8)',
+    color: 'rgba(255,255,255,0.85)',
+  },
+  diamondLottie: {
+    width: 26,
+    height: 26,
+    marginBottom: 2,
   },
   content: {
     flex: 1,
@@ -410,6 +564,8 @@ const styles = StyleSheet.create({
   gameCardGradient: {
     padding: 20,
     minHeight: 120,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
   },
   comingSoonOverlay: {
     position: 'absolute',

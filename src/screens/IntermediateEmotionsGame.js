@@ -22,7 +22,7 @@ import { saveProgress, restoreProgress, clearProgress } from '../services/progre
 import gameProgressService from '../services/gameProgressService';
 import levelUnlockService from '../services/levelUnlockService';
 import userStatsService from '../services/userStatsService';
-import dailyStreakService from '../services/dailyStreakService';
+// daily streak service not used here to match ConsonantStage1Game flow
 
 // Contexts
 import { useProgress } from '../contexts/ProgressContext';
@@ -32,7 +32,7 @@ import { useUserData } from '../contexts/UserDataContext';
 // Data & Utils
 import emotionsVocab from '../data/emotions_vocab.json';
 import { generateEmotionQuestions, EMOTION_QUESTION_TYPES } from '../utils/emotionQuestionGenerator';
-import FireStreakAlert from '../components/FireStreakAlert';
+// FireStreakAlert not used in-game to match ConsonantStage1Game
 
 const { width, height } = Dimensions.get('window');
 const LESSON_ID = 'intermediate_2_emotions';
@@ -129,11 +129,7 @@ export default function IntermediateEmotionsGame({ navigation, route }) {
   const [dmSelected, setDmSelected] = useState({ leftId: null, rightId: null });
   const [dmPairs, setDmPairs] = useState([]);
   const [currentFeedback, setCurrentFeedback] = useState(null);
-  const [showFireStreakAlert, setShowFireStreakAlert] = useState(false);
-  const [accuracy, setAccuracy] = useState(0);
-  const [totalAnswered, setTotalAnswered] = useState(0);
-  const [checked, setChecked] = useState(false);
-  const [lastCorrect, setLastCorrect] = useState(null);
+  // Fire streak, explicit accuracy tracking, and checked-state are omitted to match ConsonantStage1Game
 
   // Contexts
   const { progressUser } = useProgress();
@@ -173,8 +169,6 @@ export default function IntermediateEmotionsGame({ navigation, route }) {
           setDiamondsEarned(savedProgress.diamondsEarned || 0);
           setAnswers(savedProgress.answers || {});
           answersRef.current = savedProgress.answers || {};
-          setAccuracy(savedProgress.accuracy || 0);
-          setTotalAnswered(savedProgress.totalAnswered || 0);
         }
 
         setLoading(false);
@@ -203,14 +197,23 @@ export default function IntermediateEmotionsGame({ navigation, route }) {
     (async () => {
       try {
         await gameProgressService.initialize(userId);
-        await levelUnlockService.initialize(userId);
-        await userStatsService.initialize(userId);
-        if (typeof dailyStreakService.setUser === 'function') {
-          dailyStreakService.setUser(userId);
-        }
       } catch (error) {
-        console.warn('Service initialization error:', error?.message || error);
+        console.warn('Failed to initialize gameProgressService:', error?.message || error);
       }
+
+      try {
+        await levelUnlockService.initialize(userId);
+      } catch (error) {
+        console.warn('Failed to initialize levelUnlockService:', error?.message || error);
+      }
+
+      try {
+        await userStatsService.initialize(userId);
+      } catch (error) {
+        console.warn('Failed to initialize userStatsService:', error?.message || error);
+      }
+
+      // Daily streak integration is intentionally omitted in this screen.
     })();
   }, [progressUser?.id, userData?.id, stats?.userId, stats?._id, stats?.id]);
 
@@ -228,8 +231,6 @@ export default function IntermediateEmotionsGame({ navigation, route }) {
       streak,
       maxStreak,
       answers: answersRef.current,
-      accuracy,
-      totalAnswered,
       gameProgress: {
         generator: 'emotions',
         lessonId: LESSON_ID,
@@ -242,7 +243,7 @@ export default function IntermediateEmotionsGame({ navigation, route }) {
     } catch (error) {
       console.error('Error autosaving:', error);
     }
-  }, [questions, currentIndex, hearts, score, xpEarned, diamondsEarned, streak, maxStreak, accuracy, totalAnswered]);
+  }, [questions, currentIndex, hearts, score, xpEarned, diamondsEarned, streak, maxStreak]);
 
   // Trigger autosave when state changes
   useEffect(() => {
@@ -251,14 +252,7 @@ export default function IntermediateEmotionsGame({ navigation, route }) {
     }
   }, [currentIndex, hearts, score, streak, gameStarted, gameFinished, autosave]);
 
-  // Streak check for fire alert
-  useEffect(() => {
-    if (gameFinished && [5, 10, 20, 30, 50, 100].includes(maxStreak)) {
-      setTimeout(() => {
-        setShowFireStreakAlert(true);
-      }, 1500);
-    }
-  }, [gameFinished, maxStreak]);
+  // No fire streak alert in-game to match ConsonantStage1Game
 
   // Play TTS
   const playTTS = useCallback(async (text) => {
@@ -270,19 +264,18 @@ export default function IntermediateEmotionsGame({ navigation, route }) {
   }, []);
 
   // Handle start game
-  const handleStartGame = async () => {
+  const startGame = () => {
     setGameStarted(true);
+    setGameFinished(false);
+    gameFinishedRef.current = false;
     startTimeRef.current = Date.now();
+  };
 
-    // Mark that the user played this lesson today for streak
-    try {
-      const userId = progressUser?.id || userData?.id || stats?.userId || stats?.id;
-      if (userId && typeof dailyStreakService.markPlayed === 'function') {
-        await dailyStreakService.markPlayed(LESSON_ID, userId);
-      }
-    } catch (error) {
-      console.warn('Failed to mark lesson as played:', error?.message || error);
-    }
+  const resumeGame = () => {
+    setGameStarted(true);
+    setGameFinished(false);
+    gameFinishedRef.current = false;
+    startTimeRef.current = Date.now();
   };
 
   // Handle answer select
@@ -295,7 +288,6 @@ export default function IntermediateEmotionsGame({ navigation, route }) {
 
   // Handle check answer
   const handleCheckAnswer = () => {
-    if (checked) { nextQuestion(); return; }
     if (currentAnswer === null) return;
 
     const currentQuestion = questions[currentIndex];
@@ -306,30 +298,34 @@ export default function IntermediateEmotionsGame({ navigation, route }) {
       answer: currentAnswer,
       isCorrect,
       timestamp: Date.now(),
+      rewardXP: isCorrect ? (currentQuestion.rewardXP || 15) : 0,
+      rewardDiamond: isCorrect ? (currentQuestion.rewardDiamond || 1) : 0,
+      penaltyHeart: !isCorrect ? (currentQuestion.penaltyHeart || 1) : 0,
     };
     setAnswers({ ...answersRef.current });
 
-    const newTotal = totalAnswered + 1;
-    const newCorrect = score + (isCorrect ? 1 : 0);
-    const newAccuracy = Math.round((newCorrect / newTotal) * 100);
-    setTotalAnswered(newTotal);
-    setAccuracy(newAccuracy);
-    setChecked(true);
-    setLastCorrect(isCorrect);
+    setCurrentFeedback(isCorrect ? 'correct' : 'wrong');
 
     if (isCorrect) {
       const newScore = score + 1;
-      const newXp = xpEarned + 10;
-      const newDiamonds = diamondsEarned + 1;
+      const xpReward = currentQuestion.rewardXP || 15;
+      const diamondReward = currentQuestion.rewardDiamond || 1;
       setScore(newScore);
-      setXpEarned(newXp);
-      setDiamondsEarned(newDiamonds);
+      setXpEarned(xpEarned + xpReward);
+      setDiamondsEarned(diamondsEarned + diamondReward);
     } else {
-      const newHearts = Math.max(0, hearts - 1);
+      const heartPenalty = currentQuestion.penaltyHeart || 1;
+      const newHearts = Math.max(0, hearts - heartPenalty);
       setHearts(newHearts);
-      if (newHearts === 0) {
-        const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
-        finishLesson(elapsed);
+      if (newHearts <= 0) {
+        Alert.alert(
+          'หัวใจหมดแล้ว',
+          'ซื้อหัวใจเพิ่มเพื่อเล่นต่อ',
+          [
+            { text: 'ไปร้านหัวใจ', onPress: () => navigation.navigate('GemShop') },
+            { text: 'ยกเลิก', style: 'cancel' },
+          ]
+        );
       }
     }
   };
@@ -344,8 +340,7 @@ export default function IntermediateEmotionsGame({ navigation, route }) {
       setCurrentAnswer(null);
       setDmSelected({ leftId: null, rightId: null });
       setDmPairs([]);
-      setChecked(false);
-      setLastCorrect(null);
+      setCurrentFeedback(null);
     }
   };
 
@@ -399,11 +394,26 @@ export default function IntermediateEmotionsGame({ navigation, route }) {
       console.error('Error saving game result:', error);
     }
 
-    // Navigate to result screen
-    navigation.replace('IntermediateResult', {
-      resultData,
-      questions,
-      answers: answersRef.current,
+    // Navigate to unified LessonComplete screen
+    navigation.replace('LessonComplete', {
+      lessonId: LESSON_ID,
+      stageTitle: 'อารมณ์และความรู้สึก',
+      score,
+      totalQuestions: questions.length,
+      timeSpent: elapsedTime,
+      accuracyPercent,
+      accuracyRatio: score / Math.max(1, questions.length),
+      xpGained: xpEarned,
+      diamondsGained: Math.max(2, diamondsEarned),
+      heartsRemaining: hearts,
+      streak: maxStreak,
+      maxStreak,
+      isUnlocked: unlockedNext,
+      nextStageUnlocked: unlockedNext,
+      stageSelectRoute: 'LevelStage2',
+      replayRoute: 'IntermediateEmotionsGame',
+      replayParams: { lessonId: LESSON_ID },
+      questionTypeCounts: countQuestionTypes(),
     });
   };
 
@@ -427,62 +437,42 @@ export default function IntermediateEmotionsGame({ navigation, route }) {
     );
   }
 
-  // Render resume dialog
-  if (!gameStarted && resumeData) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.centerContainer}>
-          <LinearGradient colors={[COLORS.primary, COLORS.cream]} style={styles.resumeCard}>
-            <Text style={styles.resumeTitle}>ต้องการกลับมาต่อเกมเก่า?</Text>
-            <Text style={styles.resumeSubtitle}>ความคืบหน้า: ข้อ {resumeData.currentIndex + 1} / {questions.length}</Text>
-            
-            <View style={styles.resumeButtonGroup}>
-              <TouchableOpacity
-                style={[styles.resumeButton, styles.resumeButtonContinue]}
-                onPress={() => {
-                  setGameStarted(true);
-                  setCurrentIndex(resumeData.currentIndex);
-                }}
-              >
-                <Text style={styles.resumeButtonText}>ต่อเกมเก่า</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={[styles.resumeButton, styles.resumeButtonNew]}
-                onPress={() => {
-                  setResumeData(null);
-                  handleStartGame();
-                }}
-              >
-                <Text style={[styles.resumeButtonText, { color: COLORS.primary }]}>เล่นใหม่</Text>
-              </TouchableOpacity>
-            </View>
-          </LinearGradient>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  // Render start screen
+  // Render unified start screen (match ConsonantStage1Game)
   if (!gameStarted) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.centerContainer}>
-          <LinearGradient colors={[COLORS.primary, COLORS.cream]} style={styles.startCard}>
+          <View style={styles.startCard}>
+            <LottieView
+              source={require('../assets/animations/stage_start.json')}
+              autoPlay
+              loop
+              style={{ width: 120, height: 120, marginBottom: 6 }}
+            />
             <Text style={styles.startTitle}>🎭 อารมณ์และความรู้สึก</Text>
-            <Text style={styles.startSubtitle}>Intermediate - Lesson 2</Text>
-            <Text style={styles.startDescription}>
-              เรียนรู้วิธีบอกอารมณ์และความรู้สึกเป็นภาษาไทย{'\n'}
-              พร้อมปลอบ แสดงความยินดี และให้กำลังใจ
-            </Text>
-            
+            <Text style={styles.startSubtitle}>เรียนรู้คำศัพท์และบทสนทนาเกี่ยวกับอารมณ์</Text>
+          </View>
+
+          {resumeData && (
             <TouchableOpacity
-              style={styles.startButton}
-              onPress={handleStartGame}
+              style={{ backgroundColor: COLORS.cream, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20, marginBottom: 20 }}
+              onPress={() => {
+                resumeGame();
+                setCurrentIndex(resumeData.currentIndex || 0);
+              }}
+              activeOpacity={0.9}
             >
-              <Text style={styles.startButtonText}>เริ่มเล่น →</Text>
+              <Text style={{ fontSize: 16, color: COLORS.primary, fontWeight: '600' }}>
+                เล่นต่อจากข้อที่ {resumeData.currentIndex + 1}
+              </Text>
             </TouchableOpacity>
-          </LinearGradient>
+          )}
+
+          <TouchableOpacity style={{ paddingHorizontal: 40, paddingVertical: 15, borderRadius: 25, width: 220 }} onPress={startGame} activeOpacity={0.9}>
+            <LinearGradient colors={[COLORS.primary, '#FFA24D']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ width: '100%', paddingVertical: 14, borderRadius: 25, alignItems: 'center' }}>
+              <Text style={{ fontSize: 18, fontWeight: 'bold', color: COLORS.white }}>เริ่มเล่น</Text>
+            </LinearGradient>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
@@ -508,7 +498,7 @@ export default function IntermediateEmotionsGame({ navigation, route }) {
               <LinearGradient colors={['#58cc02', '#7FD14F']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={[styles.progressFill, { width: `${((currentIndex + 1) / questions.length) * 100}%` }]} />
             </View>
             <View style={styles.headerMetaRow}>
-              <View style={styles.typePill}><Text style={styles.typePillText}>อารมณ์/ความรู้สึก</Text></View>
+              <View style={styles.typePill}><Text style={styles.typePillText}>{getTypeLabel(currentQuestion.type)}</Text></View>
               <View style={styles.heartsDisplayContainer}>
                 <FontAwesome name="heart" size={16} color="#ff4b4b" />
                 <Text style={styles.heartsDisplay}>{hearts}</Text>
@@ -550,7 +540,7 @@ export default function IntermediateEmotionsGame({ navigation, route }) {
           <FontAwesome name="bullseye" size={18} color={COLORS.primary} />
           <View style={styles.statTextContainer}>
             <Text style={styles.statLabel}>Accuracy</Text>
-            <Text style={styles.statValue}>{accuracy}%</Text>
+            <Text style={styles.statValue}>{Math.min(100, Math.max(0, Math.round((score / Math.max(1, currentIndex)) * 100)))}%</Text>
           </View>
         </View>
       </View>
@@ -562,7 +552,7 @@ export default function IntermediateEmotionsGame({ navigation, route }) {
         {renderQuestion(currentQuestion, currentAnswer, handleAnswerSelect, setDmSelected, setDmPairs, dmSelected, dmPairs, playTTS)}
       </ScrollView>
 
-      {/* Enhanced Check Button with feedback */}
+      {/* Enhanced Check Button with feedback (match ConsonantStage1Game) */}
       <View style={styles.checkContainerEnhanced}>
         {currentFeedback && (
           <View style={[styles.feedbackBadgeEnhanced, currentFeedback === 'correct' ? styles.feedbackCorrectEnhanced : styles.feedbackWrongEnhanced]}>
@@ -571,14 +561,26 @@ export default function IntermediateEmotionsGame({ navigation, route }) {
           </View>
         )}
         <TouchableOpacity
-          style={[styles.checkButtonEnhanced, currentAnswer === null && currentFeedback === null && styles.checkButtonDisabledEnhanced]}
-          onPress={handleCheckAnswer}
-          disabled={currentAnswer === null && currentFeedback === null}
+          style={[styles.checkButtonEnhanced, currentAnswer === null && styles.checkButtonDisabledEnhanced]}
+          onPress={() => {
+            if (currentFeedback !== null) {
+              setCurrentFeedback(null);
+              if (hearts === 0) {
+                const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+                finishLesson(elapsed);
+              } else {
+                nextQuestion();
+              }
+            } else {
+              handleCheckAnswer();
+            }
+          }}
+          disabled={currentAnswer === null}
           activeOpacity={0.85}
         >
-          <LinearGradient colors={currentAnswer === null && currentFeedback === null ? ['#ddd', '#ccc'] : [COLORS.primary, '#FFA24D']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.checkGradientEnhanced}>
-            <FontAwesome name={currentFeedback ? 'arrow-right' : 'check'} size={20} color={COLORS.white} style={{ marginRight: 8 }} />
-            <Text style={styles.checkButtonTextEnhanced}>{currentFeedback ? 'ต่อไป' : 'CHECK'}</Text>
+          <LinearGradient colors={currentAnswer === null ? ['#ddd', '#ccc'] : [COLORS.primary, '#FFA24D']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.checkGradientEnhanced}>
+            <FontAwesome name={currentFeedback !== null ? 'arrow-right' : 'check'} size={20} color={COLORS.white} style={{ marginRight: 8 }} />
+            <Text style={styles.checkButtonTextEnhanced}>{currentFeedback !== null ? 'ต่อไป' : 'CHECK'}</Text>
           </LinearGradient>
         </TouchableOpacity>
       </View>
@@ -676,7 +678,7 @@ function renderQuestion(question, currentAnswer, handleAnswerSelect, setDmSelect
                       if (dmPairs.some((p) => p.leftId === item.id)) {
                         const filtered = dmPairs.filter((p) => p.leftId !== item.id);
                         setDmPairs(filtered);
-                        setCurrentAnswer(filtered);
+                        handleAnswerSelect(filtered);
                         return;
                       }
                       const next = { leftId: item.id, rightId: dmSelected.rightId };
@@ -684,7 +686,7 @@ function renderQuestion(question, currentAnswer, handleAnswerSelect, setDmSelect
                         const filtered = dmPairs.filter((p) => p.rightId !== next.rightId && p.leftId !== next.leftId);
                         const updated = [...filtered, next];
                         setDmPairs(updated);
-                        setCurrentAnswer(updated);
+                        handleAnswerSelect(updated);
                         setDmSelected({ leftId: null, rightId: null });
                       } else {
                         setDmSelected(next);
@@ -709,7 +711,7 @@ function renderQuestion(question, currentAnswer, handleAnswerSelect, setDmSelect
                       if (dmPairs.some((p) => p.rightId === item.id)) {
                         const filtered = dmPairs.filter((p) => p.rightId !== item.id);
                         setDmPairs(filtered);
-                        setCurrentAnswer(filtered);
+                        handleAnswerSelect(filtered);
                         return;
                       }
                       const next = { leftId: dmSelected.leftId, rightId: item.id };
@@ -717,7 +719,7 @@ function renderQuestion(question, currentAnswer, handleAnswerSelect, setDmSelect
                         const filtered = dmPairs.filter((p) => p.rightId !== next.rightId && p.leftId !== next.leftId);
                         const updated = [...filtered, next];
                         setDmPairs(updated);
-                        setCurrentAnswer(updated);
+                        handleAnswerSelect(updated);
                         setDmSelected({ leftId: null, rightId: null });
                       } else {
                         setDmSelected(next);

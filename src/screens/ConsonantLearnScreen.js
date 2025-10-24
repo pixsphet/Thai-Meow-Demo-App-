@@ -287,13 +287,29 @@ const ConsonantLearnScreen = ({ navigation }) => {
   );
 
   const renderTonesSection = () => {
-    const tonesImage = require('../assets/tones/tones.jpg');
-    const toneItems = [
-      { id: 'mai-ek', char: '่', name: 'ไม้เอก', color: '#74C0FC' },
-      { id: 'mai-tho', char: '้', name: 'ไม้โท', color: '#FFA8A8' },
-      { id: 'mai-tri', char: '๊', name: 'ไม้ตรี', color: '#FFD43B' },
-      { id: 'mai-chattawa', char: '๋', name: 'ไม้จัตวา', color: '#B197FC' },
-    ];
+    // Map tones from state and attach display colors
+    const getToneColor = (toneId) => {
+      switch (toneId) {
+        case 'mai-ek':
+          return '#74C0FC';
+        case 'mai-tho':
+          return '#FFA8A8';
+        case 'mai-tri':
+          return '#FFD43B';
+        case 'mai-chattawa':
+          return '#B197FC';
+        default:
+          return '#FFEDEB';
+      }
+    };
+
+    const toneItems = (tones || []).map((t) => ({
+      id: t.id,
+      char: t.char,
+      name: t.name,
+      image: t.image,
+      color: getToneColor(t.id),
+    }));
 
     const onTonePress = (tone) => {
       onSpeak({ char: tone.char, name: tone.name });
@@ -306,7 +322,14 @@ const ConsonantLearnScreen = ({ navigation }) => {
         <Text style={styles.sectionCount}>{toneItems.length} เสียง</Text>
       </View>
       <View style={styles.tonesContainer}>
-        <Image source={tonesImage} style={styles.tonesImage} resizeMode="contain" />
+        <View style={styles.tonesGridImages}>
+          {toneItems.map((tone) => (
+            <View key={tone.id} style={styles.toneImageCard}>
+              <Image source={tone.image} style={styles.toneImage} resizeMode="contain" />
+              <Text style={styles.toneImageLabel}>{tone.name}</Text>
+            </View>
+          ))}
+        </View>
         <View style={styles.toneChipsGrid}>
           {toneItems.map((tone) => (
             <TouchableOpacity
@@ -545,13 +568,40 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 4 },
     elevation: 4,
-    padding: 16,
+    padding: 12,
     alignItems: 'center',
   },
   tonesImage: {
     width: '80%',
     aspectRatio: 3 / 2,
     marginBottom: 16,
+  },
+  tonesGridImages: {
+    width: '100%',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    rowGap: 8,
+    marginBottom: 8,
+  },
+  toneImageCard: {
+    flexBasis: '48%',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+    padding: 6,
+    alignItems: 'center',
+  },
+  toneImage: {
+    width: '100%',
+    height: 110,
+  },
+  toneImageLabel: {
+    marginTop: 6,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1f2d3d',
   },
   toneChipsGrid: {
     width: '100%',
@@ -562,7 +612,7 @@ const styles = StyleSheet.create({
   },
   toneButton: {
     flexBasis: '48%',
-    paddingVertical: 14,
+    paddingVertical: 10,
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
@@ -574,13 +624,13 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   toneButtonChar: {
-    fontSize: 32,
+    fontSize: 24,
     fontWeight: '800',
     color: '#fff',
   },
   toneButtonLabel: {
-    marginTop: 6,
-    fontSize: 16,
+    marginTop: 4,
+    fontSize: 14,
     fontWeight: '700',
     color: '#1f2d3d',
   },

@@ -240,7 +240,24 @@ export default function IntermediatePlacesGame({ navigation, route }) {
     try {
       const userId = progressUser?.id || userData?.id || stats?.userId || stats?.id;
       if (userId) {
-        await gameProgressService.saveGameResult(LESSON_ID, resultData);
+        await gameProgressService.saveGameSession({
+          lessonId: LESSON_ID,
+          category: 'intermediate_places',
+          score,
+          totalQuestions: questions.length,
+          correctAnswers: score,
+          wrongAnswers: Math.max(0, questions.length - score),
+          accuracy: score / Math.max(1, questions.length),
+          accuracyPercent,
+          timeSpent: elapsedTime,
+          xpEarned,
+          diamondsEarned: Math.max(2, diamondsEarned),
+          heartsRemaining: hearts,
+          streak: maxStreak,
+          maxStreak,
+          questionTypes: countQuestionTypes(),
+          completedAt: new Date().toISOString(),
+        });
         await userStatsService.addXP(xpEarned);
         await userStatsService.addDiamonds(Math.max(2, diamondsEarned));
         if (unlockedNext) {
@@ -252,7 +269,26 @@ export default function IntermediatePlacesGame({ navigation, route }) {
       console.error('Error saving game result:', error);
     }
 
-    navigation.replace('IntermediateResult', { resultData, questions, answers: answersRef.current });
+    navigation.replace('LessonComplete', {
+      lessonId: LESSON_ID,
+      stageTitle: 'สถานที่และทิศทาง',
+      score,
+      totalQuestions: questions.length,
+      timeSpent: elapsedTime,
+      accuracyPercent,
+      accuracyRatio: score / Math.max(1, questions.length),
+      xpGained: xpEarned,
+      diamondsGained: Math.max(2, diamondsEarned),
+      heartsRemaining: hearts,
+      streak: maxStreak,
+      maxStreak,
+      isUnlocked: unlockedNext,
+      nextStageUnlocked: unlockedNext,
+      stageSelectRoute: 'LevelStage2',
+      replayRoute: 'IntermediatePlacesGame',
+      replayParams: { lessonId: LESSON_ID },
+      questionTypeCounts: countQuestionTypes(),
+    });
   };
 
   const countQuestionTypes = () => {

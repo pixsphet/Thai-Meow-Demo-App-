@@ -229,19 +229,15 @@ exports.updateCurrentUserStats = async (req, res, next) => {
     }
 
     if (payload.hearts !== undefined) {
-      const maxHearts = safeNumber(payload.maxHearts, user.maxHearts || 5);
-      user.maxHearts = Math.max(1, maxHearts);
-      user.hearts = Math.max(
-        0,
-        Math.min(user.maxHearts, safeNumber(payload.hearts, user.hearts || user.maxHearts))
-      );
+      const nextHearts = safeNumber(payload.hearts, user.hearts || 0);
+      user.hearts = Math.max(0, nextHearts);
+      if (payload.maxHearts !== undefined) {
+        user.maxHearts = Math.max(0, safeNumber(payload.maxHearts, user.maxHearts || 0));
+      }
     }
 
     if (payload.maxHearts !== undefined) {
-      user.maxHearts = Math.max(1, safeNumber(payload.maxHearts, user.maxHearts || 5));
-      if (user.hearts > user.maxHearts) {
-        user.hearts = user.maxHearts;
-      }
+      user.maxHearts = Math.max(0, safeNumber(payload.maxHearts, user.maxHearts || 0));
     }
 
     if (payload.diamonds !== undefined) {

@@ -11,6 +11,16 @@ const ThaiVowelGame = ({ navigation, route }) => {
     generator: route?.params?.generator || 'lesson2_vowels',
     stageSelectRoute: route?.params?.stageSelectRoute || 'LevelStage1',
     replayRoute: route?.params?.replayRoute || routeName,
+    // Default next stage to GreetingStage3 if not provided, to match stage flow like ConsonantStage1
+    nextStageMeta: route?.params?.nextStageMeta || {
+      route: 'GreetingStage3Game',
+      params: {
+        lessonId: 3,
+        category: 'thai-greetings',
+        level: route?.params?.level || 1,
+        stageTitle: 'คำทักทาย',
+      },
+    },
     ...route?.params,
   };
 

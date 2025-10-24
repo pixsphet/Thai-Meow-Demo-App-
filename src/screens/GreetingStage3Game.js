@@ -316,8 +316,17 @@ const GreetingStage3Game = ({ navigation, route }) => {
     if (incomingNextStageMeta) {
       return incomingNextStageMeta;
     }
-    return null;
-  }, [incomingNextStageMeta]);
+    // Default next after greetings → Lesson4Objects
+    return {
+      route: 'Lesson4ObjectsGame',
+      params: {
+        lessonId: 4,
+        category: 'thai-objects',
+        level: stageLevel,
+        stageTitle: 'สิ่งของรอบตัว',
+      },
+    };
+  }, [incomingNextStageMeta, stageLevel]);
 
   const resolvedReplayParams = useMemo(
     () => ({
@@ -515,14 +524,21 @@ const GreetingStage3Game = ({ navigation, route }) => {
 
     if (isCorrect) {
       const newScore = score + 1;
+      const newStreak = streak + 1;
+      const newMaxStreak = Math.max(maxStreak, newStreak);
       const newXp = xpEarned + 15;
       const newDiamonds = diamondsEarned + 1;
+
       setScore(newScore);
+      setStreak(newStreak);
+      setMaxStreak(newMaxStreak);
       setXpEarned(newXp);
       setDiamondsEarned(newDiamonds);
     } else {
       const newHearts = Math.max(0, hearts - 1);
       setHearts(newHearts);
+      setStreak(0);
+      
       if (newHearts === 0) {
         const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
         finishLesson(elapsed);

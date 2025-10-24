@@ -16,11 +16,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 import LottieView from 'lottie-react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { awardDiamondsOnce, calculateDiamondReward } from '../services/minigameRewards';
+import { useUnifiedStats } from '../contexts/UnifiedStatsContext';
 
 const { width } = Dimensions.get('window');
 
 const SpeedTypingScreen = () => {
   const navigation = useNavigation();
+  const { updateFromGameSession } = useUnifiedStats();
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [userInput, setUserInput] = useState('');
   const [timeLeft, setTimeLeft] = useState(60);
@@ -33,6 +36,7 @@ const SpeedTypingScreen = () => {
   const [wpm, setWpm] = useState(0);
   const [accuracy, setAccuracy] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [rewardInfo, setRewardInfo] = useState(null);
 
   const inputRef = useRef(null);
   const successAnim = useRef(new Animated.Value(0)).current;
@@ -92,6 +96,19 @@ const SpeedTypingScreen = () => {
     
     setWpm(Math.round(wpmValue));
     setAccuracy(Math.round(accuracyValue));
+    // Reward preview
+    const reward = calculateDiamondReward({
+      difficulty: 'Hard',
+      metrics: {
+        timeUsed,
+        timeTarget: 45,
+        score,
+        scoreTarget: 50 * 20, // per correct 50, 20 words
+        accuracy: accuracyValue,
+        maxCombo,
+      }
+    });
+    setRewardInfo(reward);
   };
 
   const handleInputChange = (text) => {
@@ -167,6 +184,7 @@ const SpeedTypingScreen = () => {
     setWpm(0);
     setAccuracy(0);
     setIsProcessing(false);
+    setRewardInfo(null);
   };
 
   const getInputStyle = () => {
@@ -314,17 +332,89 @@ const SpeedTypingScreen = () => {
               </View>
             </View>
 
+              {rewardInfo && (
+                <View style={[styles.resultsCard, { marginTop: 6, alignItems: 'center' }]}> 
+                  <LottieView source={require('../assets/animations/Diamond.json')} autoPlay loop style={{ width: 36, height: 36 }} />
+                  <View style={[styles.resultRow, { width: '100%' }]}>
+                    <Text style={styles.resultLabel}>รางวัลเพชร:</Text>
+                    <Text style={styles.resultValue}>+{rewardInfo.diamonds}</Text>
+                  </View>
+                </View>
+              )}
+
             <View style={styles.buttonRow}>
               <TouchableOpacity 
                 style={[styles.modalButton, { backgroundColor: '#ef4444' }]}
-                onPress={restartGame}
+                onPress={async () => {
+                  const sessionId = String(Date.now());
+                  const metrics = {
+                    timeUsed: 60 - timeLeft,
+                    timeTarget: 45,
+                    score,
+                    scoreTarget: 50 * 20,
+                    accuracy,
+                    maxCombo,
+                  };
+                  const result = await awardDiamondsOnce({
+                    gameId: 'speed-typing',
+                    difficulty: 'Hard',
+                    sessionId,
+                    metrics,
+                  });
+                  if (result && result.diamonds > 0) {
+                    try {
+                      await updateFromGameSession({
+                        gameType: 'minigame-speed-typing',
+                        diamondsEarned: result.diamonds,
+                        xpEarned: 0,
+                        timeSpent: metrics.timeUsed,
+                        accuracy: metrics.accuracy,
+                        correctAnswers: correctCount,
+                        wrongAnswers: Math.max(currentWordIndex - correctCount, 0),
+                        totalQuestions: totalWords,
+                      });
+                    } catch (_) {}
+                  }
+                  restartGame();
+                }}
               >
                 <FontAwesome name="refresh" size={18} color="#fff" />
                 <Text style={styles.buttonText}>เล่นอีกครั้ง</Text>
               </TouchableOpacity>
               <TouchableOpacity 
                 style={[styles.modalButton, { backgroundColor: '#667eea' }]}
-                onPress={() => navigation.navigate('Minigame')}
+                onPress={async () => {
+                  const sessionId = String(Date.now());
+                  const metrics = {
+                    timeUsed: 60 - timeLeft,
+                    timeTarget: 45,
+                    score,
+                    scoreTarget: 50 * 20,
+                    accuracy,
+                    maxCombo,
+                  };
+                  const result = await awardDiamondsOnce({
+                    gameId: 'speed-typing',
+                    difficulty: 'Hard',
+                    sessionId,
+                    metrics,
+                  });
+                  if (result && result.diamonds > 0) {
+                    try {
+                      await updateFromGameSession({
+                        gameType: 'minigame-speed-typing',
+                        diamondsEarned: result.diamonds,
+                        xpEarned: 0,
+                        timeSpent: metrics.timeUsed,
+                        accuracy: metrics.accuracy,
+                        correctAnswers: correctCount,
+                        wrongAnswers: Math.max(currentWordIndex - correctCount, 0),
+                        totalQuestions: totalWords,
+                      });
+                    } catch (_) {}
+                  }
+                  navigation.navigate('Minigame');
+                }}
               >
                 <FontAwesome name="home" size={18} color="#fff" />
                 <Text style={styles.buttonText}>กลับเมนู</Text>

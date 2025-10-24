@@ -311,7 +311,7 @@ async function buildStatsDTO(user) {
     },
     nextLevelXp: (level) * 100,
     hearts: toNumber(user.hearts, 5),
-    maxHearts: toNumber(user.maxHearts, 5),
+    maxHearts: toNumber(user.maxHearts, toNumber(user.hearts, 0)),
     diamonds: toNumber(user.diamonds, 0),
     streak: toNumber(user.streak, 0),
     longestStreak: Math.max(
@@ -372,11 +372,7 @@ function applyProgressToUser(user, update = {}) {
   }
 
   if (update.heartsLeft !== undefined) {
-    const maxHearts = toNumber(user.maxHearts, 5);
-    user.hearts = Math.max(
-      0,
-      Math.min(maxHearts, toNumber(update.heartsLeft, maxHearts))
-    );
+    user.hearts = Math.max(0, toNumber(update.heartsLeft, user.hearts || 0));
   }
 
   if (update.completedLesson) {

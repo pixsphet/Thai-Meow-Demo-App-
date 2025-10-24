@@ -11,6 +11,11 @@ import {
 } from "react-native";
 import { FontAwesome } from '@expo/vector-icons';
 import { useNavigation } from "@react-navigation/native";
+import { awardDiamondsOnce, calculateDiamondReward } from '../services/minigameRewards';
+import { useUnifiedStats } from '../contexts/UnifiedStatsContext';
+import LottieView from 'lottie-react-native';
+import { getByCategory } from '../services/gameVocabService';
+import { resolveImage } from '../utils/imageResolver';
 
 const LEVELS = [
   { id: 1, word: "บ้าน", hint: "ที่อยู่อาศัยของคน", image: require("../add/picture/house.png") },
@@ -64,7 +69,9 @@ const splitThaiCharacters = (word) => {
   return result;
 };
 
-const Game2Screen = () => {
+const Game2Screen = ({ route }) => {
+  const category = route?.params?.category || 'Animals';
+  const { updateFromGameSession } = useUnifiedStats();
   const [currentLevel, setCurrentLevel] = useState(null);
   const [previousId, setPreviousId] = useState(null);
   const [shuffledLetters, setShuffledLetters] = useState([]);
@@ -75,14 +82,17 @@ const Game2Screen = () => {
   const [score, setScore] = useState(0);
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const popupAnim = useRef(new Animated.Value(0)).current;
+  const [rewardInfo, setRewardInfo] = useState(null);
 
   const navigation = useNavigation();
 
+  const [dynamicLevels, setDynamicLevels] = useState(null);
   const loadNewLevel = () => {
+    const source = Array.isArray(dynamicLevels) && dynamicLevels.length ? dynamicLevels : LEVELS;
     let next;
     do {
-      next = LEVELS[Math.floor(Math.random() * LEVELS.length)];
-    } while (next.id === previousId);
+      next = source[Math.floor(Math.random() * source.length)];
+    } while (next && next.id === previousId && source.length > 1);
 
     const splitWord = splitThaiCharacters(next.word);
     setPreviousId(next.id);
@@ -93,8 +103,30 @@ const Game2Screen = () => {
   };
 
   useEffect(() => {
-    loadNewLevel();
-  }, []);
+    let mounted = true;
+    (async () => {
+      try {
+        const words = await getByCategory(category, { count: 12 });
+        if (!mounted) return;
+        if (Array.isArray(words) && words.length) {
+          const mapped = words.map((w, idx) => ({
+            id: idx + 1,
+            word: w.thai,
+            hint: category,
+            image: resolveImage(w.thai, category)
+          }));
+          setDynamicLevels(mapped);
+        } else {
+          setDynamicLevels(null);
+        }
+      } catch (_) {
+        setDynamicLevels(null);
+      } finally {
+        loadNewLevel();
+      }
+    })();
+    return () => { mounted = false; };
+  }, [category]);
 
   const handleLetterPress = (letter, index) => {
     if (usedIndices.includes(index)) return;
@@ -126,6 +158,18 @@ const Game2Screen = () => {
 
     if (correct) {
       setScore((prev) => prev + 10);
+      const reward = calculateDiamondReward({
+        difficulty: 'Easy',
+        metrics: {
+          score: score + 10,
+          scoreTarget: 10 * splitWord.length,
+          accuracy: 100,
+          timeUsed: 0,
+          timeTarget: 0,
+          maxCombo: 0,
+        }
+      });
+      setRewardInfo(reward);
     } else {
       setScore((prev) => Math.max(prev - 5, 0));
     }
@@ -228,11 +272,50 @@ const Game2Screen = () => {
 
             <TouchableOpacity
               style={[styles.modalButton, { backgroundColor: isCorrect ? "#34D399" : "#FF6B9D" }]}
-              onPress={isCorrect ? handleNext : () => setModalVisible(false)}
+              onPress={async () => {
+                if (isCorrect) {
+                  const sessionId = String(Date.now());
+                  const result = await awardDiamondsOnce({
+                    gameId: 'word-scramble',
+                    difficulty: 'Easy',
+                    sessionId,
+                    metrics: {
+                      score,
+                      scoreTarget: 10 * splitWord.length,
+                      accuracy: 100,
+                      timeUsed: 0,
+                      timeTarget: 0,
+                      maxCombo: 0,
+                    },
+                  });
+                  if (result && result.diamonds > 0) {
+                    try {
+                      await updateFromGameSession({
+                        gameType: 'minigame-word-scramble',
+                        diamondsEarned: result.diamonds,
+                        xpEarned: 0,
+                        timeSpent: 0,
+                        accuracy: 100,
+                        correctAnswers: splitWord.length,
+                        wrongAnswers: 0,
+                        totalQuestions: splitWord.length,
+                      });
+                    } catch (_) {}
+                  }
+                  handleNext();
+                } else {
+                  setModalVisible(false);
+                }
+              }}
             >
-              <Text style={styles.modalButtonText}>
-                {isCorrect ? "ด่านต่อไป 🚀" : "ลองอีกครั้ง 💪"}
-              </Text>
+              {isCorrect && rewardInfo ? (
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <LottieView source={require('../assets/animations/Diamond.json')} autoPlay loop style={{ width: 24, height: 24, marginRight: 6 }} />
+                  <Text style={styles.modalButtonText}>+{rewardInfo.diamonds} ด่านต่อไป 🚀</Text>
+                </View>
+              ) : (
+                <Text style={styles.modalButtonText}>{isCorrect ? 'ด่านต่อไป 🚀' : 'ลองอีกครั้ง 💪'}</Text>
+              )}
             </TouchableOpacity>
           </Animated.View>
         </View>

@@ -311,6 +311,7 @@ const Lesson5BodyGame = ({ navigation, route }) => {
     if (incomingNextStageMeta) {
       return incomingNextStageMeta;
     }
+    // No default next after lesson 5; return null to go to stage select
     return null;
   }, [incomingNextStageMeta]);
 

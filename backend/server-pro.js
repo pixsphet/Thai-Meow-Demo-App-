@@ -74,6 +74,7 @@ const gameResultRoutes = require('./routes/gameResult');
 const auth = require('./middleware/auth');
 const lesson3Routes = require('./routes/lesson3');
 const ttsRoutes = require('./routes/tts');
+const gameVocabRoutes = require('./routes/gameVocab');
 
 app.use('/api/user', userRoutes);
 app.use('/api/auth', authRoutes);
@@ -84,6 +85,7 @@ app.use('/api/progress/user', auth, progressPerUserRoutes); // Per-user progress
 app.use('/api/game-results', gameResultRoutes);
 app.use('/api', lesson3Routes);
 app.use('/api/tts', ttsRoutes);
+app.use('/api/game-vocab', gameVocabRoutes);
 
 // Health Check Endpoint
 app.get('/api/health', (req, res) => {

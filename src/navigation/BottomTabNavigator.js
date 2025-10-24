@@ -42,7 +42,6 @@ import IntermediateEmotionsGame from '../screens/IntermediateEmotionsGame';
 import IntermediatePlacesGame from '../screens/IntermediatePlacesGame';
 import IntermediateRoutinesGame from '../screens/IntermediateRoutinesGame';
 import IntermediateTransportGame from '../screens/IntermediateTransportGame';
-import IntermediateResultScreen from '../screens/IntermediateResultScreen';
 
 
 const Tab = createBottomTabNavigator();
@@ -233,11 +232,7 @@ const MainStackNavigator = () => {
         component={IntermediateTransportGame} 
         options={{ headerShown: false }}
       />
-      <Stack.Screen 
-        name="IntermediateResult" 
-        component={IntermediateResultScreen} 
-        options={{ headerShown: false }}
-      />
+      {/* Intermediate results removed; use LessonComplete screen universally */}
     </Stack.Navigator>
   );
 };

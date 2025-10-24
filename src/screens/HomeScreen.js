@@ -85,7 +85,7 @@ const HomeScreen = ({ navigation }) => {
       }
 
       const currentHearts = Number.isFinite(hearts) ? hearts : 5;
-      const updatedHearts = Math.min(currentHearts + totalHeartsReward, XP_CONFIG.maxHearts);
+      const updatedHearts = Math.max(0, currentHearts + totalHeartsReward);
       const heartsGained = Math.max(0, updatedHearts - currentHearts);
       const currentDiamonds = Number.isFinite(diamonds) ? diamonds : 0;
       const updatedDiamonds = currentDiamonds + totalDiamondsReward;
@@ -568,52 +568,9 @@ const HomeScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        {/* Daily Challenge */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>⭐ ความท้าทายประจำวัน</Text>
-          <TouchableOpacity 
-            style={[styles.dailyChallenge, { backgroundColor: theme.card }]}
-            onPress={() => navigation.navigate('GameMode')}
-          >
-            <View style={styles.challengeContent}>
-              <MaterialCommunityIcons name="calendar-star" size={32} color={theme.primary} />
-              <View style={styles.challengeText}>
-                <Text style={[styles.challengeTitle, { color: theme.text }]}>
-                  ภารกิจประจำวัน
-                </Text>
-                <Text style={[styles.challengeSubtitle, { color: theme.textSecondary }]}>
-                  เรียน 10 นาทีเพื่อรับรางวัล
-                </Text>
-              </View>
-              <Ionicons name="chevron-forward" size={24} color={theme.textSecondary} />
-            </View>
-          </TouchableOpacity>
-        </View>
+        {/* Daily Challenge removed per request */}
 
-        {/* Recent Activity */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>📊 กิจกรรมล่าสุด</Text>
-          <View style={[styles.activityCard, { backgroundColor: theme.card }]}>
-            <View style={styles.activityItem}>
-              <MaterialCommunityIcons name="check-circle" size={20} color="#4ECDC4" />
-              <Text style={[styles.activityText, { color: theme.text }]}>
-                เสร็จสิ้นบทเรียน "พยัญชนะ ก-ฮ"
-              </Text>
-            </View>
-            <View style={styles.activityItem}>
-              <MaterialCommunityIcons name="star" size={20} color="#FFD93D" />
-              <Text style={[styles.activityText, { color: theme.text }]}>
-                ได้รับ 50 XP
-              </Text>
-            </View>
-            <View style={styles.activityItem}>
-              <MaterialCommunityIcons name="fire" size={20} color="#FF6B6B" />
-              <Text style={[styles.activityText, { color: theme.text }]}>
-                Streak 3 วันติดต่อกัน
-              </Text>
-            </View>
-          </View>
-        </View>
+        {/* Recent Activity removed per request */}
 
         {/* Learning Tips */}
         <View style={styles.section}>

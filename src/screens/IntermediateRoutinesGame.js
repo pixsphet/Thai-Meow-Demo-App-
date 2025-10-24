@@ -482,7 +482,7 @@ const IntermediateRoutinesGame = ({ navigation, route }) => {
         console.warn('Failed to clear progress snapshot:', clearError?.message || clearError);
       }
 
-      navigation.replace('IntermediateResult', {
+      navigation.replace('LessonComplete', {
         lessonId: LESSON_ID,
         stageTitle,
         score: correctAnswers,

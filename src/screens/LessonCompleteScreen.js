@@ -296,7 +296,10 @@ const LessonCompleteScreen = ({ navigation, route }) => {
     if (nextStageMeta?.route) {
       if (nextStageUnlocked) {
         navigation.replace(nextStageMeta.route, nextStageMeta.params || {});
+        return;
       }
+      // If locked, take user to stage select to review and replay previous stage
+      navigation.navigate(stageSelectRoute);
       return;
     }
     handleStageSelect();
@@ -320,7 +323,8 @@ const LessonCompleteScreen = ({ navigation, route }) => {
 
   const hasNextStage = Boolean(nextStageMeta?.route);
   const canGoNextStage = hasNextStage && nextStageUnlocked;
-  const primaryButtonDisabled = hasNextStage && !canGoNextStage;
+  // Keep visual disabled style but allow pressing to guide user to stage select
+  const primaryButtonDisabled = false;
   const primaryButtonLabel = hasNextStage
     ? canGoNextStage
       ? 'ไปด่านถัดไป'
