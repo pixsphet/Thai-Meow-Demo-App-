@@ -206,29 +206,40 @@ const makePictureMatch = (word, pool, usedChars = new Set()) => {
   };
 };
 
+// emoji placeholders for picture-side when assets are not available
+const CONSONANT_EMOJI = {
+  'ก': '🐔', 'ข': '🥚', 'ค': '🐃', 'ฆ': '🔔', 'ง': '🐍', 'จ': '🍽️', 'ฉ': '🥁', 'ช': '🐘',
+  'ซ': '⛓️', 'ฌ': '🌳', 'ญ': '👩', 'ด': '👶', 'ต': '🐢', 'ถ': '👜', 'ท': '🪖', 'ธ': '🚩',
+  'น': '🐭', 'บ': '🍃', 'ป': '🐟', 'ผ': '🐝', 'ฝ': '🛗', 'พ': '🛕', 'ฟ': '🦷', 'ภ': '⛵',
+  'ม': '🐴', 'ย': '👹', 'ร': '🚤', 'ล': '🐒', 'ว': '💍', 'ศ': '🏛️', 'ษ': '🧙', 'ส': '🐯',
+  'ห': '📦', 'ฬ': '🪁', 'อ': '🛁', 'ฮ': '🦉'
+};
+
 const makeDragMatch = (word, pool, usedChars = new Set()) => {
   const otherWords = pool.filter(w => w.char !== word.char && !usedChars.has(w.char)).slice(0, 3);
   const allWords = shuffle([word, ...otherWords]);
-  
+
+  // Left = words (meanings), Right = pictures (emoji placeholder) → match by character
   const leftItems = allWords.map((w, i) => ({
     id: `left_${i + 1}`,
-    text: `${w.char}\n${w.name}`, // Show Thai character with English name (for reading)
+    text: w.meaningTH || w.name || w.roman || w.char,
     correctMatch: w.char,
-    speakText: w.audioText,
+    speakText: w.meaningTH || w.audioText || w.name,
   }));
-  
+
   const rightItems = allWords.map((w, i) => ({
     id: `right_${i + 1}`,
-    text: SHOW_ROMAN ? (w.roman || w.name) : w.char,
+    text: w.char,                 // used for correctness check
+    display: CONSONANT_EMOJI[w.char] || w.char, // what we visually show
     thai: w.char,
     roman: w.roman || w.name,
     speakText: w.audioText,
   }));
-  
+
   return {
     id: `dm_${word.char}_${uid()}`,
     type: QUESTION_TYPES.DRAG_MATCH,
-    instruction: 'จับคู่การอ่านกับพยัญชนะ',
+    instruction: 'จับคู่คำกับรูปภาพ',
     // Rewards for this question
     rewardXP: 15,
     rewardDiamond: 1,
@@ -1287,7 +1298,7 @@ const ConsonantStage1Game = ({ navigation, route }) => {
                 })}
               </View>
 
-              {/* Right Column */}
+              {/* Right Column (show picture/emoji) */}
               <View style={styles.rightColumn}>
                 {question.rightItems?.map((item, index) => {
                   const connectedLeftId = dmPairs.find(p => p.rightId === item.id)?.leftId;
@@ -1320,7 +1331,7 @@ const ConsonantStage1Game = ({ navigation, route }) => {
                           styles.dragItemText,
                           connectedLeftId && { color: '#fff', fontWeight: 'bold' },
                           isSelected && { color: '#FF8000', fontWeight: 'bold' }
-                        ]}>{item.text}</Text>
+                        ]}>{item.display || item.text}</Text>
                         {connectedLeftId && (
                           <Text style={[styles.connectionSymbol, { color: '#fff' }]}>
                             {symbol}
