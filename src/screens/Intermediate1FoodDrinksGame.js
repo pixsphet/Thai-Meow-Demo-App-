@@ -289,6 +289,8 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
   const [resumeData, setResumeData] = useState(null);
   const [dmSelected, setDmSelected] = useState({ leftId: null, rightId: null });
   const [dmPairs, setDmPairs] = useState([]);
+  const [checked, setChecked] = useState(false);
+  const [lastCorrect, setLastCorrect] = useState(null);
   
   // Refs
   const startTimeRef = useRef(Date.now());
@@ -432,12 +434,12 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
   
   // Handle check answer
   const handleCheckAnswer = () => {
+    if (checked) { nextQuestion(); return; }
     if (currentAnswer === null) return;
-    
+
     const currentQuestion = questions[currentIndex];
     const isCorrect = checkAnswer(currentQuestion, currentAnswer);
-    
-    // Save answer
+
     answersRef.current[currentIndex] = {
       questionId: currentQuestion.id,
       answer: currentAnswer,
@@ -445,37 +447,23 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
       timestamp: Date.now(),
     };
     setAnswers({ ...answersRef.current });
-    
+    setLastCorrect(isCorrect);
+    setChecked(true);
+
     if (isCorrect) {
-      // Correct answer
       const newScore = score + 1;
-      const newStreak = streak + 1;
-      const newMaxStreak = Math.max(maxStreak, newStreak);
       const newXp = xpEarned + 10;
       const newDiamonds = diamondsEarned + 1;
-
       setScore(newScore);
-      setStreak(newStreak);
-      setMaxStreak(newMaxStreak);
       setXpEarned(newXp);
       setDiamondsEarned(newDiamonds);
-
-      // ไปข้อต่อไปทันที
-      nextQuestion();
     } else {
-      // Wrong answer
       const newHearts = Math.max(0, hearts - 1);
       setHearts(newHearts);
-      setStreak(0);
-      
       if (newHearts === 0) {
-        // Game over
         const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
         finishLesson(elapsed);
         return;
-      } else {
-        // ไปข้อต่อไปทันที
-        nextQuestion();
       }
     }
   };
@@ -484,6 +472,8 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
   useEffect(() => {
     setDmSelected({ leftId: null, rightId: null });
     setDmPairs([]);
+    setChecked(false);
+    setLastCorrect(null);
   }, [currentIndex]);
 
   // Next question
@@ -1006,10 +996,10 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
         <TouchableOpacity
           style={[
             styles.checkButton,
-            currentAnswer === null && styles.checkButtonDisabled,
+            currentAnswer === null && !checked && styles.checkButtonDisabled,
           ]}
           onPress={handleCheckAnswer}
-          disabled={currentAnswer === null}
+          disabled={currentAnswer === null && !checked}
           activeOpacity={0.9}
         >
           <LinearGradient
@@ -1018,7 +1008,7 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
             end={{ x: 1, y: 1 }}
             style={styles.checkGradient}
           >
-            <Text style={styles.checkButtonText}>CHECK</Text>
+            <Text style={styles.checkButtonText}>{checked ? 'NEXT' : 'CHECK'}</Text>
           </LinearGradient>
         </TouchableOpacity>
       </View>

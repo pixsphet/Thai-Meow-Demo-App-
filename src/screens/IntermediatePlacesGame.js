@@ -83,6 +83,8 @@ export default function IntermediatePlacesGame({ navigation, route }) {
   const [dmSelected, setDmSelected] = useState({ leftId: null, rightId: null });
   const [directionSteps, setDirectionSteps] = useState([]);
   const [showFireStreakAlert, setShowFireStreakAlert] = useState(false);
+  const [checked, setChecked] = useState(false);
+  const [lastCorrect, setLastCorrect] = useState(null);
 
   const { progressUser } = useProgress();
   const { stats } = useUnifiedStats();
@@ -171,6 +173,7 @@ export default function IntermediatePlacesGame({ navigation, route }) {
   };
 
   const handleCheckAnswer = () => {
+    if (checked) { nextQuestion(); return; }
     if (currentAnswer === null && directionSteps.length === 0) return;
     const currentQuestion = questions[currentIndex];
     const answerToCheck = currentQuestion.type === PLACES_QUESTION_TYPES.DIRECTION_FLOW ? directionSteps : currentAnswer;
@@ -185,30 +188,23 @@ export default function IntermediatePlacesGame({ navigation, route }) {
     const newCorrect = score + (isCorrect ? 1 : 0);
     const newAccuracy = Math.round((newCorrect / newTotal) * 100);
     setTotalAnswered(newTotal);
+    setAccuracy(newAccuracy);
+    setChecked(true);
+    setLastCorrect(isCorrect);
 
     if (isCorrect) {
       const newScore = score + 1;
-      const newStreak = streak + 1;
-      const newMaxStreak = Math.max(maxStreak, newStreak);
       const newXp = xpEarned + 10;
       const newDiamonds = diamondsEarned + 1;
       setScore(newScore);
-      setStreak(newStreak);
-      setMaxStreak(newMaxStreak);
       setXpEarned(newXp);
       setDiamondsEarned(newDiamonds);
-      setAccuracy(newAccuracy);
-      nextQuestion();
     } else {
       const newHearts = Math.max(0, hearts - 1);
       setHearts(newHearts);
-      setStreak(0);
-      setAccuracy(newAccuracy);
       if (newHearts === 0) {
         const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
         finishLesson(elapsed);
-      } else {
-        nextQuestion();
       }
     }
   };
@@ -223,6 +219,8 @@ export default function IntermediatePlacesGame({ navigation, route }) {
       setDmPairs([]);
       setDmSelected({ leftId: null, rightId: null });
       setDirectionSteps([]);
+      setChecked(false);
+      setLastCorrect(null);
     }
   };
 
@@ -469,8 +467,8 @@ export default function IntermediatePlacesGame({ navigation, route }) {
       </ScrollView>
 
       <View style={styles.bottomActions}>
-        <TouchableOpacity style={[styles.checkButton, (currentAnswer === null && directionSteps.length === 0) && styles.checkButtonDisabled]} onPress={handleCheckAnswer} disabled={currentAnswer === null && directionSteps.length === 0}>
-          <Text style={styles.checkButtonText}>✓ ตรวจสอบ</Text>
+        <TouchableOpacity style={[styles.checkButton, (currentAnswer === null && directionSteps.length === 0) && !checked && styles.checkButtonDisabled]} onPress={handleCheckAnswer} disabled={(currentAnswer === null && directionSteps.length === 0) && !checked}>
+          <Text style={styles.checkButtonText}>{checked ? '→ ต่อไป' : '✓ ตรวจสอบ'}</Text>
         </TouchableOpacity>
       </View>
 

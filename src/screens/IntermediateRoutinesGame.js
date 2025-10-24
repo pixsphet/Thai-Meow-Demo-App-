@@ -135,6 +135,8 @@ const IntermediateRoutinesGame = ({ navigation, route }) => {
   const [dmSelected, setDmSelected] = useState({ leftId: null, rightId: null });
   const [dmPairs, setDmPairs] = useState([]);
   const [timelineSelected, setTimelineSelected] = useState([]);
+  const [checked, setChecked] = useState(false);
+  const [lastCorrect, setLastCorrect] = useState(null);
   
   // Refs
   const startTimeRef = useRef(Date.now());
@@ -302,12 +304,12 @@ const IntermediateRoutinesGame = ({ navigation, route }) => {
   
   // Handle check answer
   const handleCheckAnswer = () => {
+    if (checked) { nextQuestion(); return; }
     if (currentAnswer === null) return;
-    
+
     const currentQuestion = questions[currentIndex];
     const isCorrect = checkAnswer(currentQuestion, currentAnswer);
-    
-    // Save answer
+
     answersRef.current[currentIndex] = {
       questionId: currentQuestion.id,
       answer: currentAnswer,
@@ -315,39 +317,25 @@ const IntermediateRoutinesGame = ({ navigation, route }) => {
       timestamp: Date.now(),
     };
     setAnswers({ ...answersRef.current });
-    
+    setLastCorrect(isCorrect);
+    setChecked(true);
+
     if (isCorrect) {
-      // Correct answer
       const newScore = score + 1;
-      const newStreak = streak + 1;
-      const newMaxStreak = Math.max(maxStreak, newStreak);
       const newXp = xpEarned + 10;
       const newDiamonds = diamondsEarned + 1;
       const newAccuracy = ((newScore) / (currentIndex + 1)) * 100;
-
       setScore(newScore);
-      setStreak(newStreak);
-      setMaxStreak(newMaxStreak);
       setXpEarned(newXp);
       setDiamondsEarned(newDiamonds);
       setAccuracy(Math.round(newAccuracy));
-
-      // Go to next question
-      nextQuestion();
     } else {
-      // Wrong answer
       const newHearts = Math.max(0, hearts - 1);
       setHearts(newHearts);
-      setStreak(0);
-      
       if (newHearts === 0) {
-        // Game over
         const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
         finishLesson(elapsed);
         return;
-      } else {
-        // Go to next question
-        nextQuestion();
       }
     }
   };
@@ -357,6 +345,8 @@ const IntermediateRoutinesGame = ({ navigation, route }) => {
     setDmSelected({ leftId: null, rightId: null });
     setDmPairs([]);
     setTimelineSelected([]);
+    setChecked(false);
+    setLastCorrect(null);
   }, [currentIndex]);
 
   // Next question

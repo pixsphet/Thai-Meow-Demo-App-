@@ -145,6 +145,8 @@ const IntermediateTransportGame = ({ navigation, route }) => {
   const [dmSelected, setDmSelected] = useState({ leftId: null, rightId: null });
   const [dmPairs, setDmPairs] = useState([]);
   const [arrangeSelected, setArrangeSelected] = useState([]);
+  const [checked, setChecked] = useState(false);
+  const [lastCorrect, setLastCorrect] = useState(null);
   
   // Refs
   const startTimeRef = useRef(Date.now());
@@ -262,6 +264,7 @@ const IntermediateTransportGame = ({ navigation, route }) => {
   };
   
   const handleCheckAnswer = () => {
+    if (checked) { nextQuestion(); return; }
     if (currentAnswer === null && dmPairs.length === 0 && arrangeSelected.length === 0) return;
     
     const currentQuestion = questions[currentIndex];
@@ -274,34 +277,26 @@ const IntermediateTransportGame = ({ navigation, route }) => {
       timestamp: Date.now(),
     };
     setAnswers({ ...answersRef.current });
+    setLastCorrect(isCorrect);
+    setChecked(true);
     
     if (isCorrect) {
       const newScore = score + 1;
-      const newStreak = streak + 1;
-      const newMaxStreak = Math.max(maxStreak, newStreak);
       const newXp = xpEarned + 10;
       const newDiamonds = diamondsEarned + 1;
       const newAccuracy = ((newScore) / (currentIndex + 1)) * 100;
 
       setScore(newScore);
-      setStreak(newStreak);
-      setMaxStreak(newMaxStreak);
       setXpEarned(newXp);
       setDiamondsEarned(newDiamonds);
       setAccuracy(Math.round(newAccuracy));
-
-      nextQuestion();
     } else {
       const newHearts = Math.max(0, hearts - 1);
       setHearts(newHearts);
-      setStreak(0);
-      
       if (newHearts === 0) {
         const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
         finishLesson(elapsed);
         return;
-      } else {
-        nextQuestion();
       }
     }
   };
@@ -310,6 +305,8 @@ const IntermediateTransportGame = ({ navigation, route }) => {
     setDmSelected({ leftId: null, rightId: null });
     setDmPairs([]);
     setArrangeSelected([]);
+    setChecked(false);
+    setLastCorrect(null);
   }, [currentIndex]);
 
   const nextQuestion = () => {
@@ -788,10 +785,10 @@ const IntermediateTransportGame = ({ navigation, route }) => {
         <TouchableOpacity
           style={[
             styles.checkButton,
-            currentAnswer === null && dmPairs.length === 0 && arrangeSelected.length === 0 && styles.checkButtonDisabled,
+            currentAnswer === null && dmPairs.length === 0 && arrangeSelected.length === 0 && !checked && styles.checkButtonDisabled,
           ]}
           onPress={handleCheckAnswer}
-          disabled={currentAnswer === null && dmPairs.length === 0 && arrangeSelected.length === 0}
+          disabled={(currentAnswer === null && dmPairs.length === 0 && arrangeSelected.length === 0) && !checked}
           activeOpacity={0.9}
         >
           <LinearGradient
@@ -800,7 +797,7 @@ const IntermediateTransportGame = ({ navigation, route }) => {
             end={{ x: 1, y: 1 }}
             style={styles.checkGradient}
           >
-            <Text style={styles.checkButtonText}>CHECK</Text>
+            <Text style={styles.checkButtonText}>{checked ? 'NEXT' : 'CHECK'}</Text>
           </LinearGradient>
         </TouchableOpacity>
       </View>

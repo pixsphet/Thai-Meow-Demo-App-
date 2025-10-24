@@ -131,6 +131,8 @@ export default function IntermediateEmotionsGame({ navigation, route }) {
   const [showFireStreakAlert, setShowFireStreakAlert] = useState(false);
   const [accuracy, setAccuracy] = useState(0);
   const [totalAnswered, setTotalAnswered] = useState(0);
+  const [checked, setChecked] = useState(false);
+  const [lastCorrect, setLastCorrect] = useState(null);
 
   // Contexts
   const { progressUser } = useProgress();
@@ -292,12 +294,12 @@ export default function IntermediateEmotionsGame({ navigation, route }) {
 
   // Handle check answer
   const handleCheckAnswer = () => {
+    if (checked) { nextQuestion(); return; }
     if (currentAnswer === null) return;
 
     const currentQuestion = questions[currentIndex];
     const isCorrect = checkAnswer(currentQuestion, currentAnswer);
 
-    // Save answer
     answersRef.current[currentIndex] = {
       questionId: currentQuestion.id,
       answer: currentAnswer,
@@ -306,38 +308,27 @@ export default function IntermediateEmotionsGame({ navigation, route }) {
     };
     setAnswers({ ...answersRef.current });
 
-    // Update accuracy
     const newTotal = totalAnswered + 1;
     const newCorrect = score + (isCorrect ? 1 : 0);
     const newAccuracy = Math.round((newCorrect / newTotal) * 100);
     setTotalAnswered(newTotal);
+    setAccuracy(newAccuracy);
+    setChecked(true);
+    setLastCorrect(isCorrect);
 
     if (isCorrect) {
       const newScore = score + 1;
-      const newStreak = streak + 1;
-      const newMaxStreak = Math.max(maxStreak, newStreak);
       const newXp = xpEarned + 10;
       const newDiamonds = diamondsEarned + 1;
-
       setScore(newScore);
-      setStreak(newStreak);
-      setMaxStreak(newMaxStreak);
       setXpEarned(newXp);
       setDiamondsEarned(newDiamonds);
-      setAccuracy(newAccuracy);
-
-      nextQuestion();
     } else {
       const newHearts = Math.max(0, hearts - 1);
       setHearts(newHearts);
-      setStreak(0);
-      setAccuracy(newAccuracy);
-
       if (newHearts === 0) {
         const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
         finishLesson(elapsed);
-      } else {
-        nextQuestion();
       }
     }
   };
@@ -352,6 +343,8 @@ export default function IntermediateEmotionsGame({ navigation, route }) {
       setCurrentAnswer(null);
       setDmSelected({ leftId: null, rightId: null });
       setDmPairs([]);
+      setChecked(false);
+      setLastCorrect(null);
     }
   };
 
@@ -582,12 +575,12 @@ export default function IntermediateEmotionsGame({ navigation, route }) {
         <TouchableOpacity
           style={[
             styles.checkButton,
-            currentAnswer === null && styles.checkButtonDisabled,
+            currentAnswer === null && !checked && styles.checkButtonDisabled,
           ]}
           onPress={handleCheckAnswer}
-          disabled={currentAnswer === null}
+          disabled={currentAnswer === null && !checked}
         >
-          <Text style={styles.checkButtonText}>✓ ตรวจสอบ</Text>
+          <Text style={styles.checkButtonText}>{checked ? '→ ต่อไป' : '✓ ตรวจสอบ'}</Text>
         </TouchableOpacity>
       </View>
 
