@@ -700,9 +700,7 @@ const LevelStage2 = ({ navigation }) => {
             <View style={[styles.badgePill, { backgroundColor: 'rgba(255, 255, 255, 0.25)', borderColor: '#FFD54F' }]}>
               <Text style={styles.badgePillText}>⭐ {xp?.toLocaleString?.('th-TH') || xp || 0} XP</Text>
             </View>
-            <View style={[styles.badgePill, { backgroundColor: 'rgba(255, 255, 255, 0.25)', borderColor: '#FF6B6B' }]}>
-              <Text style={styles.badgePillText}>🔥 {streak || 0} วันต่อเนื่อง</Text>
-            </View>
+            {/* Streak badge removed per request */}
             <View style={[styles.badgePill, { backgroundColor: 'rgba(255, 255, 255, 0.25)', borderColor: '#90CAF9' }]}>
               <Text style={styles.badgePillText}>🎯 เลเวล {level || (userStats?.level || 1)}</Text>
             </View>
