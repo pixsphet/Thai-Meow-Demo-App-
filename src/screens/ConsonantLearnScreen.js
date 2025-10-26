@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator, Image, ScrollView } from 'react-native';
+import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator, Image, ScrollView as RNScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import ThemedBackButton from '../components/ThemedBackButton';
 import FlipCard from '../components/FlipCard';
@@ -200,19 +200,49 @@ const VocabLearnCard = ({ item, onSpeak, seen }) => {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.backContentContainer}>
+      <RNScrollView 
+        style={styles.backContentContainer}
+        contentContainerStyle={styles.backContentScroll}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Thai Description */}
         <View style={styles.backSection}>
           <Text style={styles.backLabel}>🇹🇭 คำอธิบาย</Text>
-          <Text style={styles.backTextThai}>{item.descriptionTH}</Text>
+          <Text style={styles.backTextThai}>
+            {item.descriptionTH || `${item.english} is a ${item.english} in Thai.`}
+          </Text>
         </View>
         
         {/* English Description */}
         <View style={styles.backSection}>
           <Text style={styles.backLabel}>🇬🇧 Description</Text>
-          <Text style={styles.backTextEnglish}>{item.descriptionEN}</Text>
+          <Text style={styles.backTextEnglish}>
+            {item.descriptionEN || `${item.english} - ${item.thai} means ${item.english} in Thai language.`}
+          </Text>
         </View>
-      </View>
+
+        {/* Show examples if available */}
+        {item.examplesTH && item.examplesTH.length > 0 && (
+          <View style={styles.examplesSection}>
+            <Text style={styles.examplesLabel}>📝 ตัวอย่างประโยค</Text>
+            {item.examplesTH.slice(0, 2).map((example, idx) => (
+              <Text key={idx} style={styles.exampleTextThai}>
+                {idx + 1}. {example}
+              </Text>
+            ))}
+            {item.examplesEN && item.examplesEN.length > 0 && (
+              <>
+                <Text style={styles.examplesLabelEn}>Examples</Text>
+                {item.examplesEN.slice(0, 2).map((example, idx) => (
+                  <Text key={idx} style={styles.exampleTextEnglish}>
+                    {idx + 1}. {example}
+                  </Text>
+                ))}
+              </>
+            )}
+          </View>
+        )}
+      </RNScrollView>
     </View>
   );
 
@@ -402,7 +432,7 @@ const ConsonantLearnScreen = ({ navigation }) => {
         data={data}
         numColumns={2}
         scrollEnabled={false}
-        keyExtractor={(item, index) => item.id || `item-${index}`}
+        keyExtractor={(item, index) => `${category}-${item.id || item.char || index}-${index}`}
         columnWrapperStyle={styles.columnWrapper}
         contentContainerStyle={styles.flatListContent}
         renderItem={({ item, index }) => (
@@ -525,7 +555,7 @@ const ConsonantLearnScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      <ScrollView
+      <RNScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -537,7 +567,7 @@ const ConsonantLearnScreen = ({ navigation }) => {
         {activeTab === 'vocab' && (
           <View style={styles.vocabContainer}>
             {/* Category Tabs */}
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryTabsContainer}>
+            <RNScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryTabsContainer}>
               {Object.keys(vocabCategories).map(cat => (
                 <TouchableOpacity
                   key={cat}
@@ -549,7 +579,7 @@ const ConsonantLearnScreen = ({ navigation }) => {
                   </Text>
                 </TouchableOpacity>
               ))}
-            </ScrollView>
+            </RNScrollView>
 
             {/* Render active category */}
             {activeVocabCategory && vocabCategories[activeVocabCategory] && (
@@ -562,7 +592,7 @@ const ConsonantLearnScreen = ({ navigation }) => {
                   data={vocabCategories[activeVocabCategory]}
                   numColumns={2}
                   scrollEnabled={false}
-                  keyExtractor={(item, index) => item.thai || `vocab-${index}`}
+                  keyExtractor={(item, index) => `${activeVocabCategory}-${item.thai}-${index}`}
                   columnWrapperStyle={styles.columnWrapper}
                   contentContainerStyle={styles.flatListContent}
                   renderItem={({ item, index }) => (
@@ -583,7 +613,7 @@ const ConsonantLearnScreen = ({ navigation }) => {
             )}
           </View>
         )}
-      </ScrollView>
+      </RNScrollView>
     </SafeAreaView>
   );
 };
@@ -956,7 +986,7 @@ const styles = StyleSheet.create({
   // Flip Card styles
   flipCardWrapper: {
     width: '100%',
-    height: 240,
+    height: 320,
     marginBottom: 16,
   },
   vocabCardBack: {
@@ -966,8 +996,10 @@ const styles = StyleSheet.create({
   },
   backContentContainer: {
     flex: 1,
-    justifyContent: 'center',
+  },
+  backContentScroll: {
     paddingVertical: 8,
+    paddingHorizontal: 4,
   },
   backSection: {
     marginBottom: 16,
@@ -989,6 +1021,42 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     color: '#495057',
     lineHeight: 20,
+    fontStyle: 'italic',
+  },
+  
+  // Examples section
+  examplesSection: {
+    marginTop: 8,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#e9ecef',
+  },
+  examplesLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FF8000',
+    marginBottom: 8,
+  },
+  examplesLabelEn: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#6c757d',
+    marginTop: 8,
+    marginBottom: 6,
+  },
+  exampleTextThai: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#495057',
+    lineHeight: 18,
+    marginBottom: 4,
+  },
+  exampleTextEnglish: {
+    fontSize: 12,
+    fontWeight: '400',
+    color: '#6c757d',
+    lineHeight: 16,
+    marginBottom: 4,
     fontStyle: 'italic',
   },
 
