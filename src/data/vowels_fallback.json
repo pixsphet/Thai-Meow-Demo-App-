@@ -6,7 +6,7 @@
     "nameTH": "สระอะ",
     "meaningTH": "สระสั้น อ่านว่า อะ",
     "meaningEN": "short a",
-    "audioText": "สระอะ",
+    "audioText": "สะหระ อะ",
     "image": "อะ",
     "level": "Beginner",
     "category": "thai-vowels"
@@ -18,7 +18,7 @@
     "nameTH": "สระอา",
     "meaningTH": "สระยาว อ่านว่า อา",
     "meaningEN": "long a",
-    "audioText": "สระอา",
+    "audioText": "สะหระ อา",
     "image": "อา",
     "level": "Beginner",
     "category": "thai-vowels"
@@ -30,7 +30,7 @@
     "nameTH": "สระิ",
     "meaningTH": "สระสั้น อ่านว่า อิ",
     "meaningEN": "short i",
-    "audioText": "สระิ",
+    "audioText": "สะหระ ิ",
     "image": "อิ",
     "level": "Beginner",
     "category": "thai-vowels"
@@ -42,7 +42,7 @@
     "nameTH": "สระี",
     "meaningTH": "สระยาว อ่านว่า อี",
     "meaningEN": "long i",
-    "audioText": "สระี",
+    "audioText": "สะหระ ี",
     "image": "อี",
     "level": "Beginner",
     "category": "thai-vowels"
@@ -54,7 +54,7 @@
     "nameTH": "สระึ",
     "meaningTH": "สระสั้น อ่านว่า อึ",
     "meaningEN": "short u",
-    "audioText": "สระึ",
+    "audioText": "สะหระ ึ",
     "image": "อึ",
     "level": "Beginner",
     "category": "thai-vowels"
@@ -66,7 +66,7 @@
     "nameTH": "สระือ",
     "meaningTH": "สระยาว อ่านว่า อือ",
     "meaningEN": "long u",
-    "audioText": "สระือ",
+    "audioText": "สะหระ ือ",
     "image": "อือ",
     "level": "Beginner",
     "category": "thai-vowels"
@@ -78,7 +78,7 @@
     "nameTH": "สระุ",
     "meaningTH": "สระสั้น อ่านว่า อุ",
     "meaningEN": "short oo",
-    "audioText": "สระุ",
+    "audioText": "สะหระ ุ",
     "image": "อุ",
     "level": "Beginner",
     "category": "thai-vowels"
@@ -90,7 +90,7 @@
     "nameTH": "สระู",
     "meaningTH": "สระยาว อ่านว่า อู",
     "meaningEN": "long oo",
-    "audioText": "สระู",
+    "audioText": "สะหระ ู",
     "image": "อู",
     "level": "Beginner",
     "category": "thai-vowels"
@@ -102,7 +102,7 @@
     "nameTH": "สระเอะ",
     "meaningTH": "สระสั้น อ่านว่า เอะ",
     "meaningEN": "short ae",
-    "audioText": "สระเอะ",
+    "audioText": "สะหระ เอะ",
     "image": "เอะ",
     "level": "Beginner",
     "category": "thai-vowels"
@@ -114,7 +114,7 @@
     "nameTH": "สระเอ",
     "meaningTH": "สระยาว อ่านว่า เอ",
     "meaningEN": "long ae",
-    "audioText": "สระเอ",
+    "audioText": "สะหระ เอ",
     "image": "เอ",
     "level": "Beginner",
     "category": "thai-vowels"
@@ -126,7 +126,7 @@
     "nameTH": "สระแอะ",
     "meaningTH": "สระสั้น อ่านว่า แอะ",
     "meaningEN": "short ae2",
-    "audioText": "สระแอะ",
+    "audioText": "สะหระ แอะ",
     "image": "แอะ",
     "level": "Beginner",
     "category": "thai-vowels"
@@ -138,7 +138,7 @@
     "nameTH": "สระแอ",
     "meaningTH": "สระยาว อ่านว่า แอ",
     "meaningEN": "long ae2",
-    "audioText": "สระแอ",
+    "audioText": "สะหระ แอ",
     "image": "แอ",
     "level": "Beginner",
     "category": "thai-vowels"
@@ -150,7 +150,7 @@
     "nameTH": "สระโอะ",
     "meaningTH": "สระสั้น อ่านว่า โอะ",
     "meaningEN": "short o",
-    "audioText": "สระโอะ",
+    "audioText": "สะหระ โอะ",
     "image": "โอะ",
     "level": "Beginner",
     "category": "thai-vowels"
@@ -162,7 +162,7 @@
     "nameTH": "สระโอ",
     "meaningTH": "สระยาว อ่านว่า โอ",
     "meaningEN": "long o",
-    "audioText": "สระโอ",
+    "audioText": "สะหระ โอ",
     "image": "โอ",
     "level": "Beginner",
     "category": "thai-vowels"
@@ -174,7 +174,7 @@
     "nameTH": "สระเอาะ",
     "meaningTH": "สระสั้น อ่านว่า เอาะ",
     "meaningEN": "short aw",
-    "audioText": "สระเอาะ",
+    "audioText": "สะหระ เอาะ",
     "image": "เอาะ",
     "level": "Beginner",
     "category": "thai-vowels"
@@ -186,7 +186,7 @@
     "nameTH": "สระเอา",
     "meaningTH": "สระยาว อ่านว่า เอา",
     "meaningEN": "long aw",
-    "audioText": "สระเอา",
+    "audioText": "สะหระ เอา",
     "image": "เอา",
     "level": "Beginner",
     "category": "thai-vowels"
@@ -198,7 +198,7 @@
     "nameTH": "สระเอือะ",
     "meaningTH": "สระสั้น อ่านว่า เอือะ",
     "meaningEN": "short uea",
-    "audioText": "สระเอือะ",
+    "audioText": "สะหระ เอือะ",
     "image": "เอือะ",
     "level": "Beginner",
     "category": "thai-vowels"
@@ -210,7 +210,7 @@
     "nameTH": "สระเอือ",
     "meaningTH": "สระยาว อ่านว่า เอือ",
     "meaningEN": "long uea",
-    "audioText": "สระเอือ",
+    "audioText": "สะหระ เอือ",
     "image": "เอือ",
     "level": "Beginner",
     "category": "thai-vowels"
@@ -222,7 +222,7 @@
     "nameTH": "สระเอียะ",
     "meaningTH": "สระสั้น อ่านว่า เอียะ",
     "meaningEN": "short ia",
-    "audioText": "สระเอียะ",
+    "audioText": "สะหระ เอียะ",
     "image": "เอียะ",
     "level": "Beginner",
     "category": "thai-vowels"
@@ -234,7 +234,7 @@
     "nameTH": "สระเอีย",
     "meaningTH": "สระยาว อ่านว่า เอีย",
     "meaningEN": "long ia",
-    "audioText": "สระเอีย",
+    "audioText": "สะหระ เอีย",
     "image": "เอีย",
     "level": "Beginner",
     "category": "thai-vowels"
@@ -246,7 +246,7 @@
     "nameTH": "สระไอ",
     "meaningTH": "สระยาว อ่านว่า ไอ",
     "meaningEN": "long ai",
-    "audioText": "สระไอ",
+    "audioText": "สะหระ ไอ",
     "image": "ไอ",
     "level": "Beginner",
     "category": "thai-vowels"
@@ -258,7 +258,7 @@
     "nameTH": "สระใอ",
     "meaningTH": "สระสั้น อ่านว่า ใอ",
     "meaningEN": "short ai",
-    "audioText": "สระใอ",
+    "audioText": "สะหระ ใอ",
     "image": "ใอ",
     "level": "Beginner",
     "category": "thai-vowels"
@@ -270,7 +270,7 @@
     "nameTH": "สระอำ",
     "meaningTH": "สระกึ่ง อ่านว่า อำ",
     "meaningEN": "am",
-    "audioText": "สระอำ",
+    "audioText": "สะหระ อำ",
     "image": "อำ",
     "level": "Beginner",
     "category": "thai-vowels"
@@ -282,7 +282,7 @@
     "nameTH": "สระเออะ",
     "meaningTH": "สระสั้น อ่านว่า เออะ",
     "meaningEN": "short oea",
-    "audioText": "สระเออะ",
+    "audioText": "สะหระ เออะ",
     "image": "เออะ",
     "level": "Beginner",
     "category": "thai-vowels"
@@ -294,7 +294,7 @@
     "nameTH": "สระเออ",
     "meaningTH": "สระยาว อ่านว่า เออ",
     "meaningEN": "long oea",
-    "audioText": "สระเออ",
+    "audioText": "สะหระ เออ",
     "image": "เออ",
     "level": "Beginner",
     "category": "thai-vowels"
@@ -306,7 +306,7 @@
     "nameTH": "สระออ",
     "meaningTH": "สระ อ่านว่า ออ",
     "meaningEN": "o variant",
-    "audioText": "สระออ",
+    "audioText": "สะหระ ออ",
     "image": "ออ",
     "level": "Beginner",
     "category": "thai-vowels"
@@ -318,7 +318,7 @@
     "nameTH": "สระอัวะ",
     "meaningTH": "สระสั้น อ่านว่า อัวะ",
     "meaningEN": "short ua",
-    "audioText": "สระอัวะ",
+    "audioText": "สะหระ อัวะ",
     "image": "อัวะ",
     "level": "Beginner",
     "category": "thai-vowels"
@@ -330,7 +330,7 @@
     "nameTH": "สระอัว",
     "meaningTH": "สระยาว อ่านว่า อัว",
     "meaningEN": "long ua",
-    "audioText": "สระอัว",
+    "audioText": "สะหระ อัว",
     "image": "อัว",
     "level": "Beginner",
     "category": "thai-vowels"

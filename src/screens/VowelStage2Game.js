@@ -11,6 +11,7 @@ import {
   Animated,
 } from 'react-native';
 import { FontAwesome, MaterialIcons, Ionicons } from '@expo/vector-icons';
+import ThemedBackButton from '../components/ThemedBackButton';
 import LottieView from 'lottie-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -263,8 +264,8 @@ const generateVowelQuestions = (pool) => {
     questions.push(makeListenChoose(word, pool));
   }
   
-  // PICTURE_MATCH × 3
-  for (let i = 0; i < 3; i++) {
+  // PICTURE_MATCH × 4
+  for (let i = 0; i < 4; i++) {
     const available = pool.filter(w => !usedChars.has(w.char));
     if (available.length === 0) break;
     const word = pick(available);
@@ -272,13 +273,13 @@ const generateVowelQuestions = (pool) => {
     questions.push(makePictureMatch(word, pool));
   }
   
-  // DRAG_MATCH × 3
-  for (let i = 0; i < 3; i++) {
+  // PICTURE_MATCH × 2 (แทน DRAG_MATCH)
+  for (let i = 0; i < 2; i++) {
     const available = pool.filter(w => !usedChars.has(w.char));
     if (available.length === 0) break;
     const word = pick(available);
     usedChars.add(word.char);
-    questions.push(makeDragMatch(word, pool));
+    questions.push(makePictureMatch(word, pool));
   }
   
   // FILL_BLANK × 1
@@ -377,6 +378,7 @@ const VowelStage2Game = ({ navigation, route }) => {
   const [dmPairs, setDmPairs] = useState([]);
   const [checked, setChecked] = useState(false);
   const [lastCorrect, setLastCorrect] = useState(null);
+  const [currentFeedback, setCurrentFeedback] = useState(null);
 
   // Refs
   const startTimeRef = useRef(Date.now());
@@ -517,13 +519,9 @@ const VowelStage2Game = ({ navigation, route }) => {
 
   // Handle check answer
   const handleCheckAnswer = () => {
-    // Phase 1: check; Phase 2: next
-    if (checked) {
-      nextQuestion();
-      return;
-    }
-
+    if (checked) { nextQuestion(); return; }
     if (currentAnswer === null) return;
+
     const currentQuestion = questions[currentIndex];
     const isCorrect = checkAnswer(currentQuestion, currentAnswer);
 
@@ -555,12 +553,13 @@ const VowelStage2Game = ({ navigation, route }) => {
     }
   };
 
-  // Reset drag-match state when index changes
+  // Reset state when index changes
   useEffect(() => {
     setDmSelected({ leftId: null, rightId: null });
     setDmPairs([]);
     setChecked(false);
     setLastCorrect(null);
+    setCurrentFeedback(null);
   }, [currentIndex]);
 
   // Next question
@@ -1052,12 +1051,7 @@ const VowelStage2Game = ({ navigation, route }) => {
       
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="arrow-back" size={24} color={COLORS.dark} />
-        </TouchableOpacity>
+        <ThemedBackButton style={styles.backButton} onPress={() => navigation.goBack()} />
         
         <View style={styles.progressContainer}>
           <View style={styles.progressBar}>
@@ -1070,37 +1064,44 @@ const VowelStage2Game = ({ navigation, route }) => {
         </View>
       </View>
 
-      {/* Stats Row */}
+      {/* Stats Row - Enhanced */}
       <View style={styles.statsRow}>
-        <View style={styles.statBadge}>
+        <View style={styles.statBadgeEnhanced}>
           <LottieView
             source={require('../assets/animations/Star.json')}
             autoPlay
             loop
             style={styles.starAnimation}
           />
-          <Text style={styles.statText}>{xpEarned} XP</Text>
+          <View style={styles.statTextContainer}>
+            <Text style={styles.statLabel}>XP</Text>
+            <Text style={styles.statValue}>{xpEarned}</Text>
+          </View>
         </View>
-        <View style={styles.statBadge}>
+        
+        <View style={styles.statDivider} />
+        
+        <View style={styles.statBadgeEnhanced}>
           <LottieView
             source={require('../assets/animations/Diamond.json')}
             autoPlay
             loop
             style={styles.diamondAnimation}
           />
-          <Text style={styles.statText}>+{diamondsEarned}</Text>
+          <View style={styles.statTextContainer}>
+            <Text style={styles.statLabel}>Diamonds</Text>
+            <Text style={styles.statValue}>+{diamondsEarned}</Text>
+          </View>
         </View>
-        <View style={styles.statBadge}>
-          <Text style={styles.statText}>🎯 {Math.min(100, Math.max(0, Math.round((score / Math.max(1, currentIndex)) * 100)))}%</Text>
-        </View>
-        <View style={styles.statBadge}>
-          <LottieView
-            source={require('../assets/animations/Streak-Fire1.json')}
-            autoPlay
-            loop
-            style={styles.streakAnimation}
-          />
-          <Text style={styles.statText}>{streak}</Text>
+        
+        <View style={styles.statDivider} />
+        
+        <View style={styles.statBadgeEnhanced}>
+          <FontAwesome name="bullseye" size={18} color={COLORS.primary} />
+          <View style={styles.statTextContainer}>
+            <Text style={styles.statLabel}>Accuracy</Text>
+            <Text style={styles.statValue}>{Math.min(100, Math.max(0, Math.round((score / Math.max(1, questions.length)) * 100)))}%</Text>
+          </View>
         </View>
       </View>
 
@@ -1109,24 +1110,61 @@ const VowelStage2Game = ({ navigation, route }) => {
         {renderQuestionComponent()}
       </ScrollView>
 
-      {/* Check Button */}
-      <View style={styles.checkContainer}>
+      {/* Check Button - Enhanced 2-Phase */}
+      <View style={styles.checkContainerEnhanced}>
+        {lastCorrect !== null && (
+          <View style={[
+            styles.feedbackBadgeEnhanced,
+            lastCorrect ? styles.feedbackCorrectEnhanced : styles.feedbackWrongEnhanced
+          ]}>
+            <FontAwesome 
+              name={lastCorrect ? 'check-circle' : 'times-circle'} 
+              size={24} 
+              color={lastCorrect ? '#58cc02' : '#ff4b4b'}
+              style={{ marginRight: 8 }}
+            />
+            <Text style={styles.feedbackTextEnhanced}>
+              {lastCorrect ? 'ถูกต้อง! ยอดเยี่ยม' : 'พยายามอีกครั้ง'}
+            </Text>
+          </View>
+        )}
         <TouchableOpacity
           style={[
-            styles.checkButton,
-            currentAnswer === null && !checked && styles.checkButtonDisabled,
+            styles.checkButtonEnhanced,
+            currentAnswer === null && styles.checkButtonDisabledEnhanced,
           ]}
-          onPress={handleCheckAnswer}
-          disabled={currentAnswer === null && !checked}
-          activeOpacity={0.9}
+          onPress={() => {
+            if (checked) {
+              setChecked(false);
+              setLastCorrect(null);
+              if (hearts === 0) {
+                const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+                finishLesson(elapsed);
+              } else {
+                nextQuestion();
+              }
+            } else {
+              handleCheckAnswer();
+            }
+          }}
+          disabled={currentAnswer === null}
+          activeOpacity={0.85}
         >
           <LinearGradient
-            colors={[COLORS.primary, '#FFA24D']}
+            colors={currentAnswer === null ? ['#ddd', '#ccc'] : [COLORS.primary, '#FFA24D']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={styles.checkGradient}
+            style={styles.checkGradientEnhanced}
           >
-            <Text style={styles.checkButtonText}>{checked ? 'NEXT' : 'CHECK'}</Text>
+            <FontAwesome 
+              name={checked ? 'arrow-right' : 'check'} 
+              size={20} 
+              color={COLORS.white}
+              style={{ marginRight: 8 }}
+            />
+            <Text style={styles.checkButtonTextEnhanced}>
+              {checked ? (hearts === 0 ? 'จบเกม' : 'ต่อไป') : 'CHECK'}
+            </Text>
           </LinearGradient>
         </TouchableOpacity>
       </View>
@@ -1564,6 +1602,119 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: COLORS.white,
     letterSpacing: 0.5,
+  },
+  feedbackContainer: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 15,
+    alignSelf: 'center',
+    marginBottom: 15,
+  },
+  feedbackText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  statBadgeEnhanced: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 1,
+    borderWidth: 1,
+    borderColor: '#F5F5F5',
+  },
+  statTextContainer: {
+    marginLeft: 8,
+  },
+  statLabel: {
+    fontSize: 10,
+    color: '#999',
+    marginBottom: 2,
+    fontWeight: '600',
+  },
+  statValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.dark,
+  },
+  statDivider: {
+    width: 1,
+    height: '80%',
+    backgroundColor: '#E8E8E8',
+    marginHorizontal: 10,
+  },
+  checkContainerEnhanced: {
+    padding: 18,
+    backgroundColor: COLORS.white,
+    borderTopWidth: 1,
+    borderTopColor: '#E8E8E8',
+    alignItems: 'center',
+  },
+  feedbackBadgeEnhanced: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    borderRadius: 16,
+    marginBottom: 18,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  feedbackCorrectEnhanced: {
+    backgroundColor: '#E8F5E9',
+    borderColor: '#4CAF50',
+    borderWidth: 2,
+  },
+  feedbackWrongEnhanced: {
+    backgroundColor: '#FBE9E7',
+    borderColor: '#FF7043',
+    borderWidth: 2,
+  },
+  feedbackTextEnhanced: {
+    fontSize: 16,
+    fontWeight: '800',
+    marginLeft: 12,
+    letterSpacing: 0.3,
+    color: '#333',
+  },
+  checkButtonEnhanced: {
+    paddingVertical: 18,
+    borderRadius: 28,
+    alignItems: 'center',
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
+    minWidth: 200,
+  },
+  checkGradientEnhanced: {
+    width: '100%',
+    paddingVertical: 18,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+  },
+  checkButtonDisabledEnhanced: {
+    backgroundColor: '#D0D0D0',
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  checkButtonTextEnhanced: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: COLORS.white,
+    letterSpacing: 0.8,
   },
 });
 

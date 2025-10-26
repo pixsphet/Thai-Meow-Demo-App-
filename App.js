@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme as NavDefaultTheme, DarkTheme as NavDarkTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
@@ -33,11 +33,22 @@ const Stack = createStackNavigator();
 const AppNavigator = () => {
   const { theme, isDarkMode } = useTheme();
 
+  // React Navigation theme integration
+  const navTheme = isDarkMode ? { ...NavDarkTheme } : { ...NavDefaultTheme };
+  navTheme.colors = {
+    ...navTheme.colors,
+    background: theme.colors?.background || navTheme.colors.background,
+    card: theme.colors?.surface || navTheme.colors.card,
+    text: theme.colors?.text || navTheme.colors.text,
+    border: theme.colors?.border || navTheme.colors.border,
+    primary: theme.colors?.primary || navTheme.colors.primary,
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: theme.colors?.background || '#f5f5f5' }]}>
       <NetworkStatus />
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <NavigationContainer>
+      <NavigationContainer theme={navTheme}>
         <Stack.Navigator
           initialRouteName="FirstScreen"
           screenOptions={{
@@ -48,6 +59,9 @@ const AppNavigator = () => {
             headerTitleStyle: {
               fontWeight: 'bold',
               color: theme.colors?.white || '#fff',
+            },
+            contentStyle: {
+              backgroundColor: theme.colors?.background || '#f5f5f5',
             },
           }}
         >

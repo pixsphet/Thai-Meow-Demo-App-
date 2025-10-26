@@ -68,18 +68,13 @@ const findLessonDocument = async (lessonId) => {
 
 // ⭐ UNLOCK SYSTEM ROUTES (MUST BE BEFORE /level/:level)
 
-// GET /api/lessons/unlocked/:userId - Get unlocked levels for user
-router.get('/unlocked/:userId', async (req, res) => {
+// GET /api/lessons/unlocked - Get unlocked levels for authenticated user
+router.get('/unlocked', auth, async (req, res) => {
   try {
-    const { userId } = req.params;
+    const userId = req.user.id;
     const User = require('../models/User');
     
-    let user;
-    if (userId === 'demo') {
-      user = { unlockedLevels: ['level1'] };
-    } else {
-      user = await User.findById(userId).select('unlockedLevels');
-    }
+    const user = await User.findById(userId).select('unlockedLevels');
     
     if (!user) {
       return res.status(404).json({
@@ -104,10 +99,11 @@ router.get('/unlocked/:userId', async (req, res) => {
   }
 });
 
-// POST /api/lessons/check-unlock/:userId/:levelId - Check if next level should unlock
-router.post('/check-unlock/:userId/:levelId', async (req, res) => {
+// POST /api/lessons/check-unlock/:levelId - Check if next level should unlock for authenticated user
+router.post('/check-unlock/:levelId', auth, async (req, res) => {
   try {
-    const { userId, levelId } = req.params;
+    const userId = req.user.id;
+    const { levelId } = req.params;
     const { accuracy, score } = req.body;
     const User = require('../models/User');
     
@@ -118,7 +114,7 @@ router.post('/check-unlock/:userId/:levelId', async (req, res) => {
     // Check if accuracy >= 70%
     const shouldUnlock = accuracy >= 70;
     
-    if (shouldUnlock && userId !== 'demo') {
+    if (shouldUnlock) {
       // Update user's unlockedLevels in DB
       await User.findByIdAndUpdate(
         userId,

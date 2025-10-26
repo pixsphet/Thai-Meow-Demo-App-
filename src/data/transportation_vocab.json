@@ -1,0 +1,122 @@
+[
+  {
+    "thai": "รถยนต์",
+    "roman": "rot yon",
+    "en": "car",
+    "emoji": "🚗",
+    "audioText": "รถยนต์",
+    "image": "../add/Transportation/รถยนต์.png"
+  },
+  {
+    "thai": "รถไฟ",
+    "roman": "rot fai",
+    "en": "train",
+    "emoji": "🚂",
+    "audioText": "รถไฟ",
+    "image": "../add/Transportation/รถไฟ.png"
+  },
+  {
+    "thai": "เครื่องบิน",
+    "roman": "kruang bin",
+    "en": "airplane",
+    "emoji": "✈️",
+    "audioText": "เครื่องบิน",
+    "image": "../add/Transportation/เครื่องบิน.png"
+  },
+  {
+    "thai": "เรือ",
+    "roman": "ruea",
+    "en": "boat",
+    "emoji": "🚢",
+    "audioText": "เรือ",
+    "image": "../add/Transportation/เรือ.png"
+  },
+  {
+    "thai": "จักรยาน",
+    "roman": "jak ra yan",
+    "en": "bicycle",
+    "emoji": "🚲",
+    "audioText": "จักรยาน",
+    "image": "../add/Transportation/จักรยาน.png"
+  },
+  {
+    "thai": "มอเตอร์ไซค์",
+    "roman": "motor sai",
+    "en": "motorcycle",
+    "emoji": "🏍️",
+    "audioText": "มอเตอร์ไซค์",
+    "image": "../add/Transportation/มอเตอร์ไซค์.png"
+  },
+  {
+    "thai": "รถบัส",
+    "roman": "rot bus",
+    "en": "bus",
+    "emoji": "🚌",
+    "audioText": "รถบัส",
+    "image": "../add/Transportation/รถบัส.png"
+  },
+  {
+    "thai": "รถแท็กซี่",
+    "roman": "rot taxi",
+    "en": "taxi",
+    "emoji": "🚕",
+    "audioText": "รถแท็กซี่",
+    "image": "../add/Transportation/รถแท็กซี่.png"
+  },
+  {
+    "thai": "รถไฟฟ้า",
+    "roman": "rot fai fa",
+    "en": "electric train",
+    "emoji": "🚈",
+    "audioText": "รถไฟฟ้า",
+    "image": "../add/Transportation/รถไฟฟ้า.png"
+  },
+  {
+    "thai": "ทางม้าลาย",
+    "roman": "tang ma lai",
+    "en": "crosswalk",
+    "emoji": "🚶‍♂️",
+    "audioText": "ทางม้าลาย",
+    "image": "../add/Transportation/ทางม้าลาย.png"
+  },
+  {
+    "thai": "ป้ายรถเมล์",
+    "roman": "pai rot mel",
+    "en": "bus stop",
+    "emoji": "🚏",
+    "audioText": "ป้ายรถเมล์",
+    "image": "../add/Transportation/ป้ายรถเมล์.png"
+  },
+  {
+    "thai": "ถนน",
+    "roman": "ta non",
+    "en": "road",
+    "emoji": "🛣️",
+    "audioText": "ถนน",
+    "image": "../add/Transportation/ถนน.png"
+  },
+  {
+    "thai": "แยก",
+    "roman": "yaek",
+    "en": "intersection",
+    "emoji": "🚦",
+    "audioText": "แยก",
+    "image": "../add/Transportation/แยก.png"
+  },
+  {
+    "thai": "สะพาน",
+    "roman": "sa phan",
+    "en": "bridge",
+    "emoji": "🌉",
+    "audioText": "สะพาน",
+    "image": "../add/Transportation/สะพาน.png"
+  },
+  {
+    "thai": "สัญญาณไฟ",
+    "roman": "san ya na fai",
+    "en": "traffic light",
+    "emoji": "🚥",
+    "audioText": "สัญญาณไฟ",
+    "image": "../add/Transportation/สัญญาณไฟ.png"
+  }
+]

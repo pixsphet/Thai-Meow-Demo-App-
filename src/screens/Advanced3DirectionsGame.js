@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
-import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Dimensions, Alert } from 'react-native';
+import { FontAwesome, MaterialIcons, Ionicons } from '@expo/vector-icons';
 import LottieView from 'lottie-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import vaja9TtsService from '../services/vaja9TtsService';
@@ -19,11 +19,12 @@ const LESSON_ID = 'advanced3';
 const CATEGORY = 'thai-directions';
 
 const QUESTION_TYPES = {
-  LISTEN_CHOOSE: 'LISTEN_CHOOSE',
-  DRAG_MATCH: 'DRAG_MATCH',
-  PICTURE_MATCH: 'PICTURE_MATCH',
-  FILL_DIALOG: 'FILL_DIALOG',
-  ARRANGE_SENTENCE: 'ARRANGE_SENTENCE',
+  LISTEN_CHOOSE: 'LISTEN_CHOOSE',          // ฟังคำไทย → เลือกคำตอบที่ถูก (ไทย)
+  DRAG_MATCH: 'DRAG_MATCH',                // จับคู่ ไทย ↔ อังกฤษ (3 คู่)
+  FILL_DIALOG: 'FILL_DIALOG',              // เติมบทสนทนา (3 ตัวเลือก)
+  ARRANGE_SENTENCE: 'ARRANGE_SENTENCE',    // เรียงประโยคสั้น ๆ
+  TRUE_FALSE_DEF: 'TRUE_FALSE_DEF',        // ถูก/ผิด: ความหมาย
+  CLOZE_DEFINITION: 'CLOZE_DEFINITION',    // ปิดคำในนิยาม
 };
 
 const COLORS = {
@@ -40,6 +41,7 @@ const COLORS = {
 const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 const uid = () => Math.random().toString(36).substr(2, 9);
+const norm = (s) => (typeof s === 'string' ? s.trim() : s);
 
 const normalizeDirection = (doc) => ({
   id: doc.id || doc._id || `dir_${uid()}`,
@@ -49,16 +51,16 @@ const normalizeDirection = (doc) => ({
   meaningTH: doc.meaningTH || '',
   exampleTH: doc.exampleTH || '',
   audioText: doc.audioText || doc.thai || '',
-  imagePath: doc.imagePath || '',
 });
 
 const getHintText = (type) => {
   const hints = {
-    [QUESTION_TYPES.LISTEN_CHOOSE]: 'แตะปุ่มลำโพงเพื่อฟังซ้ำ แล้วเลือกคำถูกต้อง',
-    [QUESTION_TYPES.DRAG_MATCH]: 'แตะเพื่อจับคู่ ไทย ↔ อังกฤษ',
-    [QUESTION_TYPES.PICTURE_MATCH]: 'ดูภาพแล้วเลือกคำที่ตรงกัน',
+    [QUESTION_TYPES.LISTEN_CHOOSE]: 'แตะปุ่มลำโพงเพื่อฟังซ้ำ แล้วเลือกคำที่ได้ยิน',
+    [QUESTION_TYPES.DRAG_MATCH]: 'แตะเพื่อจับคู่ ไทย ↔ อังกฤษ (3 คู่)',
     [QUESTION_TYPES.FILL_DIALOG]: 'เลือกคำที่เหมาะสมเพื่อเติมบทสนทนา',
-    [QUESTION_TYPES.ARRANGE_SENTENCE]: 'เรียงคำให้เป็นประโยคที่ถูกต้อง',
+    [QUESTION_TYPES.ARRANGE_SENTENCE]: 'แตะคำเรียงตามลำดับให้ถูกต้อง',
+    [QUESTION_TYPES.TRUE_FALSE_DEF]: 'ตัดสินว่าความหมายนี้ถูกหรือผิด',
+    [QUESTION_TYPES.CLOZE_DEFINITION]: 'เลือกคำที่หายไปให้ตรงกับนิยาม',
   };
   return hints[type] || '';
 };
@@ -67,16 +69,19 @@ const getTypeLabel = (type) => {
   const labels = {
     [QUESTION_TYPES.LISTEN_CHOOSE]: 'ฟังแล้วเลือก',
     [QUESTION_TYPES.DRAG_MATCH]: 'จับคู่ไทย-อังกฤษ',
-    [QUESTION_TYPES.PICTURE_MATCH]: 'จับคู่จากรูป',
     [QUESTION_TYPES.FILL_DIALOG]: 'เติมบทสนทนา',
     [QUESTION_TYPES.ARRANGE_SENTENCE]: 'เรียงประโยค',
+    [QUESTION_TYPES.TRUE_FALSE_DEF]: 'ถูก/ผิด (ความหมาย)',
+    [QUESTION_TYPES.CLOZE_DEFINITION]: 'ปิดคำในนิยาม',
   };
   return labels[type] || '';
 };
 
+/* ---------- Question Generators (ง่ายขึ้น/ตัวเลือก 3) ---------- */
+
 const makeListenChoose = (item, pool) => {
-  const wrong = pool.filter(p => p.id !== item.id).slice(0, 3);
-  const choices = shuffle([item, ...wrong]).slice(0, 4);
+  const wrong = shuffle(pool.filter(p => p.id !== item.id)).slice(0, 2);
+  const choices = shuffle([item, ...wrong]); // รวมเป็น 3 ตัวเลือก
   return {
     id: `lc_${item.id}_${uid()}`,
     type: QUESTION_TYPES.LISTEN_CHOOSE,
@@ -85,34 +90,33 @@ const makeListenChoose = (item, pool) => {
     audioText: item.audioText,
     correctText: item.thai,
     choices: choices.map((c, i) => ({ id: i + 1, text: c.thai, isCorrect: c.id === item.id })),
+    rewardXP: 15,
+    rewardDiamond: 1,
+    penaltyHeart: 1,
   };
 };
 
 const makeDragMatch = (pool) => {
-  const batch = shuffle(pool).slice(0, 4);
+  const batch = shuffle(pool).slice(0, 3); // 3 คู่
   const leftItems = batch.map((item, idx) => ({ id: `left_${idx + 1}`, text: item.thai, correctMatch: item.en }));
   const rightItems = shuffle(batch).map((item, idx) => ({ id: `right_${idx + 1}`, text: item.en }));
-  return { id: `dm_${uid()}`, type: QUESTION_TYPES.DRAG_MATCH, instruction: 'จับคู่คำไทยกับคำอังกฤษ', leftItems, rightItems };
-};
-
-const makePictureMatch = (item, pool) => {
-  const wrong = pool.filter(p => p.id !== item.id).slice(0, 3);
-  const choices = shuffle([item, ...wrong]).slice(0, 4);
-  return {
-    id: `pm_${item.id}_${uid()}`,
-    type: QUESTION_TYPES.PICTURE_MATCH,
-    instruction: 'ดูภาพแล้วเลือกคำที่ตรงกัน',
-    imageKey: item.imagePath,
-    correctText: item.thai,
-    choices: choices.map((c, i) => ({ id: i + 1, text: c.thai, isCorrect: c.id === item.id })),
+  return { 
+    id: `dm_${uid()}`, 
+    type: QUESTION_TYPES.DRAG_MATCH, 
+    instruction: 'จับคู่คำไทยกับคำอังกฤษ', 
+    leftItems, 
+    rightItems,
+    rewardXP: 15,
+    rewardDiamond: 1,
+    penaltyHeart: 1,
   };
 };
 
 const makeDialogFill = (pool) => {
   const dialogs = [
-    { q: 'ขอโทษครับ ร้านสะดวกซื้อไปทางไหนครับ?', a: 'ขอโทษครับ ____', choices: ['ตรงไป', 'เลี้ยวซ้าย', 'เลี้ยวขวา', 'ไกล'] },
-    { q: 'โรงเรียนอยู่ใกล้ไหม?', a: '____', choices: ['ใกล้มาก', 'ไกลมาก', 'อยู่ข้างหน้า', 'อยู่ข้างหลัง'] },
-    { q: 'จะไปสถานีตำรวจได้ยังไง?', a: '____', choices: ['เลี้ยวซ้าย', 'เลี้ยวขวา', 'ตรงไป', 'ผ่าน'] },
+    { q: 'ขอโทษครับ ร้านสะดวกซื้อไปทางไหนครับ?', a: 'ขอโทษครับ ____', choices: ['ตรงไป', 'เลี้ยวซ้าย', 'เลี้ยวขวา'] },
+    { q: 'โรงเรียนอยู่ใกล้ไหม?', a: '____', choices: ['ใกล้มาก', 'ไกลมาก', 'อยู่ข้างหน้า'] },
+    { q: 'จะไปสถานีตำรวจได้ยังไง?', a: '____', choices: ['เลี้ยวซ้าย', 'เลี้ยวขวา', 'ตรงไป'] },
   ];
   const dialog = pick(dialogs);
   const item = pick(pool);
@@ -124,78 +128,126 @@ const makeDialogFill = (pool) => {
     template: dialog.a,
     correctText: dialog.choices[0],
     choices: shuffle(dialog.choices).map((text, i) => ({ id: i + 1, text, isCorrect: text === dialog.choices[0] })),
+    rewardXP: 15,
+    rewardDiamond: 1,
+    penaltyHeart: 1,
   };
 };
 
 const makeArrangeSentence = (item) => {
   const sentences = [
-    [`ไปตรงไป`, `แล้ว`, `เลี้ยวซ้าย`],
-    [`เลี้ยวขวา`, `ที่`, `สี่แยก`],
-    [item.thai, `ทุกที่`, `ได้`],
+    ['ไป', 'ตรงไป', 'แล้ว', 'เลี้ยวซ้าย'],
+    ['เลี้ยวขวา', 'ที่', 'สี่แยก'],
+    [item.thai, 'ได้', 'ที่', 'ทุกที่'],
   ];
   const sentence = pick(sentences);
-  const distractors = ['ครับ', 'ค่ะ', 'นะ'];
+  const filler = pick(['ครับ', 'ค่ะ', 'นะ']);
   return {
     id: `arr_${item.id}_${uid()}`,
     type: QUESTION_TYPES.ARRANGE_SENTENCE,
     instruction: 'เรียงคำให้เป็นประโยคที่ถูกต้อง',
     correctOrder: sentence,
-    allParts: shuffle([...sentence, ...distractors.slice(0, 1)]),
+    allParts: shuffle([...sentence, filler]), // +1 ตัวหลอก
+    rewardXP: 15,
+    rewardDiamond: 1,
+    penaltyHeart: 1,
+  };
+};
+
+const makeTrueFalseDef = (item, pool) => {
+  const isTrue = Math.random() > 0.5;
+  const wrong = pick(pool.filter(p => p.id !== item.id));
+  const statementEN = isTrue ? item.en : wrong?.en || 'wrong meaning';
+  return {
+    id: `tf_${item.id}_${uid()}`,
+    type: QUESTION_TYPES.TRUE_FALSE_DEF,
+    instruction: 'ตัดสินว่าความหมายนี้ถูกหรือผิด',
+    statement: `"${item.thai}" = ${statementEN}`,
+    correctText: isTrue ? 'ถูก' : 'ผิด',
+    choices: [
+      { id: 1, text: 'ถูก', isCorrect: isTrue },
+      { id: 2, text: 'ผิด', isCorrect: !isTrue },
+    ],
+    rewardXP: 15,
+    rewardDiamond: 1,
+    penaltyHeart: 1,
+  };
+};
+
+const makeClozeDefinition = (item) => {
+  const defs = [
+    `${item.thai} หมายถึง การเคลื่อนที่ไปทาง _____`,
+    `ให้คนฟังเดินไปทาง _____ แล้วจึงเลี้ยว`,
+    `ใช้เมื่อขอทางไปยังด้าน _____`,
+  ];
+  const template = pick(defs);
+  const bank = ['ซ้าย','ขวา','หน้า','หลัง','ตรง','ผ่าน','ข้าง','แยก','มุม','สุดทาง'];
+
+  const correct = (() => {
+    const m = (item.en || '').toLowerCase();
+    if (m.includes('left')) return 'ซ้าย';
+    if (m.includes('right')) return 'ขวา';
+    if (m.includes('straight') || m.includes('ahead') || m.includes('forward')) return 'ตรง';
+    if (m.includes('behind') || m.includes('back')) return 'หลัง';
+    if (m.includes('intersection') || m.includes('junction') || m.includes('crossroads')) return 'แยก';
+    if (m.includes('corner')) return 'มุม';
+    if (m.includes('end')) return 'สุดทาง';
+    if (m.includes('next to') || m.includes('beside')) return 'ข้าง';
+    if (m.includes('pass')) return 'ผ่าน';
+    if (m.includes('front')) return 'หน้า';
+    return 'ตรง';
+  })();
+
+  const choices = shuffle([correct, ...shuffle(bank.filter(x => x !== correct)).slice(0,2)]); // รวม 3 ตัวเลือก
+  return {
+    id: `cz_${item.id}_${uid()}`,
+    type: QUESTION_TYPES.CLOZE_DEFINITION,
+    instruction: 'เลือกคำที่หายไปให้ตรงกับนิยาม',
+    template,
+    correctText: correct,
+    choices: choices.map((text, i) => ({ id: i + 1, text, isCorrect: text === correct })),
+    rewardXP: 15,
+    rewardDiamond: 1,
+    penaltyHeart: 1,
   };
 };
 
 const generateDirectionsQuestions = (pool) => {
   if (!pool || pool.length === 0) return [];
+  const used = new Set();
   const questions = [];
-  const usedIds = new Set();
-  
-  for (let i = 0; i < 3 && pool.length > usedIds.size; i++) {
-    const available = pool.filter(p => !usedIds.has(p.id));
-    if (available.length) {
-      const item = pick(available);
-      usedIds.add(item.id);
-      questions.push(makeListenChoose(item, pool));
-    }
-  }
-  
-  for (let i = 0; i < 3; i++) questions.push(makeDragMatch(pool));
-  
-  for (let i = 0; i < 2 && pool.length > usedIds.size; i++) {
-    const available = pool.filter(p => !usedIds.has(p.id));
-    if (available.length) {
-      const item = pick(available);
-      usedIds.add(item.id);
-      questions.push(makePictureMatch(item, pool));
-    }
-  }
-  
-  for (let i = 0; i < 3; i++) questions.push(makeDialogFill(pool));
-  
-  for (let i = 0; i < 2 && pool.length > usedIds.size; i++) {
-    const available = pool.filter(p => !usedIds.has(p.id));
-    if (available.length) {
-      const item = pick(available);
-      usedIds.add(item.id);
-      questions.push(makeArrangeSentence(item));
-    }
-  }
-  
-  return shuffle(questions);
+
+  // ทำ 6 ข้อเรียงง่าย ๆ: LISTEN → MATCH → FILL → ARRANGE → TRUE/FALSE → CLOZE
+  const a = pick(pool); used.add(a.id); questions.push(makeListenChoose(a, pool));
+  questions.push(makeDragMatch(pool));
+  const b = pick(pool); questions.push(makeDialogFill(pool));
+  const c = pick(pool); questions.push(makeArrangeSentence(c));
+  const d = pick(pool); questions.push(makeTrueFalseDef(d, pool));
+  const e = pick(pool); questions.push(makeClozeDefinition(e));
+
+  return questions;
 };
 
+/* ---------- Checking (แบบ ConsonantStage1: เช็กก่อน แล้วค่อยไปต่อ) ---------- */
+
 const checkAnswer = (question, userAnswer) => {
+  const ua = norm(userAnswer);
   switch (question.type) {
     case QUESTION_TYPES.LISTEN_CHOOSE:
-    case QUESTION_TYPES.PICTURE_MATCH:
     case QUESTION_TYPES.FILL_DIALOG:
-      return userAnswer === question.correctText;
+    case QUESTION_TYPES.TRUE_FALSE_DEF:
+    case QUESTION_TYPES.CLOZE_DEFINITION:
+      return ua === norm(question.correctText);
+
     case QUESTION_TYPES.DRAG_MATCH:
-      return userAnswer && userAnswer.every(pair =>
+      return ua && ua.every(pair =>
         question.leftItems.find(left => left.id === pair.leftId)?.correctMatch ===
         question.rightItems.find(right => right.id === pair.rightId)?.text
       );
+
     case QUESTION_TYPES.ARRANGE_SENTENCE:
-      return Array.isArray(userAnswer) && JSON.stringify(userAnswer) === JSON.stringify(question.correctOrder);
+      return Array.isArray(ua) && JSON.stringify(ua) === JSON.stringify(question.correctOrder);
+
     default:
       return false;
   }
@@ -225,6 +277,7 @@ const Advanced3DirectionsGame = ({ navigation, route }) => {
   const [resumeData, setResumeData] = useState(null);
   const [dmSelected, setDmSelected] = useState({ leftId: null, rightId: null });
   const [dmPairs, setDmPairs] = useState([]);
+  const [currentFeedback, setCurrentFeedback] = useState(null); // 'correct' | 'wrong' | null
 
   const startTimeRef = useRef(Date.now());
   const answersRef = useRef({});
@@ -236,8 +289,7 @@ const Advanced3DirectionsGame = ({ navigation, route }) => {
       try {
         const normalized = (directionsDataFallback || []).map(normalizeDirection).filter(i => i && i.thai);
         setDirections(normalized);
-        const generatedQuestions = generateDirectionsQuestions(normalized);
-        setQuestions(generatedQuestions);
+        setQuestions(generateDirectionsQuestions(normalized));
         
         const savedProgress = await restoreProgress(lessonId);
         if (savedProgress && savedProgress.questionsSnapshot) {
@@ -291,49 +343,52 @@ const Advanced3DirectionsGame = ({ navigation, route }) => {
 
   const handleAnswerSelect = (answer) => { setCurrentAnswer(answer); };
 
-  const handleCheckAnswer = () => {
-    if (currentAnswer === null) return;
-    const currentQuestion = questions[currentIndex];
-    const isCorrect = checkAnswer(currentQuestion, currentAnswer);
-    
-    answersRef.current[currentIndex] = { questionId: currentQuestion.id, answer: currentAnswer, isCorrect, timestamp: Date.now() };
+  const handleCheckOrNext = () => {
+    // ถ้ามีฟีดแบ็กแล้ว -> ไปข้อถัดไป (ConsonantStage1 style)
+    if (currentFeedback !== null) {
+      setCurrentFeedback(null);
+      setCurrentAnswer(null);
+      setDmSelected({ leftId: null, rightId: null });
+      setDmPairs([]);
+      if (currentIndex < questions.length - 1) {
+        setCurrentIndex(currentIndex + 1);
+      } else {
+        const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+        finishLesson(elapsed);
+      }
+      return;
+    }
+
+    // ยังไม่เช็ก -> เช็กตอนนี้
+    const q = questions[currentIndex];
+    const userAns = (q.type === QUESTION_TYPES.DRAG_MATCH) ? dmPairs : currentAnswer;
+    if (q.type !== QUESTION_TYPES.DRAG_MATCH && userAns === null) return;
+
+    const isCorrect = checkAnswer(q, userAns);
+
+    answersRef.current[currentIndex] = { questionId: q.id, answer: userAns, isCorrect, timestamp: Date.now() };
     setAnswers({ ...answersRef.current });
 
     if (isCorrect) {
       setScore(score + 1);
       setStreak(streak + 1);
-      const newMax = Math.max(maxStreak, streak + 1);
-      setMaxStreak(newMax);
+      setMaxStreak(Math.max(maxStreak, streak + 1));
       setXpEarned(xpEarned + 10);
       setDiamondsEarned(diamondsEarned + 1);
-      nextQuestion();
+      setCurrentFeedback('correct');
     } else {
       const newHearts = Math.max(0, hearts - 1);
       setHearts(newHearts);
       setStreak(0);
+      setCurrentFeedback('wrong');
       if (newHearts === 0) {
-        const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
-        finishLesson(elapsed);
-      } else {
-        nextQuestion();
+        Alert.alert('หัวใจหมดแล้ว', 'กลับไปหน้าหลัก', [{ text: 'ตกลง', onPress: () => {
+          const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+          finishLesson(elapsed);
+        }}]);
       }
     }
   };
-
-  useEffect(() => { setDmSelected({ leftId: null, rightId: null }); setDmPairs([]); }, [currentIndex]);
-
-  const nextQuestion = () => {
-    if (currentIndex < questions.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-      setCurrentAnswer(null);
-    } else {
-      const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
-      finishLesson(elapsed);
-    }
-  };
-
-  const startGame = () => { setGameStarted(true); setGameFinished(false); gameFinishedRef.current = false; startTimeRef.current = Date.now(); dailyStreakService.startStreak(); };
-  const resumeGame = () => { setGameStarted(true); setGameFinished(false); gameFinishedRef.current = false; startTimeRef.current = Date.now(); };
 
   const finishLesson = async (timeSpentOverrideSec) => {
     if (gameFinishedRef.current) return;
@@ -357,7 +412,7 @@ const Advanced3DirectionsGame = ({ navigation, route }) => {
       const questionTypeCounts = questions.reduce((acc, q) => { acc[q.type] = (acc[q.type] || 0) + 1; return acc; }, {});
 
       try {
-        await gameProgressService.saveGameSession({ lessonId, category: routeCategory, gameMode: 'directions_advanced', score: correctAnswers, totalQuestions, correctAnswers, wrongAnswers, accuracy: accuracyRatio, accuracyPercent, timeSpent, xpEarned, diamondsEarned, heartsRemaining: hearts, streak, maxStreak, questionTypes: questionTypeCounts, completedAt: new Date().toISOString() });
+        await gameProgressService.saveGameSession({ lessonId, category: routeCategory, gameMode: 'directions_advanced_simple', score: correctAnswers, totalQuestions, correctAnswers, wrongAnswers, accuracy: accuracyRatio, accuracyPercent, timeSpent, xpEarned, diamondsEarned, heartsRemaining: hearts, streak, maxStreak, questionTypes: questionTypeCounts, completedAt: new Date().toISOString() });
       } catch (e) { console.warn('saveGameSession:', e?.message); }
 
       if (unlockedNext) {
@@ -372,125 +427,186 @@ const Advanced3DirectionsGame = ({ navigation, route }) => {
     } catch (error) { console.error('Error finishing lesson:', error); }
   };
 
+  /* ------------ UI ------------ */
+
   const renderQuestionComponent = () => {
     if (questions.length === 0 || currentIndex >= questions.length) return null;
-    const question = questions[currentIndex];
+    const q = questions[currentIndex];
 
-    if ([QUESTION_TYPES.LISTEN_CHOOSE, QUESTION_TYPES.PICTURE_MATCH, QUESTION_TYPES.FILL_DIALOG].includes(question.type)) {
+    // Common MC UI (LISTEN_CHOOSE / FILL_DIALOG / TRUE_FALSE_DEF / CLOZE_DEFINITION)
+    if ([QUESTION_TYPES.LISTEN_CHOOSE, QUESTION_TYPES.FILL_DIALOG, QUESTION_TYPES.TRUE_FALSE_DEF, QUESTION_TYPES.CLOZE_DEFINITION].includes(q.type)) {
       return (
         <View style={styles.questionContainer}>
           <View style={styles.questionCard}>
-            <Text style={styles.instruction}>{question.instruction}</Text>
-            {question.dialogQuestion && <Text style={styles.questionText}>Q: {question.dialogQuestion}</Text>}
-            {question.template && <Text style={styles.questionText}>{question.template}</Text>}
-            <Text style={styles.hintText}>{getHintText(question.type)}</Text>
-            {question.audioText && (
-              <TouchableOpacity style={styles.speakerButton} onPress={() => playTTS(question.audioText)}>
+            <Text style={styles.instruction}>{q.instruction}</Text>
+            {q.dialogQuestion && <Text style={styles.questionText}>Q: {q.dialogQuestion}</Text>}
+            {q.template && <Text style={styles.questionText}>{q.template}</Text>}
+            {q.statement && <Text style={styles.questionText}>{q.statement}</Text>}
+            <Text style={styles.hintText}>{getHintText(q.type)}</Text>
+
+            {q.audioText && (
+              <TouchableOpacity style={styles.speakerButton} onPress={() => vaja9TtsService.playThai(q.audioText)}>
                 <MaterialIcons name="volume-up" size={40} color={COLORS.primary} />
               </TouchableOpacity>
             )}
+
             <View style={styles.choicesContainer}>
-              {question.choices.map((choice) => (
-                <TouchableOpacity key={choice.id} style={[styles.choiceButton, currentAnswer === choice.text && styles.choiceSelected]} onPress={() => handleAnswerSelect(choice.text)}>
-                  <Text style={styles.choiceText}>{choice.text}</Text>
-                </TouchableOpacity>
-              ))}
+              {q.choices.map((choice) => {
+                const isSelected = currentAnswer === choice.text;
+                const showFeedback = currentFeedback !== null;
+                const isCorrectChoice = choice.text === q.correctText;
+
+                const feedbackStyle =
+                  showFeedback
+                    ? (isCorrectChoice ? styles.choiceCorrect : (isSelected ? styles.choiceWrong : {}))
+                    : {};
+
+                return (
+                  <TouchableOpacity
+                    key={choice.id}
+                    style={[styles.choiceButton, isSelected && styles.choiceSelected, feedbackStyle]}
+                    onPress={() => currentFeedback === null && setCurrentAnswer(choice.text)}
+                    disabled={currentFeedback !== null}
+                  >
+                    <Text style={styles.choiceText}>{choice.text}</Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
         </View>
       );
     }
 
-    if (question.type === QUESTION_TYPES.DRAG_MATCH) {
+    // Drag-Match (3 คู่)
+    if (q.type === QUESTION_TYPES.DRAG_MATCH) {
       return (
         <View style={styles.questionContainer}>
-          <Text style={styles.instruction}>{question.instruction}</Text>
-          <Text style={styles.hintText}>{getHintText(question.type)}</Text>
+          <Text style={styles.instruction}>{q.instruction}</Text>
+          <Text style={styles.hintText}>{getHintText(q.type)}</Text>
+
           {dmPairs.length > 0 && (
             <View style={styles.pairPreview}>
               {dmPairs.map((p, idx) => (
                 <View key={`pair-${idx}`} style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Text style={styles.pairPreviewText}>{question.leftItems.find(i => i.id === p.leftId)?.text || '—'}</Text>
+                  <Text style={styles.pairPreviewText}>{q.leftItems.find(i => i.id === p.leftId)?.text || '—'}</Text>
                   <Text style={styles.pairArrow}> ↔ </Text>
-                  <Text style={styles.pairPreviewText}>{question.rightItems.find(i => i.id === p.rightId)?.text || '—'}</Text>
+                  <Text style={styles.pairPreviewText}>{q.rightItems.find(i => i.id === p.rightId)?.text || '—'}</Text>
                 </View>
               ))}
             </View>
           )}
+
           <View style={styles.dragMatchContainer}>
             <View style={styles.leftColumn}>
-              {question.leftItems.map((item) => (
-                <TouchableOpacity key={item.id} style={[styles.dragItem, dmSelected.leftId === item.id && styles.dragItemSelected, dmPairs.some(p => p.leftId === item.id) && styles.dragItemPaired]} onPress={() => {
-                  if (dmPairs.some(p => p.leftId === item.id)) {
-                    const filtered = dmPairs.filter(p => p.leftId !== item.id);
-                    setDmPairs(filtered);
-                    setCurrentAnswer(filtered);
-                  } else {
-                    const next = { leftId: item.id, rightId: dmSelected.rightId };
-                    if (next.rightId) {
-                      const updated = [...dmPairs.filter(p => p.rightId !== next.rightId && p.leftId !== next.leftId), next];
-                      setDmPairs(updated);
-                      setCurrentAnswer(updated);
-                      setDmSelected({ leftId: null, rightId: null });
-                    } else {
-                      setDmSelected(next);
-                    }
-                  }
-                }}>
-                  <Text style={styles.dragItemText}>{item.text}</Text>
-                </TouchableOpacity>
-              ))}
+              {q.leftItems.map((item) => {
+                const paired = dmPairs.some(p => p.leftId === item.id);
+                return (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={[styles.dragItem, dmSelected.leftId === item.id && styles.dragItemSelected, paired && styles.dragItemPaired]}
+                    onPress={() => {
+                      if (currentFeedback) return;
+                      if (paired) {
+                        const filtered = dmPairs.filter(p => p.leftId !== item.id);
+                        setDmPairs(filtered);
+                      } else {
+                        setDmSelected({ leftId: item.id, rightId: dmSelected.rightId });
+                      }
+                    }}
+                    disabled={currentFeedback !== null}
+                  >
+                    <Text style={styles.dragItemText}>{item.text}</Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
             <View style={styles.rightColumn}>
-              {question.rightItems.map((item) => (
-                <TouchableOpacity key={item.id} style={[styles.dragItem, dmSelected.rightId === item.id && styles.dragItemSelected, dmPairs.some(p => p.rightId === item.id) && styles.dragItemPaired]} onPress={() => {
-                  if (dmPairs.some(p => p.rightId === item.id)) {
-                    const filtered = dmPairs.filter(p => p.rightId !== item.id);
-                    setDmPairs(filtered);
-                    setCurrentAnswer(filtered);
-                  } else {
-                    const next = { leftId: dmSelected.leftId, rightId: item.id };
-                    if (next.leftId) {
-                      const updated = [...dmPairs.filter(p => p.rightId !== next.rightId && p.leftId !== next.leftId), next];
-                      setDmPairs(updated);
-                      setCurrentAnswer(updated);
-                      setDmSelected({ leftId: null, rightId: null });
-                    } else {
-                      setDmSelected(next);
-                    }
-                  }
-                }}>
-                  <Text style={styles.dragItemText}>{item.text}</Text>
-                </TouchableOpacity>
-              ))}
+              {q.rightItems.map((item) => {
+                const paired = dmPairs.some(p => p.rightId === item.id);
+                return (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={[styles.dragItem, dmSelected.rightId === item.id && styles.dragItemSelected, paired && styles.dragItemPaired]}
+                    onPress={() => {
+                      if (currentFeedback) return;
+                      if (paired) {
+                        const filtered = dmPairs.filter(p => p.rightId !== item.id);
+                        setDmPairs(filtered);
+                      } else {
+                        const next = { leftId: dmSelected.leftId, rightId: item.id };
+                        if (next.leftId) {
+                          const updated = [...dmPairs.filter(p => p.rightId !== next.rightId && p.leftId !== next.leftId), next];
+                          setDmPairs(updated);
+                        } else {
+                          setDmSelected({ leftId: null, rightId: item.id });
+                        }
+                      }
+                    }}
+                    disabled={currentFeedback !== null}
+                  >
+                    <Text style={styles.dragItemText}>{item.text}</Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
+
+          {/* แสดงผลถูก/ผิดแบบ ConsonantStage1 เมื่อกด CHECK แล้ว */}
+          {currentFeedback && (
+            <View style={[
+              styles.feedbackBadgeEnhanced,
+              currentFeedback === 'correct' ? styles.feedbackCorrectEnhanced : styles.feedbackWrongEnhanced
+            ]}>
+              <FontAwesome 
+                name={currentFeedback === 'correct' ? 'check-circle' : 'times-circle'} 
+                size={20} 
+                color={currentFeedback === 'correct' ? '#58cc02' : '#ff4b4b'}
+                style={{ marginRight: 8 }}
+              />
+              <Text style={styles.feedbackTextEnhanced}>
+                {currentFeedback === 'correct' ? 'ถูกต้อง!' : 'ยังไม่ใช่ ลองดูใหม่'}
+              </Text>
+            </View>
+          )}
         </View>
       );
     }
 
-    if (question.type === QUESTION_TYPES.ARRANGE_SENTENCE) {
+    // Arrange
+    if (q.type === QUESTION_TYPES.ARRANGE_SENTENCE) {
       return (
         <View style={styles.questionContainer}>
-          <Text style={styles.instruction}>{question.instruction}</Text>
-          <Text style={styles.hintText}>{getHintText(question.type)}</Text>
+          <Text style={styles.instruction}>{q.instruction}</Text>
+          <Text style={styles.hintText}>{getHintText(q.type)}</Text>
           <View style={styles.arrangeContainer}>
             <Text style={styles.arrangeText}>{currentAnswer ? currentAnswer.join(' ') : 'เรียงคำให้ถูกต้อง'}</Text>
           </View>
           <View style={styles.choicesContainer}>
-            {question.allParts.map((part, index) => (
-              <TouchableOpacity key={index} style={[styles.choiceButton, currentAnswer && currentAnswer.includes(part) && styles.choiceSelected]} onPress={() => {
-                if (!currentAnswer) {
-                  setCurrentAnswer([part]);
-                } else if (!currentAnswer.includes(part)) {
-                  setCurrentAnswer([...currentAnswer, part]);
-                } else {
-                  setCurrentAnswer(currentAnswer.filter(p => p !== part));
-                }
-              }}>
-                <Text style={styles.choiceText}>{part}</Text>
-              </TouchableOpacity>
-            ))}
+            {q.allParts.map((part, index) => {
+              const selected = currentAnswer && currentAnswer.includes(part);
+              const showFeedback = currentFeedback !== null;
+              const partIsCorrect = showFeedback && q.correctOrder.includes(part);
+              return (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.choiceButton,
+                    selected && styles.choiceSelected,
+                    showFeedback && (partIsCorrect ? styles.choiceCorrect : (selected ? styles.choiceWrong : {}))
+                  ]}
+                  onPress={() => {
+                    if (currentFeedback) return;
+                    if (!currentAnswer) setCurrentAnswer([part]);
+                    else if (!currentAnswer.includes(part)) setCurrentAnswer([...currentAnswer, part]);
+                    else setCurrentAnswer(currentAnswer.filter(p => p !== part));
+                  }}
+                  disabled={currentFeedback !== null}
+                >
+                  <Text style={styles.choiceText}>{part}</Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </View>
       );
@@ -517,14 +633,14 @@ const Advanced3DirectionsGame = ({ navigation, route }) => {
           <View style={styles.introCard}>
             <LottieView source={require('../assets/animations/stage_start.json')} autoPlay loop style={styles.introAnim} />
             <Text style={styles.startTitle}>ทิศทาง</Text>
-            <Text style={styles.startSubtitle}>บทเรียน Advanced</Text>
+            <Text style={styles.startSubtitle}>บทเรียน Advanced (เข้าใจง่าย)</Text>
           </View>
           {resumeData && (
-            <TouchableOpacity style={styles.resumeButton} onPress={resumeGame}>
+            <TouchableOpacity style={styles.resumeButton} onPress={() => { setGameStarted(true); startTimeRef.current = Date.now(); }}>
               <Text style={styles.resumeButtonText}>เล่นต่อจากข้อที่ {resumeData.currentIndex + 1}</Text>
             </TouchableOpacity>
           )}
-          <TouchableOpacity style={styles.startButton} onPress={startGame}>
+          <TouchableOpacity style={styles.startButton} onPress={() => { setGameStarted(true); startTimeRef.current = Date.now(); dailyStreakService.startStreak?.(); }}>
             <LinearGradient colors={[COLORS.primary, '#FFA24D']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.startGradient}>
               <Text style={styles.startButtonText}>เริ่มเล่น</Text>
             </LinearGradient>
@@ -556,6 +672,7 @@ const Advanced3DirectionsGame = ({ navigation, route }) => {
           </View>
         </View>
       </View>
+
       <View style={styles.statsRow}>
         <View style={styles.statBadge}>
           <LottieView source={require('../assets/animations/Heart.json')} autoPlay loop style={styles.statIcon} />
@@ -574,22 +691,48 @@ const Advanced3DirectionsGame = ({ navigation, route }) => {
           <Text style={styles.statText}>+{diamondsEarned}</Text>
         </View>
         <View style={styles.statBadge}>
-          <Text style={styles.statText}>🎯 {Math.min(100, Math.max(0, Math.round((score / Math.max(1, currentIndex)) * 100)))}%</Text>
+          <Text style={styles.statText}>🎯 {Math.min(100, Math.max(0, Math.round((score / Math.max(1, questions.length)) * 100)))}%</Text>
         </View>
       </View>
+
       <ScrollView style={styles.questionScrollView}>
         {renderQuestionComponent()}
       </ScrollView>
+
       <View style={styles.checkContainer}>
-        <TouchableOpacity style={[styles.checkButton, currentAnswer === null && styles.checkButtonDisabled]} onPress={handleCheckAnswer} disabled={currentAnswer === null}>
+        {/* แถบฟีดแบ็กแบบ ConsonantStage1 */}
+        {currentFeedback && (
+          <View style={[
+            styles.feedbackBadgeEnhanced,
+            currentFeedback === 'correct' ? styles.feedbackCorrectEnhanced : styles.feedbackWrongEnhanced
+          ]}>
+            <FontAwesome 
+              name={currentFeedback === 'correct' ? 'check-circle' : 'times-circle'} 
+              size={24} 
+              color={currentFeedback === 'correct' ? '#58cc02' : '#ff4b4b'}
+              style={{ marginRight: 8 }}
+            />
+            <Text style={styles.feedbackTextEnhanced}>
+              {currentFeedback === 'correct' ? 'ถูกต้อง! เก่งมาก' : 'ยังไม่ถูก ลองข้อถัดไปนะ'}
+            </Text>
+          </View>
+        )}
+
+        <TouchableOpacity
+          style={[styles.checkButton, !currentFeedback && currentQuestion.type !== QUESTION_TYPES.DRAG_MATCH && currentAnswer === null && styles.checkButtonDisabled]}
+          onPress={handleCheckOrNext}
+          disabled={!currentFeedback && currentQuestion.type !== QUESTION_TYPES.DRAG_MATCH && currentAnswer === null}
+        >
           <LinearGradient colors={[COLORS.primary, '#FFA24D']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.checkGradient}>
-            <Text style={styles.checkButtonText}>CHECK</Text>
+            <Text style={styles.checkButtonText}>{currentFeedback ? 'ต่อไป' : 'CHECK'}</Text>
           </LinearGradient>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 };
+
+/* ------------ Styles (เหมือนของเดิม + เพิ่มสี feedback) ------------ */
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
@@ -627,9 +770,11 @@ const styles = StyleSheet.create({
   speakerButton: { alignSelf: 'center', width: 80, height: 80, borderRadius: 40, backgroundColor: COLORS.cream, justifyContent: 'center', alignItems: 'center', marginBottom: 30, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2, borderWidth: 1.5, borderColor: '#FFD8B2' },
   questionCard: { backgroundColor: '#FFFFFF', padding: 16, borderRadius: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 5, borderWidth: 1, borderColor: '#F2F2F2', overflow: 'hidden' },
   choicesContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
-  choiceButton: { width: '48%', backgroundColor: COLORS.white, paddingVertical: 18, paddingHorizontal: 16, borderRadius: 12, marginBottom: 15, borderWidth: 2, borderColor: COLORS.lightGray, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
-  choiceSelected: { borderColor: COLORS.primary, backgroundColor: COLORS.cream, transform: [{ scale: 1.02 }] },
-  choiceText: { fontSize: 16, fontWeight: '600', color: COLORS.dark },
+  choiceButton: { width: '100%', backgroundColor: COLORS.white, paddingVertical: 16, paddingHorizontal: 16, borderRadius: 12, marginBottom: 12, borderWidth: 2, borderColor: COLORS.lightGray, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
+  choiceSelected: { borderColor: COLORS.primary, backgroundColor: COLORS.cream, transform: [{ scale: 1.01 }] },
+  choiceCorrect: { borderColor: COLORS.success, backgroundColor: 'rgba(88,204,2,0.12)' },
+  choiceWrong: { borderColor: COLORS.error, backgroundColor: 'rgba(255,75,75,0.12)' },
+  choiceText: { fontSize: 18, fontWeight: '700', color: COLORS.dark, textAlign: 'center' },
   dragMatchContainer: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
   leftColumn: { flex: 1, marginRight: 10 },
   rightColumn: { flex: 1, marginLeft: 10 },
@@ -647,6 +792,24 @@ const styles = StyleSheet.create({
   checkGradient: { width: '100%', paddingVertical: 16, borderRadius: 28, alignItems: 'center' },
   checkButtonDisabled: { backgroundColor: COLORS.lightGray, shadowOpacity: 0, elevation: 0 },
   checkButtonText: { fontSize: 18, fontWeight: 'bold', color: COLORS.white, letterSpacing: 0.5 },
+  feedbackBadgeEnhanced: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 3,
+    backgroundColor: '#fff',
+    borderWidth: 2
+  },
+  feedbackCorrectEnhanced: { borderColor: COLORS.success, backgroundColor: 'rgba(88,204,2,0.1)' },
+  feedbackWrongEnhanced: { borderColor: COLORS.error, backgroundColor: 'rgba(255,75,75,0.1)' },
+  feedbackTextEnhanced: { fontSize: 16, fontWeight: '800', marginLeft: 4, color: COLORS.dark },
 });
 
 export default Advanced3DirectionsGame;

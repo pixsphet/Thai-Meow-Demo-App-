@@ -351,6 +351,11 @@ class RealUserStatsService {
         hearts: boostedHearts,
         maxHearts: boostedMaxHearts
       };
+      // Hint server to track level up event counters/timestamps
+      updates.leveledUp = true;
+      updates.xpEarned = xpEarned;
+      updates.diamondsEarned = safeNumber(gameResults.diamondsEarned, 0);
+      updates.heartsEarned = Math.max(0, boostedHearts - heartsRemaining);
     }
 
     // Calculate streak

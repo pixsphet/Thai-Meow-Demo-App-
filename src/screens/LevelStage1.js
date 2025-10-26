@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, Dimensions, TouchableOpacity, Animated, SafeAreaView, Alert, Modal } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import LottieView from 'lottie-react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import ProgressRing from '../components/ProgressRing';
 import lessonService from '../services/lessonService';
 import { useUser } from '../contexts/UserContext';
@@ -12,6 +13,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import levelUnlockService from '../services/levelUnlockService';
 import { useUserData } from '../contexts/UserDataContext';
 import { useUnifiedStats } from '../contexts/UnifiedStatsContext';
+import { useTheme } from '../contexts/ThemeContext';
 import userStatsService from '../services/userStatsService';
 import gameProgressService from '../services/gameProgressService';
 import unlockService from '../services/unlockService';
@@ -169,6 +171,7 @@ const ensureAllStagesExist = (stages) => {
 };
 
 const LevelStage1 = ({ navigation }) => {
+  const { theme, isDarkMode } = useTheme();
   const levelType = 'Beginner'; // กำหนดระดับนี้
   const [stages, setStages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -670,10 +673,14 @@ const LevelStage1 = ({ navigation }) => {
   }, []);
 
   // Loading Screen
+  const bgGradient = isDarkMode
+    ? ['#2C2C2C', '#1F1F1F', '#1A1A1A']
+    : [theme.colors?.brand || '#FF8C00', theme.colors?.orange || '#FFA500', theme.colors?.brandLight || '#FFB74D'];
+
   if (loading) {
     return (
       <LinearGradient
-        colors={['#FF8C00', '#FFA500', '#FFB74D']}
+        colors={bgGradient}
         style={styles.container}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -701,7 +708,7 @@ const LevelStage1 = ({ navigation }) => {
   return (
     <>
       <LinearGradient
-        colors={['#FF8C00', '#FFA500', '#FFB74D']}
+        colors={bgGradient}
         style={styles.container}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -721,8 +728,9 @@ const LevelStage1 = ({ navigation }) => {
             <TouchableOpacity 
               style={styles.backButton}
               onPress={() => navigation.navigate('HomeMain')}
+              activeOpacity={0.85}
             >
-              <Text style={styles.backButtonText}>←</Text>
+              <MaterialCommunityIcons name="arrow-left" size={22} color="#fff" />
             </TouchableOpacity>
             <View style={styles.levelInfo}>
               <Text style={styles.levelText}>Level 1</Text>
@@ -768,13 +776,13 @@ const LevelStage1 = ({ navigation }) => {
           {/* Header badges row */}
           <View style={styles.headerBadgesRow}>
             <View style={[styles.badgePill, { backgroundColor: 'rgba(255, 255, 255, 0.25)', borderColor: '#FFD54F' }]}>
-              <Text style={styles.badgePillText}>⭐ {xp?.toLocaleString?.('th-TH') || xp || 0} XP</Text>
+              <Text style={[styles.badgePillText, { color: theme.colors?.white || '#FFFFFF' }]}>⭐ {xp?.toLocaleString?.('th-TH') || xp || 0} XP</Text>
             </View>
             <View style={[styles.badgePill, { backgroundColor: 'rgba(255, 255, 255, 0.25)', borderColor: '#FF6B6B' }]}>
-              <Text style={styles.badgePillText}>🔥 {streak || 0} วันต่อเนื่อง</Text>
+              <Text style={[styles.badgePillText, { color: theme.colors?.white || '#FFFFFF' }]}>🔥 {streak || 0} วันต่อเนื่อง</Text>
             </View>
             <View style={[styles.badgePill, { backgroundColor: 'rgba(255, 255, 255, 0.25)', borderColor: '#90CAF9' }]}>
-              <Text style={styles.badgePillText}>🎯 เลเวล {level || (userStats?.level || 1)}</Text>
+              <Text style={[styles.badgePillText, { color: theme.colors?.white || '#FFFFFF' }]}>🎯 เลเวล {level || (userStats?.level || 1)}</Text>
             </View>
           </View>
         </Animated.View>

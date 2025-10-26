@@ -1,163 +1,218 @@
+import { shuffle, pick, uid } from './gameUtils';
+
+// Question Types for Transportation
 export const TRANSPORT_QUESTION_TYPES = {
   LISTEN_CHOOSE: 'LISTEN_CHOOSE',
   PICTURE_MATCH: 'PICTURE_MATCH',
   TRANSLATE_MATCH: 'TRANSLATE_MATCH',
   FILL_BLANK_DIALOG: 'FILL_BLANK_DIALOG',
-  ARRANGE_SENTENCE: 'ARRANGE_SENTENCE',
 };
 
-const uid = () => Math.random().toString(36).substr(2, 9);
-const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
-const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+// Image mapping for Transportation
+const transportationImages = {
+  'รถยนต์': require('../add/Transportation/รถยนต์.png'),
+  'รถไฟ': require('../add/Transportation/รถไฟ.png'),
+  'เครื่องบิน': require('../add/Transportation/เครื่องบิน.png'),
+  'เรือ': require('../add/Transportation/เรือ.png'),
+  'จักรยาน': require('../add/Transportation/จักรยาน.png'),
+  'มอเตอร์ไซค์': require('../add/Transportation/มอเตอร์ไซค์.png'),
+  'รถบัส': require('../add/Transportation/รถบัส.png'),
+  'รถแท็กซี่': require('../add/Transportation/รถแท็กซี่.png'),
+  'รถไฟฟ้า': require('../add/Transportation/รถไฟฟ้า.png'),
+  'ทางม้าลาย': require('../add/Transportation/ทางม้าลาย.png'),
+  'ป้ายรถเมล์': require('../add/Transportation/ป้ายรถเมล์.png'),
+  'ถนน': require('../add/Transportation/ถนน.png'),
+  'แยก': require('../add/Transportation/แยก.png'),
+  'สะพาน': require('../add/Transportation/สะพาน.png'),
+  'สัญญาณไฟ': require('../add/Transportation/สัญญาณไฟ.png')
+};
 
-export const makeListenChoose = (item, pool) => ({
-  id: `lc_${item.thai}_${uid()}`,
-  type: TRANSPORT_QUESTION_TYPES.LISTEN_CHOOSE,
-  instruction: 'ฟังเสียงแล้วเลือกคำที่ได้ยิน',
-  audioText: item.audioText || item.thai,
-  questionText: 'นี่คืออะไร?',
-  correctText: item.thai,
-  choices: shuffle([item, ...shuffle(pool.filter(p => p.id !== item.id)).slice(0, 3)])
-    .map((x, i) => ({ id: i + 1, text: x.thai, emoji: x.emoji })),
+const normalizeTransportItem = (doc) => ({
+  id: doc.id || `transport_${uid()}`,
+  thai: doc.thai || '',
+  roman: doc.roman || '',
+  en: doc.en || '',
+  emoji: doc.emoji || '🚗',
+  audioText: doc.audioText || doc.thai || '',
+  imageSource: doc.image ? transportationImages[doc.thai] : null,
+  type: doc.type || 'vehicle',
 });
 
-export const makePictureMatch = (item, pool) => ({
-  id: `pm_${item.thai}_${uid()}`,
-  type: TRANSPORT_QUESTION_TYPES.PICTURE_MATCH,
-  instruction: 'จับคู่ภาพกับคำให้ถูกต้อง',
-  emoji: item.emoji || '🚗',
-  questionText: 'ภาพนี้คืออะไร?',
-  correctText: item.thai,
-  choices: shuffle([item, ...shuffle(pool.filter(p => p.id !== item.id)).slice(0, 3)])
-    .map((x, i) => ({ id: i + 1, text: x.thai })),
-});
-
-export const makeTranslateMatch = (pick4) => {
-  const left = pick4.map((x, i) => ({ id: i + 1, text: x.thai, correctMatch: x.en }));
-  const right = shuffle(pick4).map((x, i) => ({ id: i + 1, text: x.en }));
+const makeListenChoose = (item, pool, usedWords = new Set()) => {
+  const wrongChoices = pool
+    .filter(w => w.thai !== item.thai && !usedWords.has(w.thai))
+    .slice(0, 3);
+  const choices = shuffle([item, ...wrongChoices]).slice(0, 4);
+  
   return {
-    id: `tm_${uid()}`,
-    type: TRANSPORT_QUESTION_TYPES.TRANSLATE_MATCH,
-    instruction: 'จับคู่คำไทยกับภาษาอังกฤษ',
-    leftItems: left,
-    rightItems: right,
+    id: `lc_transport_${item.id}_${uid()}`,
+    type: TRANSPORT_QUESTION_TYPES.LISTEN_CHOOSE,
+    instruction: 'ฟังเสียงแล้วเลือกยานพาหนะที่ได้ยิน',
+    questionText: 'แตะปุ่มลำโพงเพื่อฟัง',
+    audioText: item.audioText,
+    correctText: item.thai,
+    // Rewards for this question
+    rewardXP: 15,      // XP for correct answer
+    rewardDiamond: 1,  // Diamond for correct answer
+    penaltyHeart: 1,   // Heart loss for wrong answer
+    choices: choices.map((c, i) => ({
+      id: i + 1,
+      thai: c.thai,
+      roman: c.roman,
+      text: `${c.emoji} ${c.thai}`,
+      speakText: c.audioText,
+      isCorrect: c.thai === item.thai,
+    })),
   };
 };
 
-const fillBlankTemplates = [
-  {
-    template: 'A: คุณไปทำงานยังไง? B: ฉันไปโดย ____',
-    options: ['รถไฟ', 'แท็กซี่', 'เครื่องบิน'],
-    answer: 'รถไฟ',
-  },
-  {
-    template: 'A: เขา ____ รถเมล์ไปตลาดทุกวัน',
-    options: ['ขี่', 'นั่ง', 'ขับ'],
-    answer: 'นั่ง',
-  },
-  {
-    template: 'A: ฉันจะ ____ รถที่หน้าบ้าน',
-    options: ['ขึ้น', 'ลง', 'ขี่'],
-    answer: 'ขึ้น',
-  },
-  {
-    template: 'A: ช้าเพราะ ____',
-    options: ['รถติด', 'รถเร็ว', 'รถสะอาด'],
-    answer: 'รถติด',
-  },
-  {
-    template: 'A: เราจะ ____ รถไฟฟ้าไปห้างไหม?',
-    options: ['ขึ้น', 'ลง', 'ขี่'],
-    answer: 'ขึ้น',
-  },
-  {
-    template: 'A: ลงรถ ____ ตรงป้ายนี้',
-    options: ['ตรง', 'ถูก', 'ชัวร์'],
-    answer: 'ตรง',
-  },
-];
+const makePictureMatch = (item, pool, usedWords = new Set()) => {
+  const wrongChoices = pool
+    .filter(w => w.thai !== item.thai && !usedWords.has(w.thai))
+    .slice(0, 3);
+  const choices = shuffle([item, ...wrongChoices]).slice(0, 4);
+  
+  return {
+    id: `pm_transport_${item.id}_${uid()}`,
+    type: TRANSPORT_QUESTION_TYPES.PICTURE_MATCH,
+    instruction: 'ดูรูปแล้วเลือกยานพาหนะที่ถูกต้อง',
+    imageSource: item.imageSource,
+    emoji: item.emoji,
+    correctText: item.thai,
+    // Rewards for this question
+    rewardXP: 15,      // XP for correct answer
+    rewardDiamond: 1,  // Diamond for correct answer
+    penaltyHeart: 1,   // Heart loss for wrong answer
+    choices: choices.map((c, i) => ({
+      id: i + 1,
+      thai: c.thai,
+      text: c.thai,
+      speakText: c.audioText,
+      isCorrect: c.thai === item.thai,
+    })),
+  };
+};
 
-export const makeFillBlank = (template) => ({
-  id: `fb_${uid()}`,
-  type: TRANSPORT_QUESTION_TYPES.FILL_BLANK_DIALOG,
-  instruction: 'เติมคำให้ถูกต้องในบทสนทนา',
-  questionText: template.template,
-  choices: template.options.map((t, i) => ({ id: i + 1, text: t })),
-  correctText: template.answer,
-});
+const makeTranslateMatch = (item, pool, usedWords = new Set()) => {
+  const otherItems = pool.filter(w => w.thai !== item.thai && !usedWords.has(w.thai)).slice(0, 3);
+  const allItems = shuffle([item, ...otherItems]);
 
-export const makeArrangeSentence = () => {
-  const sentences = [
-    {
-      correctOrder: ['ฉัน', 'นั่ง', 'รถไฟ', 'ไป', 'กรุงเทพฯ'],
-      distract: ['ตอนเช้า', 'เมื่อวาน', 'โดย', 'เร็วๆนี้'],
-    },
-    {
-      correctOrder: ['เขา', 'ขี่', 'จักรยาน', 'ไป', 'โรงเรียน'],
-      distract: ['ทุกวัน', 'เหนื่อย', 'ได้', 'แล้ว'],
-    },
-    {
-      correctOrder: ['ฉัน', 'ขับรถ', 'ไป', 'ทำงาน', 'ตอนเช้า'],
-      distract: ['ช้า', 'สาย', 'ถึง', 'เร็ว'],
-    },
-    {
-      correctOrder: ['เรา', 'ถึง', 'ที่หมาย', 'แล้ว'],
-      distract: ['ยังไง', 'ไป', 'ไหน', 'เมื่อไร'],
-    },
-  ];
-  const picked = pick(sentences);
-  const correctOrder = picked.correctOrder;
-  const bank = shuffle([...correctOrder, ...picked.distract]).map((t) => ({
-    id: uid(),
-    text: t,
+  // Left = Thai, Right = English
+  let leftItems = allItems.map((w, i) => ({
+    id: `left_${i + 1}`,
+    text: w.thai,
+    correctMatch: w.en,
+    speakText: w.audioText,
   }));
 
+  let rightItems = allItems.map((w, i) => ({
+    id: `right_${i + 1}`,
+    text: w.en,
+    correctMatch: w.thai,
+    speakText: w.audioText,
+  }));
+
+  // Shuffle columns independently for better variety
+  leftItems = shuffle(leftItems);
+  rightItems = shuffle(rightItems);
+
   return {
-    id: `as_${uid()}`,
-    type: TRANSPORT_QUESTION_TYPES.ARRANGE_SENTENCE,
-    instruction: 'เรียงคำให้เป็นประโยคการเดินทางที่ถูกต้อง',
-    questionText: 'แตะคำด้านล่างเพื่อเรียงประโยค',
-    correctOrder,
-    wordBank: bank,
+    id: `tm_transport_${item.id}_${uid()}`,
+    type: TRANSPORT_QUESTION_TYPES.TRANSLATE_MATCH,
+    instruction: 'จับคู่คำศัพท์ไทยกับภาษาอังกฤษ',
+    // Rewards for this question
+    rewardXP: 15,
+    rewardDiamond: 1,
+    penaltyHeart: 1,
+    leftItems,
+    rightItems,
   };
 };
 
-export const generateTransportQuestions = (pool = []) => {
-  const q = [];
-
-  if (!pool || pool.length === 0) {
-    return q;
-  }
-
-  const allItems = [...pool];
-  const vehicles = allItems.filter((p) => p.type === 'vehicle').slice(0, 8);
-  const verbs = allItems.filter((p) => p.type === 'verb').slice(0, 5);
-  const phrases = allItems.filter((p) => p.type === 'phrase').slice(0, 5);
-
-  // LISTEN_CHOOSE (4 questions)
-  vehicles.forEach((v) => {
-    q.push(makeListenChoose(v, allItems));
-  });
-
-  // PICTURE_MATCH (4 questions)
-  vehicles.slice(0, 4).forEach((v) => {
-    q.push(makePictureMatch(v, allItems));
-  });
-
-  // TRANSLATE_MATCH (2 questions)
-  for (let i = 0; i < 2; i++) {
-    const pick4 = shuffle(allItems).slice(0, 4);
-    q.push(makeTranslateMatch(pick4));
-  }
-
-  // FILL_BLANK_DIALOG (2 questions)
-  fillBlankTemplates.slice(0, 2).forEach((tpl) => {
-    q.push(makeFillBlank(tpl));
-  });
-
-  // ARRANGE_SENTENCE (2 questions)
-  q.push(makeArrangeSentence());
-  q.push(makeArrangeSentence());
-
-  return shuffle(q).slice(0, 14);
+const makeFillBlankDialog = (item, pool) => {
+  const dialogs = [
+    {
+      context: 'ฉันจะไป... (by car)',
+      correct: item.thai,
+      options: [item.thai, 'รถบัส', 'รถไฟ', 'เครื่องบิน']
+    },
+    {
+      context: 'คุณใช้... ไปทำงาน?',
+      correct: item.thai,
+      options: [item.thai, 'จักรยาน', 'มอเตอร์ไซค์', 'รถแท็กซี่']
+    },
+    {
+      context: 'ฉันชอบเดินทางด้วย...',
+      correct: item.thai,
+      options: [item.thai, 'เรือ', 'รถบัส', 'รถไฟ']
+    }
+  ];
+  
+  const dialog = pick(dialogs);
+  const wrongOptions = pool.filter(w => w.thai !== item.thai).slice(0, 3);
+  const allOptions = shuffle([item, ...wrongOptions]);
+  
+  return {
+    id: `fb_transport_${item.id}_${uid()}`,
+    type: TRANSPORT_QUESTION_TYPES.FILL_BLANK_DIALOG,
+    instruction: 'เลือกคำที่เหมาะสมกับบทสนทนา',
+    questionText: dialog.context,
+    correctText: dialog.correct,
+    rewardXP: 15,
+    rewardDiamond: 1,
+    penaltyHeart: 1,
+    choices: allOptions.map((c, i) => ({
+      id: i + 1,
+      thai: c.thai,
+      english: c.en,
+      text: `${c.emoji} ${c.thai}`,
+      isCorrect: c.thai === dialog.correct,
+    })),
+  };
 };
+
+// Generate questions tailored for Transportation
+export const generateTransportQuestions = (pool) => {
+  const questions = [];
+  const usedWords = new Set();
+
+  // LISTEN_CHOOSE × 5
+  for (let i = 0; i < 5; i++) {
+    const available = pool.filter(w => !usedWords.has(w.thai));
+    if (available.length === 0) break;
+    const item = pick(available);
+    usedWords.add(item.thai);
+    questions.push(makeListenChoose(item, pool, usedWords));
+  }
+
+  // PICTURE_MATCH × 5
+  for (let i = 0; i < 5; i++) {
+    const available = pool.filter(w => !usedWords.has(w.thai));
+    if (available.length === 0) break;
+    const item = pick(available);
+    usedWords.add(item.thai);
+    questions.push(makePictureMatch(item, pool, usedWords));
+  }
+
+  // TRANSLATE_MATCH × 4
+  for (let i = 0; i < 4; i++) {
+    const available = pool.filter(w => !usedWords.has(w.thai));
+    if (available.length === 0) break;
+    const item = pick(available);
+    usedWords.add(item.thai);
+    questions.push(makeTranslateMatch(item, pool, usedWords));
+  }
+
+  // FILL_BLANK_DIALOG × 4
+  for (let i = 0; i < 4; i++) {
+    const available = pool.filter(w => !usedWords.has(w.thai));
+    if (available.length === 0) break;
+    const item = pick(available);
+    usedWords.add(item.thai);
+    questions.push(makeFillBlankDialog(item, pool));
+  }
+
+  return shuffle(questions);
+};
+
+export { transportationImages };

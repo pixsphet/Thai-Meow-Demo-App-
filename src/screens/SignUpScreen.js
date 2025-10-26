@@ -434,10 +434,11 @@ const SignUpScreen = ({ navigation }) => {
             </View>
 
             <TextInput
-              label="ชื่อสัตว์เลี้ยงตัวแรกของคุณ?"
+              label="ชื่อสัตว์เลี้ยง (จำเป็น)"
               value={petName}
               onChangeText={setPetName}
               mode="outlined"
+              required
               left={
                 <TextInput.Icon
                   icon={() => (
@@ -448,7 +449,8 @@ const SignUpScreen = ({ navigation }) => {
               style={[styles.textInput, { backgroundColor: theme.colors.background }]}
               theme={inputTheme(theme)}
               placeholder="เช่น มะลิ, โบโบ้"
-              helper="จำง่าย ใช้ยืนยันตอนเปลี่ยนรหัสผ่าน"
+              helperText="⚠️ จำเป็น: ใช้ยืนยันตัวตนเมื่อลืมรหัสผ่าน"
+              helperTextMode="on-focus"
             />
           </View>
 

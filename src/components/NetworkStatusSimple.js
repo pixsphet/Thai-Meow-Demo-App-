@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
+import { useTheme } from '../contexts/ThemeContext';
 import { FontAwesome } from '@expo/vector-icons';
 import offlineService from '../services/offlineService';
 
@@ -71,15 +72,16 @@ const NetworkStatusSimple = () => {
     }
   }, [isOnline, pendingActions]);
 
+  const { isDarkMode } = useTheme();
   if (!showStatus) return null;
 
   return (
     <Animated.View 
       style={[
         styles.container,
-        { 
+        {
           transform: [{ translateY: slideAnim }],
-          backgroundColor: isOnline ? '#4CAF50' : '#F44336'
+          backgroundColor: isOnline ? (isDarkMode ? '#1B5E20' : '#4CAF50') : (isDarkMode ? '#B71C1C' : '#F44336')
         }
       ]}
     >

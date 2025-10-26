@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
-import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Dimensions, TextInput, Alert } from 'react-native';
+import { FontAwesome, MaterialIcons, Ionicons } from '@expo/vector-icons';
 import LottieView from 'lottie-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import vaja9TtsService from '../services/vaja9TtsService';
@@ -51,6 +51,7 @@ const normalizeLinker = (doc) => ({
   exampleTH: doc.exampleTH || '',
   exampleEN: doc.exampleEN || '',
   tts: doc.tts || doc.exampleTH || '',
+  clozeTH: doc.clozeTH || ''
 });
 
 const getHintText = (type) => {
@@ -85,14 +86,13 @@ const getLinkerFunction = (type) => {
     additive: 'เพิ่มเติม',
     contrast: 'เปรียบเทียบ',
     correlative: 'เปรียบเทียบแบบ',
-    concessive: 'ยอมรับเบื้องต้น',
   };
-  return functions[type] || 'เชื่อมความสัมพันธ์';
+  return functions[type] || 'อื่นๆ';
 };
 
 const makeListenChoose = (item, pool) => {
-  const wrong = pool.filter(p => p.id !== item.id).slice(0, 3);
-  const choices = shuffle([item, ...wrong]).slice(0, 4);
+  const wrong = shuffle(pool.filter(p => p.id !== item.id)).slice(0, 2);
+  const choices = shuffle([item, ...wrong]); // 3 ตัวเลือก
   return {
     id: `lc_${item.id}_${uid()}`,
     type: QUESTION_TYPES.LISTEN_CHOOSE,
@@ -101,6 +101,9 @@ const makeListenChoose = (item, pool) => {
     audioText: item.tts,
     correctText: item.thai,
     choices: choices.map((c, i) => ({ id: i + 1, text: c.thai, isCorrect: c.id === item.id })),
+    rewardXP: 15,
+    rewardDiamond: 1,
+    penaltyHeart: 1,
   };
 };
 
@@ -112,22 +115,27 @@ const makeDragMatch = (pool) => {
 };
 
 const makeFillBlank = (item, pool) => {
-  const template = item.exampleTH.split(item.thai.split('...')[0])[0] + '___' + item.exampleTH.split(item.thai.split('...')[1])[1];
-  const wrong = pool.filter(p => p.id !== item.id).slice(0, 3);
-  const choices = shuffle([item, ...wrong]).slice(0, 4);
+  const wrong = shuffle(pool.filter(p => p.id !== item.id)).slice(0, 2);
+  const choices = shuffle([item, ...wrong]); // 3 ตัวเลือก
   return {
     id: `fb_${item.id}_${uid()}`,
     type: QUESTION_TYPES.FILL_BLANK,
     instruction: 'เลือกคำเชื่อมให้ถูกต้อง',
-    questionText: template,
-    correctText: item.thai.split('...')[0],
-    choices: choices.map((c, i) => ({ id: i + 1, text: c.thai.split('...')[0], isCorrect: c.id === item.id })),
+    questionText: item.clozeTH || '___ (เติมคำเชื่อมให้เหมาะสม)',
+    correctText: item.thai,
+    choices: choices.map((c, i) => ({
+      id: i + 1,
+      text: c.thai,
+      isCorrect: c.id === item.id
+    })),
+    rewardXP: 15,
+    rewardDiamond: 1,
+    penaltyHeart: 1,
   };
 };
 
 const makeArrangeSentence = (item) => {
-  const target = item.exampleTH;
-  const tokens = target.split(' ');
+  const tokens = item.exampleTH.trim().split(/\s+/);
   const fillers = ['และ', 'หรือ', 'นะ', 'สิ', 'ครับ', 'ค่ะ'];
   return {
     id: `arr_${item.id}_${uid()}`,
@@ -137,6 +145,9 @@ const makeArrangeSentence = (item) => {
     correctOrder: tokens,
     wordBank: shuffle([...tokens, ...shuffle(fillers).slice(0, 1)]).map(t => ({ id: uid(), text: t })),
     tts: item.tts,
+    rewardXP: 15,
+    rewardDiamond: 1,
+    penaltyHeart: 1,
   };
 };
 
@@ -148,59 +159,56 @@ const makeTransform = (item) => ({
   targetPattern: item.thai,
   validator: { mustContain: item.thai.split('...') },
   tts: item.tts,
+  rewardXP: 15,
+  rewardDiamond: 1,
+  penaltyHeart: 1,
 });
 
 const generateComplexVerbsQuestions = (pool) => {
   if (!pool || pool.length === 0) return [];
-  const questions = [];
-  const usedIds = new Set();
+  const qs = [];
+  const used = new Set();
   
-  for (let i = 0; i < 3 && pool.length > usedIds.size; i++) {
-    const available = pool.filter(p => !usedIds.has(p.id));
-    if (available.length) {
-      const item = pick(available);
-      usedIds.add(item.id);
-      questions.push(makeListenChoose(item, pool));
-    }
-  }
+  const pickOne = () => pick(pool.filter(p => !used.has(p.id)));
   
-  for (let i = 0; i < 3; i++) questions.push(makeDragMatch(pool));
+  // 1) ฟังแล้วเลือก
+  const a = pickOne(); 
+  used.add(a.id); 
+  qs.push(makeListenChoose(a, pool));
   
-  for (let i = 0; i < 3 && pool.length > usedIds.size; i++) {
-    const available = pool.filter(p => !usedIds.has(p.id));
-    if (available.length) {
-      const item = pick(available);
-      usedIds.add(item.id);
-      questions.push(makeFillBlank(item, pool));
-    }
-  }
+  // 2) จับคู่
+  qs.push(makeDragMatch(pool));
   
-  for (let i = 0; i < 2 && pool.length > usedIds.size; i++) {
-    const available = pool.filter(p => !usedIds.has(p.id));
-    if (available.length) {
-      const item = pick(available);
-      usedIds.add(item.id);
-      questions.push(makeArrangeSentence(item));
-    }
-  }
+  // 3) เติมช่องว่าง
+  const b = pickOne(); 
+  used.add(b.id); 
+  qs.push(makeFillBlank(b, pool));
   
-  for (let i = 0; i < 2 && pool.length > usedIds.size; i++) {
-    const available = pool.filter(p => !usedIds.has(p.id));
-    if (available.length) {
-      const item = pick(available);
-      usedIds.add(item.id);
-      questions.push(makeTransform(item));
-    }
-  }
+  // 4) เรียงประโยค
+  const c = pickOne(); 
+  used.add(c.id); 
+  qs.push(makeArrangeSentence(c));
   
-  return shuffle(questions);
+  // 5) แปลงประโยค
+  const d = pickOne(); 
+  used.add(d.id); 
+  qs.push(makeTransform(d));
+  
+  // 6) ฟังแล้วเลือก (อีกคำ)
+  const e = pickOne(); 
+  used.add(e.id); 
+  qs.push(makeListenChoose(e, pool));
+  
+  return qs;
 };
 
 const checkAnswer = (question, userAnswer) => {
+  const norm = (s) => (typeof s === 'string' ? s.trim() : s);
+  
   switch (question.type) {
     case QUESTION_TYPES.LISTEN_CHOOSE:
     case QUESTION_TYPES.FILL_BLANK:
-      return userAnswer === question.correctText;
+      return norm(userAnswer) === norm(question.correctText);
     case QUESTION_TYPES.DRAG_MATCH:
       return userAnswer && userAnswer.every(pair =>
         question.leftItems.find(left => left.id === pair.leftId)?.correctMatch ===
@@ -208,9 +216,17 @@ const checkAnswer = (question, userAnswer) => {
       );
     case QUESTION_TYPES.ARRANGE_SENTENCE:
       return Array.isArray(userAnswer) && JSON.stringify(userAnswer) === JSON.stringify(question.correctOrder);
-    case QUESTION_TYPES.TRANSFORM_PARAPHRASE:
-      if (!userAnswer) return false;
-      return question.validator.mustContain.every(word => userAnswer.includes(word));
+    case QUESTION_TYPES.TRANSFORM_PARAPHRASE: {
+      if (typeof userAnswer !== 'string') return false;
+      const parts = (question.targetPattern || '').split('...');
+      if (parts.length === 1) {
+        return userAnswer.includes(parts[0]);
+      }
+      const [p1, p2] = parts;
+      const i1 = userAnswer.indexOf(p1);
+      const i2 = userAnswer.indexOf(p2);
+      return i1 !== -1 && i2 !== -1 && i1 < i2;
+    }
     default:
       return false;
   }
@@ -241,6 +257,7 @@ const Advanced4ComplexVerbsGame = ({ navigation, route }) => {
   const [dmSelected, setDmSelected] = useState({ leftId: null, rightId: null });
   const [dmPairs, setDmPairs] = useState([]);
   const [transformInput, setTransformInput] = useState('');
+  const [currentFeedback, setCurrentFeedback] = useState(null); // 'correct' | 'wrong' | null
 
   const startTimeRef = useRef(Date.now());
   const answersRef = useRef({});
@@ -307,13 +324,37 @@ const Advanced4ComplexVerbsGame = ({ navigation, route }) => {
 
   const handleAnswerSelect = (answer) => { setCurrentAnswer(answer); };
 
-  const handleCheckAnswer = () => {
-    if (currentAnswer === null && transformInput === '') return;
+  const handleCheckOrNext = () => {
+    // ถ้ามี feedback แล้ว -> ไปข้อถัดไป
+    if (currentFeedback !== null) {
+      setCurrentFeedback(null);
+      setCurrentAnswer(null);
+      setDmSelected({ leftId: null, rightId: null });
+      setDmPairs([]);
+      setTransformInput('');
+      if (currentIndex < questions.length - 1) {
+        setCurrentIndex(currentIndex + 1);
+      } else {
+        const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+        finishLesson(elapsed);
+      }
+      return;
+    }
+
+    // ยังไม่เช็ก -> เช็กตอนนี้
+    if (currentAnswer === null && transformInput === '' && dmPairs.length === 0) return;
     const currentQuestion = questions[currentIndex];
-    const userAnswer = currentQuestion.type === QUESTION_TYPES.TRANSFORM_PARAPHRASE ? transformInput : currentAnswer;
+    const userAnswer = currentQuestion.type === QUESTION_TYPES.TRANSFORM_PARAPHRASE 
+      ? transformInput 
+      : (currentQuestion.type === QUESTION_TYPES.DRAG_MATCH ? dmPairs : currentAnswer);
     const isCorrect = checkAnswer(currentQuestion, userAnswer);
     
-    answersRef.current[currentIndex] = { questionId: currentQuestion.id, answer: userAnswer, isCorrect, timestamp: Date.now() };
+    answersRef.current[currentIndex] = { 
+      questionId: currentQuestion.id, 
+      answer: userAnswer, 
+      isCorrect, 
+      timestamp: Date.now() 
+    };
     setAnswers({ ...answersRef.current });
 
     if (isCorrect) {
@@ -321,33 +362,30 @@ const Advanced4ComplexVerbsGame = ({ navigation, route }) => {
       setStreak(streak + 1);
       const newMax = Math.max(maxStreak, streak + 1);
       setMaxStreak(newMax);
-      setXpEarned(xpEarned + 10);
-      setDiamondsEarned(diamondsEarned + 1);
-      nextQuestion();
+      setXpEarned(xpEarned + (currentQuestion.rewardXP || 15));
+      setDiamondsEarned(diamondsEarned + (currentQuestion.rewardDiamond || 1));
+      setCurrentFeedback('correct');
     } else {
-      const newHearts = Math.max(0, hearts - 1);
+      const newHearts = Math.max(0, hearts - (currentQuestion.penaltyHeart || 1));
       setHearts(newHearts);
       setStreak(0);
+      setCurrentFeedback('wrong');
       if (newHearts === 0) {
-        const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
-        finishLesson(elapsed);
-      } else {
-        nextQuestion();
+        Alert.alert('หัวใจหมดแล้ว', 'กลับไปหน้าหลัก', [{ text: 'ตกลง', onPress: () => {
+          const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+          finishLesson(elapsed);
+        }}]);
       }
     }
   };
 
-  useEffect(() => { setDmSelected({ leftId: null, rightId: null }); setDmPairs([]); setTransformInput(''); }, [currentIndex]);
+  useEffect(() => { 
+    setDmSelected({ leftId: null, rightId: null }); 
+    setDmPairs([]); 
+    setTransformInput(''); 
+    setCurrentFeedback(null);
+  }, [currentIndex]);
 
-  const nextQuestion = () => {
-    if (currentIndex < questions.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-      setCurrentAnswer(null);
-    } else {
-      const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
-      finishLesson(elapsed);
-    }
-  };
 
   const startGame = () => { setGameStarted(true); setGameFinished(false); gameFinishedRef.current = false; startTimeRef.current = Date.now(); dailyStreakService.startStreak(); };
   const resumeGame = () => { setGameStarted(true); setGameFinished(false); gameFinishedRef.current = false; startTimeRef.current = Date.now(); };
@@ -406,11 +444,31 @@ const Advanced4ComplexVerbsGame = ({ navigation, route }) => {
               </TouchableOpacity>
             )}
             <View style={styles.choicesContainer}>
-              {question.choices.map((choice) => (
-                <TouchableOpacity key={choice.id} style={[styles.choiceButton, currentAnswer === choice.text && styles.choiceSelected]} onPress={() => handleAnswerSelect(choice.text)}>
-                  <Text style={styles.choiceText}>{choice.text}</Text>
-                </TouchableOpacity>
-              ))}
+              {question.choices.map((choice) => {
+                const isSelected = currentAnswer === choice.text;
+                const showFeedback = currentFeedback !== null;
+                const isCorrectChoice = choice.text === question.correctText;
+
+                const feedbackStyle =
+                  showFeedback
+                    ? (isCorrectChoice ? styles.choiceCorrect : (isSelected ? styles.choiceWrong : {}))
+                    : {};
+
+                return (
+                  <TouchableOpacity 
+                    key={choice.id} 
+                    style={[
+                      styles.choiceButton, 
+                      isSelected && styles.choiceSelected, 
+                      feedbackStyle
+                    ]} 
+                    onPress={() => currentFeedback === null && handleAnswerSelect(choice.text)}
+                    disabled={currentFeedback !== null}
+                  >
+                    <Text style={styles.choiceText}>{choice.text}</Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
         </View>
@@ -527,7 +585,14 @@ const Advanced4ComplexVerbsGame = ({ navigation, route }) => {
           <View style={styles.transformCard}>
             <Text style={styles.transformLabel}>พิมพ์ประโยคที่แปลง:</Text>
             <View style={styles.textInput}>
-              <Text style={styles.inputPlaceholder}>{transformInput || 'พิมพ์ประโยคที่แปลงให้ใช้รูปแบบ "' + question.targetPattern + '"'}</Text>
+              <TextInput
+                style={styles.inputField}
+                value={transformInput}
+                onChangeText={setTransformInput}
+                placeholder="พิมพ์ประโยคที่แปลงให้ใช้รูปแบบ"
+                multiline
+                textAlignVertical="top"
+              />
             </View>
             <View style={styles.keyboardSimulated}>
               {['เพราะว่า', 'เนื่องจาก', 'แม้ว่า', 'ถ้า', 'เมื่อ'].map((word) => (
@@ -619,16 +684,41 @@ const Advanced4ComplexVerbsGame = ({ navigation, route }) => {
           <Text style={styles.statText}>+{diamondsEarned}</Text>
         </View>
         <View style={styles.statBadge}>
-          <Text style={styles.statText}>🎯 {Math.min(100, Math.max(0, Math.round((score / Math.max(1, currentIndex)) * 100)))}%</Text>
+          <Text style={styles.statText}>🎯 {Math.min(100, Math.max(0, Math.round((score / Math.max(1, questions.length)) * 100)))}%</Text>
         </View>
       </View>
       <ScrollView style={styles.questionScrollView}>
         {renderQuestionComponent()}
       </ScrollView>
       <View style={styles.checkContainer}>
-        <TouchableOpacity style={[styles.checkButton, (currentAnswer === null && transformInput === '') && styles.checkButtonDisabled]} onPress={handleCheckAnswer} disabled={(currentAnswer === null && transformInput === '')}>
+        {/* แถบ feedback แบบ ConsonantStage1 */}
+        {currentFeedback && (
+          <View style={[
+            styles.feedbackBadgeEnhanced,
+            currentFeedback === 'correct' ? styles.feedbackCorrectEnhanced : styles.feedbackWrongEnhanced
+          ]}>
+            <FontAwesome 
+              name={currentFeedback === 'correct' ? 'check-circle' : 'times-circle'} 
+              size={24} 
+              color={currentFeedback === 'correct' ? '#58cc02' : '#ff4b4b'}
+              style={{ marginRight: 8 }}
+            />
+            <Text style={styles.feedbackTextEnhanced}>
+              {currentFeedback === 'correct' ? 'ถูกต้อง! เก่งมาก' : 'ยังไม่ถูก ลองข้อถัดไปนะ'}
+            </Text>
+          </View>
+        )}
+
+        <TouchableOpacity 
+          style={[
+            styles.checkButton, 
+            !currentFeedback && (currentAnswer === null && transformInput === '' && dmPairs.length === 0) && styles.checkButtonDisabled
+          ]} 
+          onPress={handleCheckOrNext} 
+          disabled={!currentFeedback && (currentAnswer === null && transformInput === '' && dmPairs.length === 0)}
+        >
           <LinearGradient colors={[COLORS.primary, '#FFA24D']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.checkGradient}>
-            <Text style={styles.checkButtonText}>CHECK</Text>
+            <Text style={styles.checkButtonText}>{currentFeedback ? 'ต่อไป' : 'CHECK'}</Text>
           </LinearGradient>
         </TouchableOpacity>
       </View>
@@ -674,6 +764,8 @@ const styles = StyleSheet.create({
   choicesContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
   choiceButton: { width: '48%', backgroundColor: COLORS.white, paddingVertical: 18, paddingHorizontal: 16, borderRadius: 12, marginBottom: 15, borderWidth: 2, borderColor: COLORS.lightGray, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
   choiceSelected: { borderColor: COLORS.primary, backgroundColor: COLORS.cream, transform: [{ scale: 1.02 }] },
+  choiceCorrect: { borderColor: COLORS.success, backgroundColor: 'rgba(88,204,2,0.12)' },
+  choiceWrong: { borderColor: COLORS.error, backgroundColor: 'rgba(255,75,75,0.12)' },
   choiceText: { fontSize: 16, fontWeight: '600', color: COLORS.dark },
   dragMatchContainer: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
   leftColumn: { flex: 1, marginRight: 10 },
@@ -690,7 +782,8 @@ const styles = StyleSheet.create({
   transformCard: { backgroundColor: COLORS.white, padding: 15, borderRadius: 12, marginBottom: 15, borderWidth: 1, borderColor: '#F2F2F2', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 },
   transformLabel: { fontSize: 14, fontWeight: '600', color: COLORS.dark, marginBottom: 8 },
   transformText: { fontSize: 16, color: COLORS.gray, fontStyle: 'italic', marginBottom: 10 },
-  textInput: { backgroundColor: COLORS.cream, padding: 12, borderRadius: 8, marginBottom: 12, minHeight: 50, justifyContent: 'center' },
+  textInput: { backgroundColor: COLORS.cream, padding: 12, borderRadius: 8, marginBottom: 12, minHeight: 80, justifyContent: 'flex-start' },
+  inputField: { fontSize: 16, color: COLORS.dark, minHeight: 60, textAlignVertical: 'top' },
   inputPlaceholder: { fontSize: 14, color: '#AAA' },
   keyboardSimulated: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   keywordButton: { backgroundColor: COLORS.primary, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8 },
@@ -701,6 +794,137 @@ const styles = StyleSheet.create({
   checkGradient: { width: '100%', paddingVertical: 16, borderRadius: 28, alignItems: 'center' },
   checkButtonDisabled: { backgroundColor: COLORS.lightGray, shadowOpacity: 0, elevation: 0 },
   checkButtonText: { fontSize: 18, fontWeight: 'bold', color: COLORS.white, letterSpacing: 0.5 },
+  statBadgeEnhanced: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 1,
+    borderWidth: 1,
+    borderColor: '#F5F5F5',
+  },
+  statTextContainer: {
+    marginLeft: 8,
+  },
+  statLabel: {
+    fontSize: 10,
+    color: '#999',
+    marginBottom: 2,
+    fontWeight: '600',
+  },
+  statValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.dark,
+  },
+  statDivider: {
+    width: 1,
+    height: '80%',
+    backgroundColor: '#E8E8E8',
+    marginHorizontal: 10,
+  },
+  checkContainerEnhanced: {
+    padding: 18,
+    backgroundColor: COLORS.white,
+    borderTopWidth: 1,
+    borderTopColor: '#E8E8E8',
+    alignItems: 'center',
+  },
+  feedbackBadgeEnhanced: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    borderRadius: 16,
+    marginBottom: 18,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  feedbackCorrectEnhanced: {
+    backgroundColor: '#E8F5E9',
+    borderColor: '#4CAF50',
+    borderWidth: 2,
+  },
+  feedbackWrongEnhanced: {
+    backgroundColor: '#FBE9E7',
+    borderColor: '#FF7043',
+    borderWidth: 2,
+  },
+  feedbackTextEnhanced: {
+    fontSize: 16,
+    fontWeight: '800',
+    marginLeft: 12,
+    letterSpacing: 0.3,
+    color: '#333',
+  },
+  checkButtonEnhanced: {
+    paddingVertical: 18,
+    borderRadius: 28,
+    alignItems: 'center',
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
+    minWidth: 200,
+  },
+  checkGradientEnhanced: {
+    width: '100%',
+    paddingVertical: 18,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+  },
+  checkButtonDisabledEnhanced: {
+    backgroundColor: '#D0D0D0',
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  checkButtonTextEnhanced: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: COLORS.white,
+    letterSpacing: 0.8,
+  },
+  feedbackBadgeEnhanced: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 3,
+    backgroundColor: '#fff',
+    borderWidth: 2
+  },
+  feedbackCorrectEnhanced: { 
+    borderColor: COLORS.success, 
+    backgroundColor: 'rgba(88,204,2,0.1)' 
+  },
+  feedbackWrongEnhanced: { 
+    borderColor: COLORS.error, 
+    backgroundColor: 'rgba(255,75,75,0.1)' 
+  },
+  feedbackTextEnhanced: { 
+    fontSize: 16, 
+    fontWeight: '800', 
+    marginLeft: 4, 
+    color: COLORS.dark 
+  },
 });
 
 export default Advanced4ComplexVerbsGame;

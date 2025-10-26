@@ -1,0 +1,80 @@
+[
+  {
+    "id": "learn_webdev_01",
+    "type": "LEARN_IDIOM",
+    "instruction": "คำศัพท์ใหม่",
+    "thai": "นักพัฒนาเว็บ",
+    "meaningTH": "ผู้พัฒนาและเขียนโค้ดสำหรับเว็บไซต์",
+    "meaningEN": "Web Developer",
+    "exampleTH": "นักพัฒนาเว็บออกแบบและเขียนโค้ดสำหรับเว็บไซต์",
+    "exampleEN": "A web developer designs and codes websites.",
+    "audioText": "นักพัฒนาเว็บ",
+    "tips": "Front-end โฟกัส UI/UX, Back-end โฟกัสระบบและฐานข้อมูล"
+  },
+  {
+    "id": "game_listen_webdev_01",
+    "type": "LISTEN_MEANING",
+    "instruction": "ฟังแล้วเลือกความหมายที่ถูกต้อง",
+    "questionText": "แตะปุ่มลำโพงเพื่อฟังคำศัพท์",
+    "audioText": "นักพัฒนาเว็บ",
+    "correctText": "Web Developer",
+    "choices": [
+      { "id": 1, "text": "Web Developer", "isCorrect": true },
+      { "id": 2, "text": "Data Analyst", "isCorrect": false },
+      { "id": 3, "text": "Lawyer", "isCorrect": false },
+      { "id": 4, "text": "Influencer", "isCorrect": false }
+    ]
+  },
+  {
+    "id": "learn_data_analyst_02",
+    "type": "LEARN_IDIOM",
+    "instruction": "คำศัพท์ใหม่",
+    "thai": "นักวิเคราะห์ข้อมูล",
+    "meaningTH": "ผู้วิเคราะห์และตีความข้อมูลเพื่อช่วยตัดสินใจ",
+    "meaningEN": "Data Analyst",
+    "exampleTH": "นักวิเคราะห์ข้อมูลช่วยให้บริษัทตัดสินใจด้วยข้อมูลจริง",
+    "exampleEN": "A data analyst helps companies make data-driven decisions.",
+    "audioText": "นักวิเคราะห์ข้อมูล",
+    "tips": "ทักษะแนะนำ: SQL, สถิติ, การทำแดชบอร์ด (เช่น BI Tools)"
+  },
+  {
+    "id": "game_fill_context_data_02",
+    "type": "FILL_CONTEXT",
+    "instruction": "เลือกคำที่เหมาะกับบริบท",
+    "questionText": "บริษัทต้องการรายงานและแดชบอร์ดจากข้อมูลขนาดใหญ่ ควรจ้าง ____",
+    "correctText": "นักวิเคราะห์ข้อมูล",
+    "choices": [
+      { "id": 1, "text": "นักพัฒนาเว็บ", "isCorrect": false },
+      { "id": 2, "text": "นักวิเคราะห์ข้อมูล", "isCorrect": true },
+      { "id": 3, "text": "นักการตลาด", "isCorrect": false },
+      { "id": 4, "text": "ทนายความ", "isCorrect": false }
+    ]
+  },
+  {
+    "id": "learn_lawyer_03",
+    "type": "LEARN_IDIOM",
+    "instruction": "คำศัพท์ใหม่",
+    "thai": "ทนายความ",
+    "meaningTH": "ผู้ให้คำปรึกษากฎหมายและว่าความในศาล",
+    "meaningEN": "Lawyer",
+    "exampleTH": "ทนายความให้คำปรึกษาและต่อสู้คดีในศาล",
+    "exampleEN": "A lawyer provides legal advice and represents clients in court.",
+    "audioText": "ทนายความ",
+    "tips": "สายงานย่อย: Corporate, Litigation, IP, Tax"
+  },
+  {
+    "id": "game_match_03",
+    "type": "MATCH_IDIOM_MEANING",
+    "instruction": "จับคู่คำไทยกับความหมายภาษาอังกฤษ",
+    "leftItems": [
+      { "id": "L1", "text": "ทนายความ", "correctMatch": "Lawyer" },
+      { "id": "L2", "text": "นักจิตวิทยา", "correctMatch": "Psychologist" },
+      { "id": "L3", "text": "นักวิทยาศาสตร์", "correctMatch": "Scientist" }
+    ],
+    "rightItems": [
+      { "id": "R1", "text": "Scientist" },
+      { "id": "R2", "text": "Lawyer" },
+      { "id": "R3", "text": "Psychologist" }
+    ]
+  }
+]

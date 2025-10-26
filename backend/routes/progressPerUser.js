@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Progress = require('../models/Progress');
+const auth = require('../middleware/auth');
 const {
   applyProgressToUser,
   getUserStatsSnapshot,
@@ -8,7 +9,7 @@ const {
 } = require('../services/userStats');
 
 // POST upsert progress session
-router.post('/session', async (req, res) => {
+router.post('/session', auth, async (req, res) => {
   try {
     const userId = req.user.id;
     const payload = req.body || {};
@@ -31,7 +32,7 @@ router.post('/session', async (req, res) => {
 });
 
 // GET one lesson progress
-router.get('/session', async (req, res) => {
+router.get('/session', auth, async (req, res) => {
   try {
     const userId = req.user.id;
     const { lessonId } = req.query;
@@ -49,7 +50,7 @@ router.get('/session', async (req, res) => {
 });
 
 // GET all user progress
-router.get('/all', async (req, res) => {
+router.get('/all', auth, async (req, res) => {
   try {
     const userId = req.user.id;
     
@@ -72,7 +73,7 @@ router.get('/all', async (req, res) => {
 });
 
 // DELETE progress session
-router.delete('/session', async (req, res) => {
+router.delete('/session', auth, async (req, res) => {
   try {
     const userId = req.user.id;
     const { lessonId } = req.query;
@@ -90,7 +91,7 @@ router.delete('/session', async (req, res) => {
 });
 
 // Finish lesson and update user stats
-router.post('/finish', async (req, res) => {
+router.post('/finish', auth, async (req, res) => {
   try {
     const userId = req.user.id;
     const { lessonId, score = 0, xpGain = 0, diamonds = 0, heartsLeft } = req.body;
@@ -140,21 +141,11 @@ router.post('/finish', async (req, res) => {
   }
 });
 
-// GET all user progress - with optional auth
-router.get('/', async (req, res) => {
+// GET all user progress - requires authentication
+router.get('/', auth, async (req, res) => {
   try {
-    // Get userId from auth header if available, otherwise from query
-    let userId = req.user?.id;
+    const userId = req.user.id;
     
-    if (!userId && req.query.userId) {
-      userId = req.query.userId;
-    }
-
-    if (!userId) {
-      console.warn('⚠️ [PROGRESS] No user ID provided (no auth & no userId param)');
-      return res.status(400).json({ error: 'User ID required' });
-    }
-
     const progressDocs = await Progress.find({ userId }).lean();
     res.json(progressDocs || []);
   } catch (error) {

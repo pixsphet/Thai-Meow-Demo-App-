@@ -84,6 +84,7 @@ class LevelUnlockService {
    */
   getNextLevel(currentLevelId) {
     const levelMap = {
+      // Beginner levels
       'level1': 'level2',
       'level2': 'level3',
       'level3': 'level4',
@@ -93,7 +94,20 @@ class LevelUnlockService {
       'level7': 'level8',
       'level8': 'level9',
       'level9': 'level10',
-      'level10': null // Max level reached
+      'level10': null,
+      
+      // Intermediate levels
+      'level_intermediate_1': 'level_intermediate_2',
+      'level_intermediate_2': 'level_intermediate_3',
+      'level_intermediate_3': 'level_intermediate_4',
+      'level_intermediate_4': 'level_intermediate_5',
+      'level_intermediate_5': null,
+      
+      // Advanced levels
+      'level1_advanced': 'level2_advanced',
+      'level2_advanced': 'level3_advanced',
+      'level3_advanced': 'level4_advanced',
+      'level4_advanced': null,
     };
 
     return levelMap[currentLevelId] || null;
@@ -290,11 +304,11 @@ class LevelUnlockService {
   async syncLevelUnlockToServer(unlockData) {
     try {
       const levelId = unlockData.levelId || unlockData.unlockedLevel || unlockData.currentLevel;
-      if (!this.userId || !levelId) {
-        throw new Error('Missing userId or levelId for level unlock sync');
+      if (!levelId) {
+        throw new Error('Missing levelId for level unlock sync');
       }
+      console.log('🔓 Syncing level unlock to server - levelId:', levelId);
       const response = await apiClient.post('/user/unlock-level', {
-        userId: this.userId,
         levelId
       });
       

@@ -1,6 +1,6 @@
+import { shuffle, pick, uid } from './gameUtils';
+
 // Helper utilities
-const uid = () => Math.random().toString(36).substr(2, 9);
-const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
 
 // Question Type Constants
 export const EMOTION_QUESTION_TYPES = {

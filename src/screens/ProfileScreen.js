@@ -30,13 +30,17 @@ const tabItems = [
 ];
 
 const CustomTabBar = ({ activeTab, navigation, theme }) => {
+  const tabBarGradient = ['#FFF5E6', '#FFFFFF'];
   return (
-    <View style={{
+    <LinearGradient
+      colors={tabBarGradient}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={{
       position: 'absolute',
       left: 12,
       right: 12,
       bottom: 26,
-      backgroundColor: '#fff',
       elevation: 10,
       shadowColor: '#000',
       shadowOpacity: 0.12,
@@ -51,7 +55,8 @@ const CustomTabBar = ({ activeTab, navigation, theme }) => {
       flexDirection: 'row',
       justifyContent: 'space-around',
       alignItems: 'center',
-    }}>
+    }}
+    >
       {tabItems.map(item => {
         const isActive = item.name === activeTab;
         let tint = '#666';
@@ -82,7 +87,7 @@ const CustomTabBar = ({ activeTab, navigation, theme }) => {
           </TouchableOpacity>
         );
       })}
-    </View>
+    </LinearGradient>
   );
 };
 

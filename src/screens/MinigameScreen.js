@@ -14,6 +14,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import LottieView from 'lottie-react-native';
 import { FontAwesome } from '@expo/vector-icons';
+import ThemedBackButton from '../components/ThemedBackButton';
 import { useNavigation } from '@react-navigation/native';
 import { getRewardsTotal, getRewardsHistory, clearRewardsHistory } from '../services/minigameRewards';
 import { listCategories, GAME_CATEGORIES } from '../services/gameVocabService';
@@ -206,12 +207,7 @@ const MinigameScreen = () => {
         style={styles.header}
       >
         <View style={styles.headerContent}>
-          <TouchableOpacity 
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <FontAwesome name="arrow-left" size={20} color="#fff" />
-          </TouchableOpacity>
+          <ThemedBackButton style={styles.backButton} onPress={() => navigation.goBack()} />
           
           <View style={styles.headerTitle}>
             <Text style={styles.headerTitleText}>Mini Games</Text>

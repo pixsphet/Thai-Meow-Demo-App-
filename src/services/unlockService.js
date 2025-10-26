@@ -6,20 +6,18 @@ const UNLOCK_CACHE_KEY = 'level_unlocks';
 /**
  * Get user's unlocked levels from backend
  */
-export const getUnlockedLevels = async (userId) => {
+export const getUnlockedLevels = async () => {
   try {
-    if (!userId || userId === 'demo') {
-      return ['level1']; // Default: only level1
-    }
-
     // Try to get from backend first
     try {
-      const response = await apiClient.get(`/lessons/unlocked/${userId}`);
+      const response = await apiClient.get(`/lessons/unlocked`);
       if (response.data?.success) {
         const unlockedLevels = response.data.data.unlockedLevels || ['level1'];
         console.log(`✅ Fetched unlocked levels from backend:`, unlockedLevels);
         
         // Cache locally
+        const user = await AsyncStorage.getItem('userData');
+        const userId = user ? JSON.parse(user).id : 'demo';
         await AsyncStorage.setItem(`${UNLOCK_CACHE_KEY}_${userId}`, JSON.stringify(unlockedLevels));
         return unlockedLevels;
       }
@@ -28,6 +26,8 @@ export const getUnlockedLevels = async (userId) => {
     }
 
     // Fallback to cached data
+    const user = await AsyncStorage.getItem('userData');
+    const userId = user ? JSON.parse(user).id : 'demo';
     const cached = await AsyncStorage.getItem(`${UNLOCK_CACHE_KEY}_${userId}`);
     if (cached) {
       const unlockedLevels = JSON.parse(cached);
@@ -46,9 +46,9 @@ export const getUnlockedLevels = async (userId) => {
 /**
  * Check if a level is unlocked for user
  */
-export const isLevelUnlocked = async (userId, levelId) => {
+export const isLevelUnlocked = async (levelId) => {
   try {
-    const unlockedLevels = await getUnlockedLevels(userId);
+    const unlockedLevels = await getUnlockedLevels();
     return unlockedLevels.includes(levelId);
   } catch (error) {
     console.error('❌ Error checking level unlock:', error);
@@ -59,17 +59,8 @@ export const isLevelUnlocked = async (userId, levelId) => {
 /**
  * Check unlock eligibility and unlock next level if qualified
  */
-export const checkAndUnlockNext = async (userId, levelId, { accuracy, score }) => {
+export const checkAndUnlockNext = async (levelId, { accuracy, score }) => {
   try {
-    if (!userId || userId === 'demo') {
-      // Demo users can't unlock
-      return {
-        success: false,
-        message: 'Demo users cannot unlock levels',
-        shouldUnlock: false,
-      };
-    }
-
     if (accuracy < 70) {
       return {
         success: true,
@@ -78,8 +69,8 @@ export const checkAndUnlockNext = async (userId, levelId, { accuracy, score }) =
       };
     }
 
-    // Call backend to check and unlock
-    const response = await apiClient.post(`/lessons/check-unlock/${userId}/${levelId}`, {
+    // Call backend to check and unlock (userId comes from JWT token)
+    const response = await apiClient.post(`/lessons/check-unlock/${levelId}`, {
       accuracy,
       score,
     });
@@ -89,9 +80,11 @@ export const checkAndUnlockNext = async (userId, levelId, { accuracy, score }) =
       
       if (shouldUnlock) {
         // Update local cache
-        const unlockedLevels = await getUnlockedLevels(userId);
+        const unlockedLevels = await getUnlockedLevels();
         if (!unlockedLevels.includes(nextLevel)) {
           unlockedLevels.push(nextLevel);
+          const user = await AsyncStorage.getItem('userData');
+          const userId = user ? JSON.parse(user).id : 'demo';
           await AsyncStorage.setItem(
             `${UNLOCK_CACHE_KEY}_${userId}`,
             JSON.stringify(unlockedLevels)
@@ -134,9 +127,11 @@ export const checkAndUnlockNext = async (userId, levelId, { accuracy, score }) =
 /**
  * Reset all unlocks for user (admin function)
  */
-export const resetAllUnlocks = async (userId) => {
+export const resetAllUnlocks = async () => {
   try {
     // Clear cache
+    const user = await AsyncStorage.getItem('userData');
+    const userId = user ? JSON.parse(user).id : 'demo';
     await AsyncStorage.removeItem(`${UNLOCK_CACHE_KEY}_${userId}`);
     console.log(`🔄 Reset all unlocks for ${userId}`);
     return { success: true };

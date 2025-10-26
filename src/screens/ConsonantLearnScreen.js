@@ -1,10 +1,13 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator, Image, ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import ThemedBackButton from '../components/ThemedBackButton';
+import FlipCard from '../components/FlipCard';
 import { restoreProgress, saveProgress, saveLocal, loadLocal } from '../services/progressService';
 import vaja9TtsService from '../services/vaja9TtsService';
 import { charToImage } from '../assets/letters/map';
 import { vowelToImage } from '../assets/vowels/map';
+import vocabFullData from '../data/vocab_full.json';
 
 // --- CONFIG ---
 const USER_ID = 'demo';
@@ -61,38 +64,38 @@ const thaiConsonants = [
 
 // ข้อมูลสระไทย 32 เสียง
 const thaiVowels = [
-  { id: 'a-short', char: 'ะ', name: 'อะ', meaning: 'Short A', roman: 'a', category: 'thai-vowels', image: vowelToImage['ะ'] },
-  { id: 'a-long', char: 'า', name: 'อา', meaning: 'Long A', roman: 'aa', category: 'thai-vowels', image: vowelToImage['า'] },
-  { id: 'i-short', char: 'ิ', name: 'อิ', meaning: 'Short I', roman: 'i', category: 'thai-vowels', image: vowelToImage['ิ'] },
-  { id: 'i-long', char: 'ี', name: 'อี', meaning: 'Long I', roman: 'ii', category: 'thai-vowels', image: vowelToImage['ี'] },
-  { id: 'ue-short', char: 'ึ', name: 'อึ', meaning: 'Short Ue', roman: 'ue', category: 'thai-vowels', image: vowelToImage['ึ'] },
-  { id: 'ue-long', char: 'ื', name: 'อือ', meaning: 'Long Ue', roman: 'uue', category: 'thai-vowels', image: vowelToImage['ื'] },
-  { id: 'u-short', char: 'ุ', name: 'อุ', meaning: 'Short U', roman: 'u', category: 'thai-vowels', image: vowelToImage['ุ'] },
-  { id: 'u-long', char: 'ู', name: 'อู', meaning: 'Long U', roman: 'uu', category: 'thai-vowels', image: vowelToImage['ู'] },
-  { id: 'e-short', char: 'เ-ะ', name: 'เอะ', meaning: 'Short E', roman: 'e', category: 'thai-vowels', image: vowelToImage['เ-ะ'] },
-  { id: 'e-long', char: 'เ-', name: 'เอ', meaning: 'Long E', roman: 'e', category: 'thai-vowels', image: vowelToImage['เ-'] },
-  { id: 'ae-short', char: 'แ-ะ', name: 'แอะ', meaning: 'Short AE', roman: 'ae', category: 'thai-vowels', image: vowelToImage['แ-ะ'] },
-  { id: 'ae-long', char: 'แ-', name: 'แอ', meaning: 'Long AE', roman: 'ae', category: 'thai-vowels', image: vowelToImage['แ-'] },
-  { id: 'o-short', char: 'โ-ะ', name: 'โอะ', meaning: 'Short O', roman: 'o', category: 'thai-vowels', image: vowelToImage['โ-ะ'] },
-  { id: 'o-long', char: 'โ-', name: 'โอ', meaning: 'Long O', roman: 'o', category: 'thai-vowels', image: vowelToImage['โ-'] },
-  { id: 'o-ao', char: 'เ-าะ', name: 'เอาะ', meaning: 'AO', roman: 'ao', category: 'thai-vowels', image: vowelToImage['เ-าะ'] },
-  { id: 'o-or', char: 'อ', name: 'ออ', meaning: 'OR', roman: 'or', category: 'thai-vowels', image: vowelToImage['อ'] },
-  { id: 'oe-short', char: 'เ-อะ', name: 'เออะ', meaning: 'Short OE', roman: 'oe', category: 'thai-vowels', image: vowelToImage['เ-อะ'] },
-  { id: 'oe-long', char: 'เ-อ', name: 'เออ', meaning: 'Long OE', roman: 'oe', category: 'thai-vowels', image: vowelToImage['เ-อ'] },
-  { id: 'ia-short', char: 'เ-ียะ', name: 'เอียะ', meaning: 'Short IA', roman: 'ia', category: 'thai-vowels', image: vowelToImage['เ-ียะ'] },
-  { id: 'ia-long', char: 'เ-ีย', name: 'เอีย', meaning: 'Long IA', roman: 'ia', category: 'thai-vowels', image: vowelToImage['เ-ีย'] },
-  { id: 'uea-short', char: 'เ-ือะ', name: 'เอือะ', meaning: 'Short UEA', roman: 'uea', category: 'thai-vowels', image: vowelToImage['เ-ือะ'] },
-  { id: 'uea-long', char: 'เ-ือ', name: 'เอือ', meaning: 'Long UEA', roman: 'uea', category: 'thai-vowels', image: vowelToImage['เ-ือ'] },
-  { id: 'ua-short', char: '-ัวะ', name: 'อัวะ', meaning: 'Short UA', roman: 'ua', category: 'thai-vowels', image: vowelToImage['-ัวะ'] },
-  { id: 'ua-long', char: '-ัว', name: 'อัว', meaning: 'Long UA', roman: 'ua', category: 'thai-vowels', image: vowelToImage['-ัว'] },
-  { id: 'am', char: 'ำ', name: 'อำ', meaning: 'AM', roman: 'am', category: 'thai-vowels', image: vowelToImage['ำ'] },
-  { id: 'ai-muan', char: 'ใ', name: 'ใอ', meaning: 'AI (Muan)', roman: 'ai', category: 'thai-vowels', image: vowelToImage['ใ'] },
-  { id: 'ai-malai', char: 'ไ', name: 'ไอ', meaning: 'AI (Malai)', roman: 'ai', category: 'thai-vowels', image: vowelToImage['ไ'] },
-  { id: 'ao', char: 'เ-า', name: 'เอา', meaning: 'AO', roman: 'ao', category: 'thai-vowels', image: vowelToImage['เ-า'] },
-  { id: 'rue', char: 'ฤ', name: 'ฤ', meaning: 'RUE', roman: 'rue', category: 'thai-vowels', image: vowelToImage['ฤ'] },
-  { id: 'rue-long', char: 'ฤๅ', name: 'ฤๅ', meaning: 'RUE Long', roman: 'rue', category: 'thai-vowels', image: vowelToImage['ฤๅ'] },
-  { id: 'lue', char: 'ฦ', name: 'ฦ', meaning: 'LUE', roman: 'lue', category: 'thai-vowels', image: vowelToImage['ฦ'] },
-  { id: 'lue-long', char: 'ฦๅ', name: 'ฦๅ', meaning: 'LUE Long', roman: 'lue', category: 'thai-vowels', image: vowelToImage['ฦๅ'] },
+  { id: 'a-short', char: 'ะ', name: 'อะ', audioText: 'สะหระ อะ', meaning: 'Short A', roman: 'a', category: 'thai-vowels', image: vowelToImage['ะ'] },
+  { id: 'a-long', char: 'า', name: 'อา', audioText: 'สะหระ อา', meaning: 'Long A', roman: 'aa', category: 'thai-vowels', image: vowelToImage['า'] },
+  { id: 'i-short', char: 'ิ', name: 'อิ', audioText: 'สะหระ อิ', meaning: 'Short I', roman: 'i', category: 'thai-vowels', image: vowelToImage['ิ'] },
+  { id: 'i-long', char: 'ี', name: 'อี', audioText: 'สะหระ อี', meaning: 'Long I', roman: 'ii', category: 'thai-vowels', image: vowelToImage['ี'] },
+  { id: 'ue-short', char: 'ึ', name: 'อึ', audioText: 'สะหระ อึ', meaning: 'Short Ue', roman: 'ue', category: 'thai-vowels', image: vowelToImage['ึ'] },
+  { id: 'ue-long', char: 'ื', name: 'อือ', audioText: 'สะหระ อือ', meaning: 'Long Ue', roman: 'uue', category: 'thai-vowels', image: vowelToImage['ื'] },
+  { id: 'u-short', char: 'ุ', name: 'อุ', audioText: 'สะหระ อุ', meaning: 'Short U', roman: 'u', category: 'thai-vowels', image: vowelToImage['ุ'] },
+  { id: 'u-long', char: 'ู', name: 'อู', audioText: 'สะหระ อู', meaning: 'Long U', roman: 'uu', category: 'thai-vowels', image: vowelToImage['ู'] },
+  { id: 'e-short', char: 'เ-ะ', name: 'เอะ', audioText: 'สะหระ เอะ', meaning: 'Short E', roman: 'e', category: 'thai-vowels', image: vowelToImage['เ-ะ'] },
+  { id: 'e-long', char: 'เ-', name: 'เอ', audioText: 'สะหระ เอ', meaning: 'Long E', roman: 'e', category: 'thai-vowels', image: vowelToImage['เ-'] },
+  { id: 'ae-short', char: 'แ-ะ', name: 'แอะ', audioText: 'สะหระ แอะ', meaning: 'Short AE', roman: 'ae', category: 'thai-vowels', image: vowelToImage['แ-ะ'] },
+  { id: 'ae-long', char: 'แ-', name: 'แอ', audioText: 'สะหระ แอ', meaning: 'Long AE', roman: 'ae', category: 'thai-vowels', image: vowelToImage['แ-'] },
+  { id: 'o-short', char: 'โ-ะ', name: 'โอะ', audioText: 'สะหระ โอะ', meaning: 'Short O', roman: 'o', category: 'thai-vowels', image: vowelToImage['โ-ะ'] },
+  { id: 'o-long', char: 'โ-', name: 'โอ', audioText: 'สะหระ โอ', meaning: 'Long O', roman: 'o', category: 'thai-vowels', image: vowelToImage['โ-'] },
+  { id: 'o-ao', char: 'เ-าะ', name: 'เอาะ', audioText: 'สะหระ เอาะ', meaning: 'AO', roman: 'ao', category: 'thai-vowels', image: vowelToImage['เ-าะ'] },
+  { id: 'o-or', char: 'อ', name: 'ออ', audioText: 'สะหระ ออ', meaning: 'OR', roman: 'or', category: 'thai-vowels', image: vowelToImage['อ'] },
+  { id: 'oe-short', char: 'เ-อะ', name: 'เออะ', audioText: 'สะหระ เออะ', meaning: 'Short OE', roman: 'oe', category: 'thai-vowels', image: vowelToImage['เ-อะ'] },
+  { id: 'oe-long', char: 'เ-อ', name: 'เออ', audioText: 'สะหระ เออ', meaning: 'Long OE', roman: 'oe', category: 'thai-vowels', image: vowelToImage['เ-อ'] },
+  { id: 'ia-short', char: 'เ-ียะ', name: 'เอียะ', audioText: 'สะหระ เอียะ', meaning: 'Short IA', roman: 'ia', category: 'thai-vowels', image: vowelToImage['เ-ียะ'] },
+  { id: 'ia-long', char: 'เ-ีย', name: 'เอีย', audioText: 'สะหระ เอีย', meaning: 'Long IA', roman: 'ia', category: 'thai-vowels', image: vowelToImage['เ-ีย'] },
+  { id: 'uea-short', char: 'เ-ือะ', name: 'เอือะ', audioText: 'สะหระ เอือะ', meaning: 'Short UEA', roman: 'uea', category: 'thai-vowels', image: vowelToImage['เ-ือะ'] },
+  { id: 'uea-long', char: 'เ-ือ', name: 'เอือ', audioText: 'สะหระ เอือ', meaning: 'Long UEA', roman: 'uea', category: 'thai-vowels', image: vowelToImage['เ-ือ'] },
+  { id: 'ua-short', char: '-ัวะ', name: 'อัวะ', audioText: 'สะหระ อัวะ', meaning: 'Short UA', roman: 'ua', category: 'thai-vowels', image: vowelToImage['-ัวะ'] },
+  { id: 'ua-long', char: '-ัว', name: 'อัว', audioText: 'สะหระ อัว', meaning: 'Long UA', roman: 'ua', category: 'thai-vowels', image: vowelToImage['-ัว'] },
+  { id: 'am', char: 'ำ', name: 'อำ', audioText: 'สะหระ อำ', meaning: 'AM', roman: 'am', category: 'thai-vowels', image: vowelToImage['ำ'] },
+  { id: 'ai-muan', char: 'ใ', name: 'ใอ', audioText: 'สะหระ ใอ', meaning: 'AI (Muan)', roman: 'ai', category: 'thai-vowels', image: vowelToImage['ใ'] },
+  { id: 'ai-malai', char: 'ไ', name: 'ไอ', audioText: 'สะหระ ไอ', meaning: 'AI (Malai)', roman: 'ai', category: 'thai-vowels', image: vowelToImage['ไ'] },
+  { id: 'ao', char: 'เ-า', name: 'เอา', audioText: 'สะหระ เอา', meaning: 'AO', roman: 'ao', category: 'thai-vowels', image: vowelToImage['เ-า'] },
+  { id: 'rue', char: 'ฤ', name: 'ฤ', audioText: 'สะหระ ฤ', meaning: 'RUE', roman: 'rue', category: 'thai-vowels', image: vowelToImage['ฤ'] },
+  { id: 'rue-long', char: 'ฤๅ', name: 'ฤๅ', audioText: 'สะหระ ฤๅ', meaning: 'RUE Long', roman: 'rue', category: 'thai-vowels', image: vowelToImage['ฤๅ'] },
+  { id: 'lue', char: 'ฦ', name: 'ฦ', audioText: 'สะหระ ฦ', meaning: 'LUE', roman: 'lue', category: 'thai-vowels', image: vowelToImage['ฦ'] },
+  { id: 'lue-long', char: 'ฦๅ', name: 'ฦๅ', audioText: 'สะหระ ฦๅ', meaning: 'LUE Long', roman: 'lue', category: 'thai-vowels', image: vowelToImage['ฦๅ'] },
 ];
 
 // ข้อมูลวรรณยุกต์ไทย
@@ -102,6 +105,125 @@ const thaiTones = [
   { id: 'mai-tri', char: '๊', name: 'ไม้ตรี', meaning: 'High Tone', roman: 'mai tri', category: 'thai-tones', image: require('../assets/tones/ไม้ตรี.png') },
   { id: 'mai-chattawa', char: '๋', name: 'ไม้จัตวา', meaning: 'Rising Tone', roman: 'mai chattawa', category: 'thai-tones', image: require('../assets/tones/ไม้จัตวา.png') },
 ];
+
+const VocabLearnCard = ({ item, onSpeak, seen }) => {
+  const mastered = seen?.mastered;
+  
+  // Load image from ADD_IMAGES with fuzzy matching
+  const getImageSource = () => {
+    try {
+      const ADD_IMAGES = require('../add/imageManifest').ADD_IMAGES;
+      
+      // Try exact match first
+      let imagePath = ADD_IMAGES[item.imageKey];
+      
+      if (imagePath) {
+        console.log(`✅ Found image: ${item.imageKey}`);
+        return imagePath;
+      }
+      
+      // If not found, search all keys for Thai name
+      if (item.thai) {
+        const category = item.imageKey?.split('/')[0] || '';
+        
+        // Get all keys with this category
+        const categoryKeys = Object.keys(ADD_IMAGES).filter(k => k.startsWith(`${category}/`));
+        
+        console.log(`⚠️ Searching in category "${category}" for: ${item.thai}`);
+        
+        // Try to find similar Thai names (fuzzy match)
+        for (const key of categoryKeys) {
+          const filename = key.replace(`${category}/`, '').replace('.png', '');
+          
+          // Check if similar (handles typos like ๊ vs ์)
+          if (filename.includes(item.thai) || item.thai.includes(filename)) {
+            console.log(`✅ Found fuzzy match: ${key}`);
+            imagePath = ADD_IMAGES[key];
+            break;
+          }
+        }
+      }
+      
+      if (!imagePath) {
+        console.log(`❌ No image found for: ${item.thai} (${item.imageKey})`);
+      }
+      
+      return imagePath;
+    } catch (e) {
+      console.log('Image loading error:', e);
+      return null;
+    }
+  };
+
+  const imageSource = getImageSource();
+
+  // Front of card - รูป + Thai + English
+  const front = (
+    <View style={[styles.card, styles.vocabCardLearn, mastered && styles.cardMastered]}>
+      <View style={styles.cardHeader}>
+        <Text style={styles.vocabChar}>{item.thai}</Text>
+        <TouchableOpacity style={styles.sound} onPress={(e) => { e.stopPropagation(); onSpeak(item); }}>
+          <Image source={require('../assets/icons/speaker.png')} style={styles.speakerIcon} />
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.imageBox}>
+        {imageSource ? (
+          <Image source={imageSource} style={styles.charImage} resizeMode="contain" />
+        ) : (
+          <Text style={styles.charEmoji}>{item.thai}</Text>
+        )}
+      </View>
+
+      <Text style={styles.name}>{item.english}</Text>
+
+      <View style={styles.footerRow}>
+        <Text style={styles.meta}>{item.english}</Text>
+        {seen ? (
+          <Text style={[styles.meta, mastered && { color: '#2e7d32', fontWeight: '700' }]}>
+            {mastered ? 'Mastered' : `Seen ${seen.correct + seen.wrong}x`}
+          </Text>
+        ) : (
+          <Text style={styles.meta}>New</Text>
+        )}
+      </View>
+    </View>
+  );
+
+  // Back of card - คำอธิบายสั้นๆ ไทย + อังกฤษ
+  const back = (
+    <View style={[styles.card, styles.vocabCardBack, mastered && styles.cardMastered]}>
+      <View style={styles.cardHeader}>
+        <Text style={styles.vocabChar}>{item.thai}</Text>
+        <TouchableOpacity style={styles.sound} onPress={(e) => { e.stopPropagation(); onSpeak(item); }}>
+          <Image source={require('../assets/icons/speaker.png')} style={styles.speakerIcon} />
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.backContentContainer}>
+        {/* Thai Description */}
+        <View style={styles.backSection}>
+          <Text style={styles.backLabel}>🇹🇭 คำอธิบาย</Text>
+          <Text style={styles.backTextThai}>{item.descriptionTH}</Text>
+        </View>
+        
+        {/* English Description */}
+        <View style={styles.backSection}>
+          <Text style={styles.backLabel}>🇬🇧 Description</Text>
+          <Text style={styles.backTextEnglish}>{item.descriptionEN}</Text>
+        </View>
+      </View>
+    </View>
+  );
+
+  return (
+    <FlipCard 
+      front={front} 
+      back={back} 
+      style={styles.flipCardWrapper}
+    />
+  );
+};
 
 const LearnCard = ({ item, onSpeak, seen, category }) => {
   const mastered = seen?.mastered;
@@ -171,7 +293,11 @@ const ConsonantLearnScreen = ({ navigation }) => {
   const [vowels, setVowels] = useState([]);
   const [tones, setTones] = useState([]);
   const [perLetter, setPerLetter] = useState({});
-  const [activeTab, setActiveTab] = useState('consonants'); // consonants | vowels | tones
+  const [activeTab, setActiveTab] = useState('consonants'); // consonants | vowels | tones | vocab
+  
+  // Vocab states
+  const [vocabCategories, setVocabCategories] = useState({});
+  const [activeVocabCategory, setActiveVocabCategory] = useState(null);
 
   useEffect(() => {
     const run = async () => {
@@ -183,6 +309,14 @@ const ConsonantLearnScreen = ({ navigation }) => {
         // ใช้ข้อมูลสระและวรรณยุกต์ที่กำหนดไว้
         setVowels(thaiVowels);
         setTones(thaiTones);
+        
+        // โหลด vocab categories
+        const categories = {};
+        Object.keys(vocabFullData).forEach(cat => {
+          categories[cat] = vocabFullData[cat];
+        });
+        setVocabCategories(categories);
+        setActiveVocabCategory(Object.keys(vocabFullData)[0]); // Default to first category
         
         const server = await loadLocal(USER_ID, LESSON_ID);
         if (server?.perLetter) setPerLetter(server.perLetter);
@@ -230,19 +364,17 @@ const ConsonantLearnScreen = ({ navigation }) => {
   };
 
   const onSpeak = async (it) => {
-    await vaja9TtsService.playThai(it.name || it.char);
-    markSeen(it.char, true);
+    // Handle different item types (consonants, vowels, tones, vocab)
+    const textToSpeak = it.audioText || it.name || it.thai || it.char || '';
+    await vaja9TtsService.playThai(textToSpeak);
+    
+    const keyToMark = it.char || it.thai || it.id;
+    if (keyToMark) markSeen(keyToMark, true);
   };
 
   const header = useMemo(() => (
     <View style={styles.header}>
-      <TouchableOpacity 
-        style={styles.backButton}
-        onPress={() => navigation.goBack()}
-        activeOpacity={0.7}
-      >
-        <Icon name="arrow-back" size={24} color="#2c3e50" />
-      </TouchableOpacity>
+      <ThemedBackButton style={styles.backButton} onPress={() => navigation.goBack()} />
       <View style={styles.headerContent}>
         <Text style={styles.title}>เรียนภาษาไทย</Text>
         <Text style={styles.subtitle}>พยัญชนะ • สระ • วรรณยุกต์</Text>
@@ -266,13 +398,18 @@ const ConsonantLearnScreen = ({ navigation }) => {
         <Text style={styles.sectionTitle}>{title}</Text>
         <Text style={styles.sectionCount}>{data.length} ตัว</Text>
       </View>
-      <View style={styles.cardsContainer}>
-        {data.map((item, index) => (
+      <FlatList
+        data={data}
+        numColumns={2}
+        scrollEnabled={false}
+        keyExtractor={(item, index) => item.id || `item-${index}`}
+        columnWrapperStyle={styles.columnWrapper}
+        contentContainerStyle={styles.flatListContent}
+        renderItem={({ item, index }) => (
           <TouchableOpacity 
-            key={item.id || index} 
             activeOpacity={0.9} 
             onPress={() => onSpeak(item)} 
-            style={styles.cardWrapper}
+            style={styles.gridCardWrapper}
           >
             <LearnCard 
               item={item} 
@@ -281,8 +418,8 @@ const ConsonantLearnScreen = ({ navigation }) => {
               category={category}
             />
           </TouchableOpacity>
-        ))}
-      </View>
+        )}
+      />
     </View>
   );
 
@@ -378,6 +515,14 @@ const ConsonantLearnScreen = ({ navigation }) => {
           <Text style={[styles.tabText, activeTab === 'tones' && styles.tabTextActive]}>วรรณยุกต์</Text>
           <Text style={[styles.tabCount, activeTab === 'tones' && styles.tabTextActive]}>4</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tabButton, activeTab === 'vocab' && styles.tabActive]}
+          onPress={() => setActiveTab('vocab')}
+          activeOpacity={0.8}
+        >
+          <Text style={[styles.tabText, activeTab === 'vocab' && styles.tabTextActive]}>คำศัพท์</Text>
+          <Text style={[styles.tabCount, activeTab === 'vocab' && styles.tabTextActive]}>273</Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -388,6 +533,56 @@ const ConsonantLearnScreen = ({ navigation }) => {
         {activeTab === 'consonants' && renderSection('พยัญชนะไทย', consonants, 'thai-consonants', '#FF8C00')}
         {activeTab === 'vowels' && renderSection('สระไทย', vowels, 'thai-vowels', '#FFA500')}
         {activeTab === 'tones' && renderTonesSection()}
+        
+        {activeTab === 'vocab' && (
+          <View style={styles.vocabContainer}>
+            {/* Category Tabs */}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryTabsContainer}>
+              {Object.keys(vocabCategories).map(cat => (
+                <TouchableOpacity
+                  key={cat}
+                  onPress={() => setActiveVocabCategory(cat)}
+                  style={[styles.categoryTab, activeVocabCategory === cat && styles.categoryTabActive]}
+                >
+                  <Text style={[styles.categoryTabText, activeVocabCategory === cat && styles.categoryTabTextActive]}>
+                    {cat}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            {/* Render active category */}
+            {activeVocabCategory && vocabCategories[activeVocabCategory] && (
+              <View style={styles.vocabSection}>
+                <Text style={styles.vocabSectionTitle}>{activeVocabCategory}</Text>
+                <Text style={styles.vocabSectionSubtitle}>
+                  {vocabCategories[activeVocabCategory].length} คำศัพท์
+                </Text>
+                <FlatList
+                  data={vocabCategories[activeVocabCategory]}
+                  numColumns={2}
+                  scrollEnabled={false}
+                  keyExtractor={(item, index) => item.thai || `vocab-${index}`}
+                  columnWrapperStyle={styles.columnWrapper}
+                  contentContainerStyle={styles.flatListContent}
+                  renderItem={({ item, index }) => (
+                    <TouchableOpacity 
+                      activeOpacity={0.9} 
+                      onPress={() => onSpeak(item)} 
+                      style={styles.gridCardWrapper}
+                    >
+                      <VocabLearnCard 
+                        item={item} 
+                        onSpeak={onSpeak} 
+                        seen={perLetter[item.thai]} 
+                      />
+                    </TouchableOpacity>
+                  )}
+                />
+              </View>
+            )}
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -414,10 +609,17 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#FFE6D4',
+    borderWidth: 2,
+    borderColor: '#FF8000',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
+    shadowColor: '#FF8000',
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
   },
   headerContent: {
     flex: 1,
@@ -483,15 +685,29 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    gap: 16,
   },
-  cardWrapper: { width: '48%', marginBottom: 12 },
+  cardWrapper: { 
+    width: '48%', 
+  },
+  columnWrapper: {
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  flatListContent: {
+    paddingBottom: 24,
+  },
+  gridCardWrapper: {
+    width: '48%',
+  },
 
   card: {
     backgroundColor: '#fff',
-    borderRadius: 20,
+    borderRadius: 24,
     borderWidth: 1,
     borderColor: '#e9ecef',
-    padding: 16,
+    padding: 20,
     shadowColor: '#000',
     shadowOpacity: 0.08,
     shadowRadius: 12,
@@ -501,6 +717,7 @@ const styles = StyleSheet.create({
   consonantCard: { borderLeftWidth: 4, borderLeftColor: '#FF6B6B' },
   vowelCard: { borderLeftWidth: 4, borderLeftColor: '#4ECDC4' },
   toneCard: { borderLeftWidth: 4, borderLeftColor: '#45B7D1' },
+  vocabCardLearn: { borderLeftWidth: 4, borderLeftColor: '#FF8000' },
   cardMastered: { borderColor: '#28a745', backgroundColor: '#f8fff9' },
   
   cardHeader: { 
@@ -513,6 +730,7 @@ const styles = StyleSheet.create({
   consonantChar: { fontSize: 32, fontWeight: '800', color: '#FF6B6B' },
   vowelChar: { fontSize: 32, fontWeight: '800', color: '#4ECDC4' },
   toneChar: { fontSize: 32, fontWeight: '800', color: '#45B7D1' },
+  vocabChar: { fontSize: 32, fontWeight: '800', color: '#FF8000' },
   
   sound: {
     width: 40, height: 40, borderRadius: 20,
@@ -633,6 +851,145 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: '#1f2d3d',
+  },
+  
+  // Vocab styles
+  vocabContainer: {
+    paddingVertical: 16,
+  },
+  categoryTabsContainer: {
+    marginBottom: 16,
+    paddingHorizontal: 8,
+  },
+  categoryTab: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginRight: 8,
+    backgroundColor: '#f0f0f0',
+  },
+  categoryTabActive: {
+    backgroundColor: '#FF8000',
+  },
+  categoryTabText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#666',
+  },
+  categoryTabTextActive: {
+    color: '#fff',
+    fontWeight: '700',
+  },
+  vocabSection: {
+    paddingHorizontal: 16,
+  },
+  vocabSectionTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    marginBottom: 4,
+    color: '#2c3e50',
+  },
+  vocabSectionSubtitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 16,
+    color: '#FF8000',
+  },
+  vocabGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    justifyContent: 'space-between',
+  },
+  vocabCard: {
+    width: '48%',
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#FFEDEB',
+    marginBottom: 12,
+    shadowColor: '#FF8000',
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
+    position: 'relative',
+    minHeight: 140,
+  },
+  vocabSound: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FFF5E5',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#FFD700',
+  },
+  vocabThai: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#FF8000',
+    marginTop: 8,
+    marginBottom: 6,
+    textAlign: 'center',
+  },
+  vocabEnglish: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#2c3e50',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  vocabDescription: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#7f8c8d',
+    textAlign: 'center',
+    lineHeight: 16,
+  },
+  
+  // Flip Card styles
+  flipCardWrapper: {
+    width: '100%',
+    height: 240,
+    marginBottom: 16,
+  },
+  vocabCardBack: {
+    backgroundColor: '#FFF8F0',
+    borderLeftWidth: 4,
+    borderLeftColor: '#FF6B6B',
+  },
+  backContentContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingVertical: 8,
+  },
+  backSection: {
+    marginBottom: 16,
+  },
+  backLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FF8000',
+    marginBottom: 6,
+  },
+  backTextThai: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#2c3e50',
+    lineHeight: 22,
+  },
+  backTextEnglish: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: '#495057',
+    lineHeight: 20,
+    fontStyle: 'italic',
   },
 
 });

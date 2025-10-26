@@ -1,0 +1,182 @@
+[
+  {
+    "id": "activity_001",
+    "thai": "กิน",
+    "roman": "gin",
+    "english": "eat",
+    "emoji": "🍽️",
+    "audioText": "กิน",
+    "image": "กิน.png"
+  },
+  {
+    "id": "activity_002",
+    "thai": "นอน",
+    "roman": "non",
+    "english": "sleep",
+    "emoji": "😴",
+    "audioText": "นอน",
+    "image": "นอน.png"
+  },
+  {
+    "id": "activity_003",
+    "thai": "วิ่ง",
+    "roman": "wing",
+    "english": "run",
+    "emoji": "🏃",
+    "audioText": "วิ่ง",
+    "image": "วิ่ง.png"
+  },
+  {
+    "id": "activity_004",
+    "thai": "เดิน",
+    "roman": "den",
+    "english": "walk",
+    "emoji": "🚶",
+    "audioText": "เดิน",
+    "image": "เดิน.png"
+  },
+  {
+    "id": "activity_005",
+    "thai": "อ่าน",
+    "roman": "aan",
+    "english": "read",
+    "emoji": "📖",
+    "audioText": "อ่าน",
+    "image": "อ่าน.png"
+  },
+  {
+    "id": "activity_006",
+    "thai": "เขียน",
+    "roman": "kian",
+    "english": "write",
+    "emoji": "✍️",
+    "audioText": "เขียน",
+    "image": "เขียน.png"
+  },
+  {
+    "id": "activity_007",
+    "thai": "พูด",
+    "roman": "phut",
+    "english": "speak",
+    "emoji": "🗣️",
+    "audioText": "พูด",
+    "image": "พูด.png"
+  },
+  {
+    "id": "activity_008",
+    "thai": "ฟัง",
+    "roman": "fang",
+    "english": "listen",
+    "emoji": "👂",
+    "audioText": "ฟัง",
+    "image": "ฟัง.png"
+  },
+  {
+    "id": "activity_009",
+    "thai": "เล่น",
+    "roman": "len",
+    "english": "play",
+    "emoji": "🎮",
+    "audioText": "เล่น",
+    "image": "เล่น.png"
+  },
+  {
+    "id": "activity_010",
+    "thai": "เต้น",
+    "roman": "ten",
+    "english": "dance",
+    "emoji": "💃",
+    "audioText": "เต้น",
+    "image": "เต้น.png"
+  },
+  {
+    "id": "activity_011",
+    "thai": "ว่ายน้ำ",
+    "roman": "wai nam",
+    "english": "swim",
+    "emoji": "🏊",
+    "audioText": "ว่ายน้ำ",
+    "image": "ว่ายน้ำ.png"
+  },
+  {
+    "id": "activity_012",
+    "thai": "ทำอาหาร",
+    "roman": "tham ahan",
+    "english": "cook",
+    "emoji": "👨‍🍳",
+    "audioText": "ทำอาหาร",
+    "image": "ทำอาหาร.png"
+  },
+  {
+    "id": "activity_013",
+    "thai": "ทำงาน",
+    "roman": "tham ngan",
+    "english": "work",
+    "emoji": "💼",
+    "audioText": "ทำงาน",
+    "image": "ทำงาน.png"
+  },
+  {
+    "id": "activity_014",
+    "thai": "เรียน",
+    "roman": "rian",
+    "english": "study",
+    "emoji": "📚",
+    "audioText": "เรียน",
+    "image": "เรียน.png"
+  },
+  {
+    "id": "activity_015",
+    "thai": "ขับรถ",
+    "roman": "khap rot",
+    "english": "drive",
+    "emoji": "🚗",
+    "audioText": "ขับรถ",
+    "image": "ขับรถ.png"
+  },
+  {
+    "id": "activity_016",
+    "thai": "เดินทาง",
+    "roman": "den thang",
+    "english": "travel",
+    "emoji": "✈️",
+    "audioText": "เดินทาง",
+    "image": "เดินทาง.png"
+  },
+  {
+    "id": "activity_017",
+    "thai": "ถ่ายรูป",
+    "roman": "thai rup",
+    "english": "take photos",
+    "emoji": "📸",
+    "audioText": "ถ่ายรูป",
+    "image": "ถ่ายรูป.png"
+  },
+  {
+    "id": "activity_018",
+    "thai": "ดูหนัง",
+    "roman": "du nang",
+    "english": "watch movies",
+    "emoji": "🎬",
+    "audioText": "ดูหนัง",
+    "image": "ดูหนัง.png"
+  },
+  {
+    "id": "activity_019",
+    "thai": "เล่นเกม",
+    "roman": "len kem",
+    "english": "play games",
+    "emoji": "🎯",
+    "audioText": "เล่นเกม",
+    "image": "เล่นเกม.png"
+  },
+  {
+    "id": "activity_020",
+    "thai": "ออกกำลังกาย",
+    "roman": "ok kamlang kai",
+    "english": "exercise",
+    "emoji": "💪",
+    "audioText": "ออกกำลังกาย",
+    "image": "ออกกำลังกาย.png"
+  }
+]

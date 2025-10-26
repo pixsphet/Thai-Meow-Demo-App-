@@ -212,7 +212,6 @@ const HomeScreen = ({ navigation }) => {
       left: 12,
       right: 12,
       bottom: 26,
-      backgroundColor: '#fff',
       elevation: 10,
       shadowColor: '#000',
       shadowOpacity: 0.12,
@@ -229,6 +228,8 @@ const HomeScreen = ({ navigation }) => {
       justifyContent: 'space-between',
       alignItems: 'center',
     };
+
+    const tabBarGradient = ['#FFF5E6', '#FFFFFF'];
 
     const tabItems = [
       {
@@ -258,7 +259,12 @@ const HomeScreen = ({ navigation }) => {
     ];
 
     return (
-      <View style={tabBarStyle}>
+      <LinearGradient
+        colors={tabBarGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={tabBarStyle}
+      >
         {tabItems.map((item) => (
           <TouchableOpacity
             key={item.name}
@@ -285,10 +291,10 @@ const HomeScreen = ({ navigation }) => {
             textAlign: 'center',
           }}>
               {item.label}
-            </Text>
-          </TouchableOpacity>
+          </Text>
+        </TouchableOpacity>
         ))}
-      </View>
+      </LinearGradient>
     );
   };
 

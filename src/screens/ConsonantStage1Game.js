@@ -253,33 +253,6 @@ const makeDragMatch = (word, pool, usedChars = new Set()) => {
   };
 };
 
-const makeFillBlank = (word, pool, usedChars = new Set()) => {
-  const wrongChoices = pool
-    .filter(w => w.char !== word.char && !usedChars.has(w.char))
-    .slice(0, 3);
-  const choices = shuffle([word, ...wrongChoices]).slice(0, 4);
-  
-  return {
-    id: `fb_${word.char}_${uid()}`,
-    type: QUESTION_TYPES.FILL_BLANK,
-    instruction: 'เติมคำในช่องว่าง',
-    questionText: `ตัวอักษร ____ อ่านว่า "${word.name}"`,
-    correctText: word.char,
-    // Rewards for this question
-    rewardXP: 15,      // XP for correct answer
-    rewardDiamond: 1,  // Diamond for correct answer
-    penaltyHeart: 1,   // Heart loss for wrong answer
-    choices: choices.map((c, i) => ({
-      id: i + 1,
-      thai: c.char,
-      roman: c.roman || c.name,
-      text: `${c.char}\n${c.roman || c.name}`, // Thai on top, Roman below
-      speakText: c.audioText || c.name || c.roman || c.char,
-      isCorrect: c.char === word.char,
-    })),
-  };
-};
-
 const makeArrange = (word) => {
   const parts = [`คำว่า`, word.char, `อ่านว่า`, word.name];
   const distractors = ['ครับ', 'ค่ะ', 'ไหม'];
@@ -478,9 +451,6 @@ const makeChallenge = (word, pool = [], usedChars = new Set()) => {
   // Add a LISTEN_CHOOSE
   subQuestions.push(makeListenChoose(word, pool, usedChars));
   
-  // Add a FILL_BLANK
-  subQuestions.push(makeFillBlank(word, pool, usedChars));
-  
   return {
     id: `ch_${word.char}_${uid()}`,
     type: QUESTION_TYPES.CHALLENGE,
@@ -527,14 +497,6 @@ const generateConsonantQuestions = (pool) => {
     questions.push(makeDragMatch(word, pool, usedChars));
   }
 
-  // FILL_BLANK × 3
-  for (let i = 0; i < 3; i++) {
-    const available = pool.filter(w => !usedChars.has(w.char));
-    if (available.length === 0) break;
-    const word = pick(available);
-    usedChars.add(word.char);
-    questions.push(makeFillBlank(word, pool, usedChars));
-  }
 
   // A_OR_B × 2
   for (let i = 0; i < 2; i++) {
@@ -1924,7 +1886,12 @@ const ConsonantStage1Game = ({ navigation, route }) => {
               <Text style={styles.progressText}>{currentIndex + 1} / {questions.length}</Text>
               <View style={styles.typePill}><Text style={styles.typePillText}>{getTypeLabel(currentQuestion.type)}</Text></View>
               <View style={styles.heartsDisplayContainer}>
-                <FontAwesome name="heart" size={16} color="#ff4b4b" />
+                <LottieView
+                  source={require('../assets/animations/Heart.json')}
+                  autoPlay
+                  loop
+                  style={styles.heartsIconAnimation}
+                />
                 <Text style={styles.heartsDisplay}>{hearts}</Text>
               </View>
             </View>
@@ -2856,6 +2823,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.dark,
     textAlign: 'center',
+  },
+  heartsIconAnimation: {
+    width: 20,
+    height: 20,
   },
 });
 

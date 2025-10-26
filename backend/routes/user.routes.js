@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { getUserStats, updateUserProfile, getCurrentUserStats, updateCurrentUserStats, changePassword } = require('../controllers/user.controller');
 const auth = require('../middleware/auth');
+const User = require('../models/User');
 
 // /api/user/stats/:userId
 router.get('/stats/:userId', getUserStats);
@@ -18,27 +19,45 @@ router.put('/profile', auth, updateUserProfile);
 // /api/user/change-password - Change password (from JWT)
 router.post('/change-password', auth, changePassword);
 
-// /api/user/unlock-level - Unlock a level for user
-router.post('/unlock-level', async (req, res) => {
+// /api/user/unlock-level - Unlock a level for authenticated user (userId from JWT)
+router.post('/unlock-level', auth, async (req, res) => {
   try {
-    const { userId, levelId } = req.body;
+    const userId = req.user.id;
+    const { levelId } = req.body;
     
-    if (!userId || !levelId) {
+    console.log('🔓 [Unlock Attempt] userId:', userId, 'levelId:', levelId);
+    if (!levelId) {
       return res.status(400).json({
         success: false,
-        message: 'userId and levelId are required'
+        message: 'levelId is required'
       });
     }
 
-    // For now, just return success - in a real app, you'd update the database
-    console.log(`🔓 Unlocking level ${levelId} for user ${userId}`);
+    // Update user's unlockedLevels if not already unlocked
+    const user = await User.findByIdAndUpdate(
+      userId,
+      {
+        $addToSet: { unlockedLevels: levelId }
+      },
+      { new: true }
+    ).select('unlockedLevels');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+    
+    console.log('✅ [Unlock Success] unlockedLevels:', user.unlockedLevels);
+    console.log(`✅ Level ${levelId} unlocked for user ${userId}`);
     
     res.json({
       success: true,
       message: `Level ${levelId} unlocked successfully`,
       data: {
-        userId,
         levelId,
+        unlockedLevels: user.unlockedLevels,
         unlockedAt: new Date().toISOString()
       }
     });

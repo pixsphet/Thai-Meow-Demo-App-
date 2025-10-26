@@ -16,6 +16,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import LottieView from 'lottie-react-native';
 import { FontAwesome } from '@expo/vector-icons';
+import ThemedBackButton from '../components/ThemedBackButton';
 import { useNavigation } from '@react-navigation/native';
 import { awardDiamondsOnce, calculateDiamondReward } from '../services/minigameRewards';
 import { useUnifiedStats } from '../contexts/UnifiedStatsContext';
@@ -311,12 +312,7 @@ const MemoryMatchScreen = ({ route }) => {
         style={styles.header}
       >
         <View style={styles.headerContent}>
-          <TouchableOpacity 
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <FontAwesome name="arrow-left" size={20} color="#fff" />
-          </TouchableOpacity>
+          <ThemedBackButton onPress={() => navigation.goBack()} style={styles.backButton} />
           
           <View style={styles.headerTitle}>
             <Text style={styles.headerTitleText}>Memory Match</Text>

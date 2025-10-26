@@ -31,6 +31,130 @@ const normalizeLessonId = (lessonId) => {
   return lessonId;
 };
 
+const NEXT_LEVEL_MAP = {
+  // Beginner levels
+  level1: 'level2',
+  level2: 'level3',
+  level3: 'level4',
+  level4: 'level5',
+  level5: 'level6',
+  level6: 'level7',
+  level7: 'level8',
+  level8: 'level9',
+  level9: 'level10',
+  level10: null,
+
+  // Intermediate levels
+  level_intermediate_1: 'level_intermediate_2',
+  level_intermediate_2: 'level_intermediate_3',
+  level_intermediate_3: 'level_intermediate_4',
+  level_intermediate_4: 'level_intermediate_5',
+  level_intermediate_5: null,
+
+  // Advanced levels
+  level1_advanced: 'level2_advanced',
+  level2_advanced: 'level3_advanced',
+  level3_advanced: 'level4_advanced',
+  level4_advanced: null,
+};
+
+const canonicalizeLevelId = (value) => {
+  if (value === null || value === undefined) return null;
+  if (typeof value === 'number') {
+    return `level${value}`;
+  }
+  if (typeof value === 'string') {
+    return value.trim();
+  }
+  return String(value);
+};
+
+const inferLevelTierFromContext = (lessonId, context = {}) => {
+  const tokens = [
+    lessonId,
+    context.levelId,
+    context.lessonKey,
+    context.gameMode,
+    context.category,
+    context.levelTier,
+  ]
+    .filter(Boolean)
+    .map(value => value.toString().toLowerCase());
+
+  if (tokens.some(token => token.includes('advanced'))) {
+    return 'advanced';
+  }
+  if (tokens.some(token => token.includes('intermediate'))) {
+    return 'intermediate';
+  }
+  return 'beginner';
+};
+
+const buildLevelIdFromTier = (tier, lessonNumber) => {
+  if (!Number.isFinite(lessonNumber)) return null;
+  switch (tier) {
+    case 'intermediate':
+      return `level_intermediate_${lessonNumber}`;
+    case 'advanced':
+      return `level${lessonNumber}_advanced`;
+    default:
+      return `level${lessonNumber}`;
+  }
+};
+
+const determineLessonKey = (lessonId, normalizedLessonId, levelTier, context = {}) => {
+  if (context?.levelId) return context.levelId;
+  if (context?.lessonKey) return context.lessonKey;
+  if (typeof lessonId === 'string' && lessonId.trim().length > 0) {
+    return lessonId;
+  }
+  if (Number.isFinite(normalizedLessonId)) {
+    return buildLevelIdFromTier(levelTier, normalizedLessonId) || `level${normalizedLessonId}`;
+  }
+  return null;
+};
+
+const resolveNextLevelId = (currentLevelId, levelTier, lessonNumber) => {
+  if (!currentLevelId && Number.isFinite(lessonNumber)) {
+    return buildLevelIdFromTier(levelTier, lessonNumber + 1);
+  }
+
+  const mapped = currentLevelId ? NEXT_LEVEL_MAP[currentLevelId] : undefined;
+  if (mapped !== undefined) {
+    return mapped;
+  }
+
+  if (Number.isFinite(lessonNumber)) {
+    return buildLevelIdFromTier(levelTier, lessonNumber + 1);
+  }
+
+  return null;
+};
+
+const normalizeUnlockEntry = (entry) => {
+  if (!entry || typeof entry !== 'object') {
+    return entry;
+  }
+
+  const normalizedLevelId = canonicalizeLevelId(
+    entry.levelId || entry.unlockedLevel || entry.currentLevel
+  );
+  const normalizedUnlockedLevel =
+    canonicalizeLevelId(
+      entry.unlockedLevel !== undefined ? entry.unlockedLevel : normalizedLevelId
+    ) || normalizedLevelId;
+  const normalizedLessonId = Number.isFinite(entry.lessonId)
+    ? entry.lessonId
+    : normalizeLessonId(normalizedLevelId || normalizedUnlockedLevel);
+
+  return {
+    ...entry,
+    levelId: normalizedLevelId || normalizedUnlockedLevel || entry.levelId,
+    unlockedLevel: normalizedUnlockedLevel || normalizedLevelId || entry.unlockedLevel,
+    lessonId: Number.isFinite(normalizedLessonId) ? normalizedLessonId : entry.lessonId,
+  };
+};
+
 /**
  * Game Progress Service - Comprehensive tracking and storage
  * Handles per-user progress, level unlocking, and offline sync
@@ -83,12 +207,25 @@ class GameProgressService {
     const accuracyRatio = Math.round((normalizedAccuracyPercent / 100) * 1000) / 1000;
 
     const normalizedLessonId = normalizeLessonId(lessonId);
+    const levelTier = inferLevelTierFromContext(lessonId, sessionData);
+    let lessonKey = determineLessonKey(lessonId, normalizedLessonId, levelTier, sessionData);
+    if (!lessonKey) {
+      if (typeof lessonId === 'string') {
+        lessonKey = lessonId;
+      } else if (Number.isFinite(normalizedLessonId)) {
+        lessonKey = `level${normalizedLessonId}`;
+      } else if (lessonId !== undefined && lessonId !== null) {
+        lessonKey = `level${lessonId}`;
+      } else {
+        lessonKey = 'level_unknown';
+      }
+    }
 
     const session = {
       id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       userId: this.userId,
       lessonId: Number.isFinite(normalizedLessonId) ? normalizedLessonId : lessonId,
-      lessonKey: typeof lessonId === 'string' ? lessonId : `level${lessonId}`,
+      lessonKey,
       category,
       score,
       accuracy: accuracyRatio,
@@ -106,7 +243,9 @@ class GameProgressService {
       correctAnswers: correctAnswers || 0,
       wrongAnswers: wrongAnswers || 0,
       createdAt: new Date().toISOString(),
-      synced: false
+      synced: false,
+      gameMode: sessionData.gameMode || null,
+      levelTier
     };
 
     try {
@@ -135,7 +274,15 @@ class GameProgressService {
       });
 
       // Check level unlock
-      await this.checkLevelUnlock(lessonId, normalizedAccuracyPercent);
+      const unlockContext = {
+        levelId: session.lessonKey,
+        lessonKey: session.lessonKey,
+        lessonNumber: Number.isFinite(normalizedLessonId) ? normalizedLessonId : undefined,
+        levelTier,
+        gameMode: sessionData.gameMode,
+        category
+      };
+      await this.checkLevelUnlock(lessonId, normalizedAccuracyPercent, unlockContext);
 
       console.log('✅ Game session saved:', session.id);
       return session;
@@ -366,39 +513,53 @@ class GameProgressService {
   /**
    * Check level unlock based on accuracy
    */
-  async checkLevelUnlock(lessonId, accuracy) {
+  async checkLevelUnlock(lessonId, accuracy, context = {}) {
     try {
       const accuracyPercent = accuracy <= 1 ? accuracy * 100 : accuracy;
-      if (accuracyPercent >= 70) {
-        const baseLessonId = normalizeLessonId(lessonId);
-        const nextLevelNumeric = Number.isFinite(baseLessonId) ? baseLessonId + 1 : baseLessonId;
-        const nextLevelId = Number.isFinite(nextLevelNumeric)
-          ? `level${nextLevelNumeric}`
-          : typeof lessonId === 'string'
-          ? lessonId
-          : `level${lessonId}`;
-        const unlockData = {
-          userId: this.userId,
-          unlockedLevel: nextLevelNumeric,
-          levelId: nextLevelId,
-          unlockedAt: new Date().toISOString(),
-          accuracy: accuracyPercent,
-          lessonId: normalizeLessonId(lessonId)
-        };
-
-        // Save unlock locally
-        await this.saveLevelUnlock(unlockData);
-
-        // Try to sync to server
-        if (this.isOnline) {
-          await this.syncLevelUnlockToServer(unlockData);
-        }
-
-        console.log(`🎉 Level ${nextLevelNumeric} unlocked! Accuracy: ${accuracyPercent}%`);
-        return unlockData;
+      if (accuracyPercent < 70) {
+        return null;
       }
+
+      const baseLessonId = Number.isFinite(context.lessonNumber)
+        ? context.lessonNumber
+        : normalizeLessonId(lessonId);
+      const levelTier = context.levelTier || inferLevelTierFromContext(lessonId, context);
+      const currentLevelId = canonicalizeLevelId(
+        context.levelId ||
+          context.lessonKey ||
+          (typeof lessonId === 'string'
+            ? lessonId
+            : buildLevelIdFromTier(levelTier, baseLessonId))
+      );
+      const nextLevelId = resolveNextLevelId(currentLevelId, levelTier, baseLessonId);
+
+      if (!nextLevelId) {
+        console.log(`ℹ️ No next level to unlock for ${currentLevelId || lessonId}`);
+        return null;
+      }
+
+      const unlockData = normalizeUnlockEntry({
+        userId: this.userId,
+        currentLevel: currentLevelId,
+        unlockedLevel: nextLevelId,
+        levelId: nextLevelId,
+        unlockedAt: new Date().toISOString(),
+        accuracy: accuracyPercent,
+        lessonId: Number.isFinite(baseLessonId) ? baseLessonId : normalizeLessonId(nextLevelId),
+        levelTier
+      });
+
+      await this.saveLevelUnlock(unlockData);
+
+      if (this.isOnline) {
+        await this.syncLevelUnlockToServer(unlockData);
+      }
+
+      console.log(`🎉 Level ${nextLevelId} unlocked! Accuracy: ${accuracyPercent}%`);
+      return unlockData;
     } catch (error) {
       console.error('❌ Error checking level unlock:', error);
+      return null;
     }
   }
 
@@ -409,13 +570,23 @@ class GameProgressService {
     try {
       const key = `${PROGRESS_KEYS.LEVEL_PROGRESS}_${this.userId}`;
       const existingUnlocks = await this.getLevelUnlocks();
+      const normalizedUnlockData = normalizeUnlockEntry(unlockData);
+
+      if (!normalizedUnlockData || !normalizedUnlockData.levelId) {
+        console.warn('⚠️ Skipping saveLevelUnlock due to missing levelId', unlockData);
+        return;
+      }
+
       const alreadyUnlocked = existingUnlocks.some(
-        (entry) =>
-          entry.unlockedLevel === unlockData.unlockedLevel ||
-          entry.levelId === unlockData.levelId
+        (entry) => entry.levelId === normalizedUnlockData.levelId
       );
-      const updatedUnlocks = alreadyUnlocked ? existingUnlocks : [...existingUnlocks, unlockData];
-      
+
+      const updatedUnlocks = alreadyUnlocked
+        ? existingUnlocks.map((entry) =>
+            entry.levelId === normalizedUnlockData.levelId ? { ...entry, ...normalizedUnlockData } : entry
+          )
+        : [...existingUnlocks, normalizedUnlockData];
+
       await AsyncStorage.setItem(key, JSON.stringify(updatedUnlocks));
     } catch (error) {
       console.error('❌ Error saving level unlock:', error);
@@ -429,7 +600,16 @@ class GameProgressService {
     try {
       const key = `${PROGRESS_KEYS.LEVEL_PROGRESS}_${this.userId}`;
       const unlocks = await AsyncStorage.getItem(key);
-      return unlocks ? JSON.parse(unlocks) : [];
+      if (!unlocks) {
+        return [];
+      }
+
+      const parsed = JSON.parse(unlocks);
+      if (!Array.isArray(parsed)) {
+        return [];
+      }
+
+      return parsed.map(normalizeUnlockEntry);
     } catch (error) {
       console.error('❌ Error getting level unlocks:', error);
       return [];
@@ -441,9 +621,16 @@ class GameProgressService {
    */
   async syncLevelUnlockToServer(unlockData) {
     try {
+      const levelId = canonicalizeLevelId(
+        unlockData.levelId || unlockData.unlockedLevel || unlockData.currentLevel
+      );
+      if (!levelId) {
+        throw new Error('Missing levelId for level unlock sync');
+      }
+
       const response = await apiClient.post('/user/unlock-level', {
         userId: this.userId,
-        levelId: unlockData.levelId
+        levelId
       });
       
       if (response.data.success) {

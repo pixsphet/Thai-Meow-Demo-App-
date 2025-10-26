@@ -1,48 +1,27 @@
-/*
-  Resolve an image require() for a given thai word and optional category.
-  Uses assets under /src/add/ based on user instruction. Fallback to generic icon.
-*/
+import { ADD_IMAGES } from '../add/imageManifest';
 
-// Static map for picture folder common items (extend gradually as needed)
-const pictureMap = {
-  'บ้าน': require('../add/picture/house.png'),
-  'โรงเรียน': require('../add/picture/school.png'),
-  'ตลาด': require('../add/picture/market.png'),
-  'เครื่องบิน': require('../add/picture/airplane.png'),
-  'แดง': require('../add/picture/red.png'),
-  'เขียว': require('../add/picture/green.png'),
-};
+// รับได้ 3 รูปแบบ:
+// 1) item.imageKey = "Animals/ช้าง"
+// 2) item.imagePath = "src/add/Animals/ช้าง.png"
+// 3) {categoryFolder, filename} แยกมาก็ได้
+export function resolveAddImage(item) {
+  if (!item) return null;
 
-export function resolveImage(thai, category) {
-  // First, try picture map
-  if (pictureMap[thai]) return pictureMap[thai];
+  // 1) imageKey ตรง ๆ
+  if (item.imageKey && ADD_IMAGES[item.imageKey]) return ADD_IMAGES[item.imageKey];
 
-  // Try structured folder by category and file name variants
-  const base = '../add';
-  const candidates = [];
-
-  if (category) {
-    // Attempt direct file with png/jpg
-    candidates.push(`${base}/${category}/${thai}.png`);
-    candidates.push(`${base}/${category}/${thai}.jpg`);
+  // 2) path เต็ม แปลงเป็น key
+  if (item.imagePath && item.imagePath.includes('/src/add/')) {
+    const rel = item.imagePath.split('/src/add/')[1]; // "Animals/ช้าง.png"
+    const withoutExt = rel.replace(/\.(png|jpg|jpeg|webp)$/i, '');
+    if (ADD_IMAGES[withoutExt]) return ADD_IMAGES[withoutExt];
   }
 
-  // Generic picture folder fallback
-  candidates.push(`${base}/picture/${thai}.png`);
-  candidates.push(`${base}/picture/${thai}.jpg`);
-
-  // Try require dynamically (must be static; so limit to known map)
-  // Since React Native require needs static paths, return undefined for unresolved cases.
-  try {
-    // Minimal safe placeholders by category could be added here in the future
-    // Fallback to a generic cat image placeholder
-    return require('../assets/images/Catsmile.png');
-  } catch (e) {
-    // Last resort: another bundled placeholder
-    return require('../assets/images/Grumpy Cat.png');
+  // 3) เดาจาก categoryFolder + thai
+  if (item.categoryFolder && item.thai) {
+    const key = `${item.categoryFolder}/${item.thai}`;
+    if (ADD_IMAGES[key]) return ADD_IMAGES[key];
   }
+
+  return null; // ให้ fallback เป็น text/emoji
 }
-
-export default { resolveImage };
-
-

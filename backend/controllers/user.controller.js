@@ -229,10 +229,19 @@ exports.updateCurrentUserStats = async (req, res, next) => {
     }
 
     if (payload.hearts !== undefined) {
+      const oldHearts = safeNumber(user.hearts, 0);
       const nextHearts = safeNumber(payload.hearts, user.hearts || 0);
       user.hearts = Math.max(0, nextHearts);
       if (payload.maxHearts !== undefined) {
         user.maxHearts = Math.max(0, safeNumber(payload.maxHearts, user.maxHearts || 0));
+      }
+      const deltaHearts = Math.max(0, safeNumber(user.hearts, 0) - oldHearts);
+      if (deltaHearts > 0) {
+        user.totalHeartsEarned = safeNumber(user.totalHeartsEarned, 0) + deltaHearts;
+        user.lastRewardAt = new Date();
+        user.rewardHistory = Array.isArray(user.rewardHistory)
+          ? [...user.rewardHistory, { type: 'reward', xp: 0, diamonds: 0, hearts: deltaHearts, reason: 'update', source: 'client', levelBefore: user.level, levelAfter: user.level, createdAt: new Date() }]
+          : [{ type: 'reward', xp: 0, diamonds: 0, hearts: deltaHearts, reason: 'update', source: 'client', levelBefore: user.level, levelAfter: user.level, createdAt: new Date() }];
       }
     }
 
@@ -241,9 +250,21 @@ exports.updateCurrentUserStats = async (req, res, next) => {
     }
 
     if (payload.diamonds !== undefined) {
-      user.diamonds = Math.max(0, safeNumber(payload.diamonds, user.diamonds || 0));
+      const newDiamonds = Math.max(0, safeNumber(payload.diamonds, user.diamonds || 0));
+      const oldDiamonds = safeNumber(user.diamonds, 0);
+      const deltaDiamonds = Math.max(0, newDiamonds - oldDiamonds);
+      user.diamonds = newDiamonds;
+      if (deltaDiamonds > 0) {
+        user.totalDiamondsEarned = safeNumber(user.totalDiamondsEarned, 0) + deltaDiamonds;
+        user.lastRewardAt = new Date();
+        user.rewardHistory = Array.isArray(user.rewardHistory)
+          ? [...user.rewardHistory, { type: 'reward', xp: 0, diamonds: deltaDiamonds, hearts: 0, reason: 'update', source: 'client', levelBefore: user.level, levelAfter: user.level, createdAt: new Date() }]
+          : [{ type: 'reward', xp: 0, diamonds: deltaDiamonds, hearts: 0, reason: 'update', source: 'client', levelBefore: user.level, levelAfter: user.level, createdAt: new Date() }];
+      }
     }
 
+    // Track leveledUp events
+    let previousLevel = user.level || 1;
     if (payload.xp !== undefined) {
       const xpValue = Math.max(0, safeNumber(payload.xp, user.xp || 0));
       user.xp = xpValue;
@@ -254,6 +275,35 @@ exports.updateCurrentUserStats = async (req, res, next) => {
 
     if (payload.level !== undefined) {
       user.level = Math.max(1, safeNumber(payload.level, user.level || 1));
+    }
+    const newLevel = user.level || 1;
+    if (newLevel > previousLevel) {
+      const now = new Date();
+      const diff = newLevel - previousLevel;
+      user.levelUps = (user.levelUps || 0) + diff;
+      user.lastLevelUpAt = now;
+      const rewardLog = {
+        type: 'level_up',
+        xp: safeNumber(payload.xpEarned || 0, 0),
+        diamonds: safeNumber(payload.diamondsEarned || 0, 0),
+        hearts: safeNumber(payload.heartsEarned || 0, 0),
+        reason: 'Level Up',
+        source: 'server:auto',
+        levelBefore: previousLevel,
+        levelAfter: newLevel,
+        createdAt: now,
+      };
+      user.rewardHistory = Array.isArray(user.rewardHistory) ? [...user.rewardHistory, rewardLog] : [rewardLog];
+      user.totalXpEarned = safeNumber(user.totalXpEarned, 0) + safeNumber(rewardLog.xp, 0);
+      user.totalDiamondsEarned = safeNumber(user.totalDiamondsEarned, 0) + safeNumber(rewardLog.diamonds, 0);
+      user.totalHeartsEarned = safeNumber(user.totalHeartsEarned, 0) + safeNumber(rewardLog.hearts, 0);
+      user.lastRewardAt = now;
+      if (rewardLog.diamonds) {
+        user.diamonds = Math.max(0, safeNumber(user.diamonds, 0) + rewardLog.diamonds);
+      }
+      if (Number.isFinite(rewardLog.hearts) && rewardLog.hearts > 0) {
+        user.hearts = Math.max(0, safeNumber(user.hearts, 0) + rewardLog.hearts);
+      }
     }
 
     if (payload.streak !== undefined) {
@@ -274,6 +324,34 @@ exports.updateCurrentUserStats = async (req, res, next) => {
         0,
         safeNumber(payload.lessonsCompleted, user.lessonsCompleted || 0)
       );
+    }
+
+    if (payload.leveledUp) {
+      const now = new Date();
+      user.levelUps = (user.levelUps || 0) + 1;
+      user.lastLevelUpAt = now;
+      const rewardLog = {
+        type: 'level_up',
+        xp: safeNumber(payload.xpEarned || payload.xpReward || 0, 0),
+        diamonds: safeNumber(payload.diamondsEarned || payload.diamondReward || 0, 0),
+        hearts: safeNumber(payload.heartsEarned || payload.heartReward || 0, 0),
+        reason: 'Level Up (client)',
+        source: 'client',
+        levelBefore: previousLevel,
+        levelAfter: user.level || previousLevel,
+        createdAt: now,
+      };
+      user.rewardHistory = Array.isArray(user.rewardHistory) ? [...user.rewardHistory, rewardLog] : [rewardLog];
+      user.totalXpEarned = safeNumber(user.totalXpEarned, 0) + safeNumber(rewardLog.xp, 0);
+      user.totalDiamondsEarned = safeNumber(user.totalDiamondsEarned, 0) + safeNumber(rewardLog.diamonds, 0);
+      user.totalHeartsEarned = safeNumber(user.totalHeartsEarned, 0) + safeNumber(rewardLog.hearts, 0);
+      user.lastRewardAt = now;
+      if (rewardLog.diamonds) {
+        user.diamonds = Math.max(0, safeNumber(user.diamonds, 0) + rewardLog.diamonds);
+      }
+      if (Number.isFinite(rewardLog.hearts) && rewardLog.hearts > 0) {
+        user.hearts = Math.max(0, safeNumber(user.hearts, 0) + rewardLog.hearts);
+      }
     }
 
     if (payload.totalSessions !== undefined) {

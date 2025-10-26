@@ -16,6 +16,9 @@ const UserSchema = new mongoose.Schema(
     diamonds: { type: Number, default: 0 },
     lessonsCompleted: { type: Number, default: 0 },
     maxStreak: { type: Number, default: 0 },
+  // Level up tracking
+  levelUps: { type: Number, default: 0 },
+  lastLevelUpAt: { type: Date, default: null },
     totalSessions: { type: Number, default: 0 },
     totalCorrectAnswers: { type: Number, default: 0 },
     totalWrongAnswers: { type: Number, default: 0 },
@@ -25,11 +28,31 @@ const UserSchema = new mongoose.Schema(
     lastGameResults: { type: mongoose.Schema.Types.Mixed, default: null },
     badges: { type: [String], default: [] },
     achievements: { type: [mongoose.Schema.Types.Mixed], default: [] },
+  // Reward logging and totals
+  rewardHistory: {
+    type: [
+      new mongoose.Schema({
+        type: { type: String, default: 'reward' }, // 'level_up' | 'reward'
+        xp: { type: Number, default: 0 },
+        diamonds: { type: Number, default: 0 },
+        hearts: { type: Number, default: 0 },
+        reason: { type: String, default: '' },
+        source: { type: String, default: '' },
+        levelBefore: { type: Number, default: null },
+        levelAfter: { type: Number, default: null },
+        createdAt: { type: Date, default: Date.now },
+      }, { _id: false })
+    ],
+    default: []
+  },
+  totalXpEarned: { type: Number, default: 0 },
+  totalDiamondsEarned: { type: Number, default: 0 },
+  totalHeartsEarned: { type: Number, default: 0 },
+  lastRewardAt: { type: Date, default: null },
     friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     unlockedLevels: { 
       type: [String], 
       default: ['level1'], // Only level1 unlocked by default
-      enum: ['level1', 'level2', 'level3', 'level4', 'level5', 'level6', 'level7', 'level8', 'level9', 'level10']
     },
   },
   { timestamps: true }

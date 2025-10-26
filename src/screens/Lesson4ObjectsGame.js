@@ -29,7 +29,31 @@ import { useUnifiedStats } from '../contexts/UnifiedStatsContext';
 import { useUserData } from '../contexts/UserDataContext';
 
 // Data
-import objectsFallback from '../data/lesson4_objects.json';
+import objectsFallback from '../data/lesson4_objects_data.json';
+
+// Object images from src/add/Objects directory
+const objectImages = {
+  'โต๊ะ': require('../add/Objects/โต๊ะ.png'),
+  'เก้าอี้': require('../add/Objects/เก้าอี้.png'),
+  'หนังสือ': require('../add/Objects/หนังสือ.png'),
+  'ปากกา': require('../add/Objects/ปากกา.png'),
+  'ดินสอ': require('../add/Objects/ดินสอ.png'),
+  'สมุด': require('../add/Objects/สมุด.png'),
+  'กระเป๋า': require('../add/Objects/กระเป๋า.png'),
+  'โทรศัพท์': require('../add/Objects/โทรศัพท์.png'),
+  'คอมพิวเตอร์': require('../add/Objects/คอมพิวเตอร์.png'),
+  'ทีวี': require('../add/Objects/ทีวี.png'),
+  'พัดลม': require('../add/Objects/พัดลม.png'),
+  'ตู้เย็น': require('../add/Objects/ตู้เย็น.png'),
+  'หมอน': require('../add/Objects/หมอน.png'),
+  'ผ้าห่ม': require('../add/Objects/ผ้าห่ม.png'),
+  'ประตู': require('../add/Objects/ประตู.png'),
+  'หน้าต่าง': require('../add/Objects/หน้าต่าง.png'),
+  'รองเท้า': require('../add/Objects/รองเท้า.png'),
+  'เสื้อ': require('../add/Objects/เสื้อ.png'),
+  'หมวก': require('../add/Objects/หมวก.png'),
+  'กุญแจ': require('../add/Objects/กุญแจ.png'),
+};
 
 const { width, height } = Dimensions.get('window');
 
@@ -39,7 +63,6 @@ const QUESTION_TYPES = {
   PICTURE_MATCH: 'PICTURE_MATCH',
   DRAG_MATCH: 'DRAG_MATCH',
   FILL_BLANK: 'FILL_BLANK',
-  ARRANGE_SENTENCE: 'ARRANGE_SENTENCE',
 };
 
 // Colors
@@ -71,6 +94,7 @@ const normalizeObject = (doc) => ({
   audioText: doc.audioText || doc.thai,
   en: doc.en,
   imagePath: doc.imagePath,
+  imageSource: objectImages[doc.thai] || null,
 });
 
 // UI helper for hint texts
@@ -84,8 +108,6 @@ const getHintText = (type) => {
       return 'แตะเพื่อจับคู่ ไทย ↔ English';
     case QUESTION_TYPES.FILL_BLANK:
       return 'แตะตัวเลือกเพื่อเติมคำให้ถูกต้อง';
-    case QUESTION_TYPES.ARRANGE_SENTENCE:
-      return 'แตะคำเรียงตามลำดับให้ถูกต้อง';
     default:
       return '';
   }
@@ -100,7 +122,6 @@ const getTypeLabel = (type) => {
     case QUESTION_TYPES.PICTURE_MATCH: return 'จับคู่จากรูปภาพ';
     case QUESTION_TYPES.DRAG_MATCH: return 'จับคู่ไทย ↔ English';
     case QUESTION_TYPES.FILL_BLANK: return 'เติมคำ';
-    case QUESTION_TYPES.ARRANGE_SENTENCE: return 'เรียงคำ';
     default: return '';
   }
 };
@@ -121,7 +142,7 @@ const makeListenChoose = (word, pool) => {
     correctText: word.char,
     choices: choices.map((c, i) => ({
       id: i + 1,
-      text: SHOW_ROMAN ? (c.roman || c.name) : c.char,
+      text: c.char, // Show only Thai
       speakText: c.audioText || c.char,
       isCorrect: c.char === word.char,
     })),
@@ -143,7 +164,7 @@ const makePictureMatch = (word, pool) => {
     correctText: word.char,
     choices: choices.map((c, i) => ({
       id: i + 1,
-      text: SHOW_ROMAN ? (c.roman || c.name) : c.char,
+      text: c.char, // Show only Thai
       speakText: c.audioText || c.char,
       isCorrect: c.char === word.char,
     })),
@@ -155,25 +176,32 @@ const makeDragMatch = (word, pool) => {
   const allWords = shuffle([word, ...otherWords]);
   
   const leftItems = allWords.map((w, i) => ({
-    id: `left_${i + 1}`,
+    id: i,
     text: w.char,
     correctMatch: w.en,
     speakText: w.audioText,
   }));
   
   const rightItems = allWords.map((w, i) => ({
-    id: `right_${i + 1}`,
+    id: i,
     text: w.en,
     thai: w.char,
     speakText: w.audioText,
   }));
   
+  // Shuffle right items for better gameplay
+  const rightItemsShuffled = shuffle([...rightItems]);
+  
   return {
     id: `dm_${word.char}_${uid()}`,
     type: QUESTION_TYPES.DRAG_MATCH,
-    instruction: 'จับคู่คำไทยกับคำอังกฤษ',
+    instruction: 'จับคู่คำไทยกับความหมายภาษาอังกฤษ',
     leftItems,
-    rightItems,
+    rightItems: rightItemsShuffled,
+    correctPairs: leftItems.map(left => ({
+      leftId: left.id,
+      rightId: rightItemsShuffled.findIndex(r => r.text === left.correctMatch),
+    })),
   };
 };
 
@@ -195,31 +223,18 @@ const makeFillBlank = (word, pool) => {
     type: QUESTION_TYPES.FILL_BLANK,
     instruction: 'เลือกคำมาเติมประโยคให้ถูกต้อง',
     questionText: template,
+    imageSource: word.imageSource,
     correctText: word.char,
     choices: choices.map((c, i) => ({
       id: i + 1,
-      text: SHOW_ROMAN ? (c.roman || c.name) : c.char,
+      text: c.char, // Show only Thai
       speakText: c.audioText || c.char,
       isCorrect: c.char === word.char,
     })),
   };
 };
 
-const makeArrange = (word, pool) => {
-  const parts = [`นี่คือ`, word.char, `ของฉัน`];
-  const distractors = ['ครับ', 'ค่ะ', 'ไหม', 'และ'];
-  const allParts = shuffle([...parts, ...distractors]);
-  
-  return {
-    id: `arr_${word.char}_${uid()}`,
-    type: QUESTION_TYPES.ARRANGE_SENTENCE,
-    instruction: 'เรียงคำให้ถูกต้อง',
-    correctOrder: parts,
-    allParts,
-  };
-};
-
-// Generate questions (target 14): LC×4, PM×3, DM×3, FB×2, ARR×2
+// Generate questions (target 12): LC×4, PM×3, DM×3, FB×2
 const generateObjectQuestions = (pool) => {
   const questions = [];
   const usedChars = new Set();
@@ -259,16 +274,7 @@ const generateObjectQuestions = (pool) => {
     usedChars.add(word.char);
     questions.push(makeFillBlank(word, pool));
   }
-  
-  // ARRANGE_SENTENCE × 2
-  for (let i = 0; i < 2; i++) {
-    const available = pool.filter(w => !usedChars.has(w.char));
-    if (available.length === 0) break;
-    const word = pick(available);
-    usedChars.add(word.char);
-    questions.push(makeArrange(word));
-  }
-  
+
   return shuffle(questions);
 };
 
@@ -281,13 +287,15 @@ const checkAnswer = (question, userAnswer) => {
       return userAnswer === question.correctText;
     
     case QUESTION_TYPES.DRAG_MATCH:
-      return userAnswer && userAnswer.every(pair => 
-        question.leftItems.find(left => left.id === pair.leftId)?.correctMatch ===
-        question.rightItems.find(right => right.id === pair.rightId)?.text
-      );
-    
-    case QUESTION_TYPES.ARRANGE_SENTENCE:
-      return Array.isArray(userAnswer) && JSON.stringify(userAnswer) === JSON.stringify(question.correctOrder);
+      if (!userAnswer || !Array.isArray(userAnswer)) return false;
+      // Check if all pairs are correctly connected
+      const allCorrect = userAnswer.length === question.leftItems.length &&
+        userAnswer.every(pair => {
+          const leftItem = question.leftItems.find(l => l.id === pair.leftId);
+          const rightItem = question.rightItems.find(r => r.id === pair.rightId);
+          return leftItem && rightItem && leftItem.correctMatch === rightItem.text;
+        });
+      return allCorrect;
     
     default:
       return false;
@@ -354,10 +362,11 @@ const Lesson4ObjectsGame = ({ navigation, route }) => {
   const [gameFinished, setGameFinished] = useState(false);
   const [loading, setLoading] = useState(true);
   const [resumeData, setResumeData] = useState(null);
-  const [dmSelected, setDmSelected] = useState({ leftId: null, rightId: null });
-  const [dmPairs, setDmPairs] = useState([]);
   const [checked, setChecked] = useState(false);
   const [lastCorrect, setLastCorrect] = useState(null);
+  const [dmConnections, setDmConnections] = useState({});
+  const [dmSelectedLeft, setDmSelectedLeft] = useState(null);
+  const [dmSelectedRight, setDmSelectedRight] = useState(null);
 
   // Refs
   const startTimeRef = useRef(Date.now());
@@ -531,19 +540,34 @@ const Lesson4ObjectsGame = ({ navigation, route }) => {
     }
   };
 
-  // Reset drag-match state when index changes
+  // Reset state when index changes
   useEffect(() => {
-    setDmSelected({ leftId: null, rightId: null });
-    setDmPairs([]);
     setChecked(false);
     setLastCorrect(null);
+    setDmSelectedLeft(null);
+    setDmSelectedRight(null);
   }, [currentIndex]);
+
+  // Sync dmConnections when currentAnswer changes (for DRAG_MATCH)
+  useEffect(() => {
+    if (currentAnswer && typeof currentAnswer === 'object' && Array.isArray(currentAnswer)) {
+      const conn = {};
+      currentAnswer.forEach(pair => {
+        conn[pair.leftId] = pair.rightId;
+      });
+      setDmConnections(conn);
+    } else {
+      setDmConnections({});
+    }
+  }, [currentAnswer]);
 
   // Next question
   const nextQuestion = () => {
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(currentIndex + 1);
       setCurrentAnswer(null);
+      setChecked(false);
+      setLastCorrect(null);
     } else {
       const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
       finishLesson(elapsed);
@@ -756,9 +780,10 @@ const Lesson4ObjectsGame = ({ navigation, route }) => {
               <Text style={styles.hintText}>{getHintText(question.type)}</Text>
               
               <View style={styles.imageContainer}>
-                <View style={styles.imageFallback}>
-                  <Text style={styles.charText}>{question.imageKey}</Text>
-                </View>
+                <Image
+                  source={question.imageSource || objectImages[question.imageKey]}
+                  style={styles.imageFallback}
+                />
               </View>
               
               <View style={styles.choicesContainer}>
@@ -786,101 +811,130 @@ const Lesson4ObjectsGame = ({ navigation, route }) => {
           </View>
         );
       
-      case QUESTION_TYPES.DRAG_MATCH:
+      case QUESTION_TYPES.DRAG_MATCH: {
+        const palette = ['#FF9635', '#4ECDC4', '#45B7D1', '#96CEB4', '#F7C873', '#DDA0DD', '#98D8C8', '#F7DC6F'];
+
+        const getColorForPair = (leftId) => {
+          const pairIndex = Object.keys(dmConnections).indexOf(String(leftId));
+          return palette[pairIndex % palette.length];
+        };
+
         return (
           <View style={styles.questionContainer}>
             <Text style={styles.instruction}>{question.instruction}</Text>
             <Text style={styles.hintText}>{getHintText(question.type)}</Text>
-            
-            {(dmSelected.leftId !== null || dmSelected.rightId !== null || dmPairs.length > 0) && (
-              <View style={styles.pairPreview}>
-                {dmPairs.map((p, idx) => (
-                  <View key={`pair-${idx}`} style={{ flexDirection:'row', alignItems:'center', marginRight:8 }}>
-                    <Text style={styles.pairPreviewText}>{question.leftItems.find(i=>i.id===p.leftId)?.text || '—'}</Text>
-                    <Text style={styles.pairArrow}> ↔ </Text>
-                    <Text style={styles.pairPreviewText}>{question.rightItems.find(i=>i.id===p.rightId)?.text || '—'}</Text>
-                  </View>
-                ))}
-                {(dmSelected.leftId !== null || dmSelected.rightId !== null) && (
-                  <View style={{ flexDirection:'row', alignItems:'center' }}>
-                    <Text style={[styles.pairPreviewText,{opacity:0.6}]}>{question.leftItems.find(i=>i.id===dmSelected.leftId)?.text || '—'}</Text>
-                    <Text style={styles.pairArrow}> ↔ </Text>
-                    <Text style={[styles.pairPreviewText,{opacity:0.6}]}>{question.rightItems.find(i=>i.id===dmSelected.rightId)?.text || '—'}</Text>
-                  </View>
-                )}
-              </View>
-            )}
 
-            <View style={styles.dragMatchContainer}>
-              <View style={styles.leftColumn}>
-                {question.leftItems.map((item) => (
-                  <TouchableOpacity
-                    key={item.id}
-                    style={[
-                      styles.dragItem,
-                      (dmSelected.leftId === item.id) && styles.dragItemSelected,
-                      dmPairs.some(p=>p.leftId===item.id) && styles.dragItemPaired,
-                    ]}
-                    onPress={() => {
-                      if (dmPairs.some(p=>p.leftId===item.id)) {
-                        const filtered = dmPairs.filter(p=>p.leftId!==item.id);
-                        setDmPairs(filtered);
-                        setCurrentAnswer(filtered);
-                        return;
-                      }
-                      const next = { leftId: item.id, rightId: dmSelected.rightId };
-                      if (next.rightId !== null) {
-                        const filtered = dmPairs.filter(p=>p.rightId!==next.rightId && p.leftId!==next.leftId);
-                        const updated = [...filtered, next];
-                        setDmPairs(updated);
-                        setCurrentAnswer(updated);
-                        setDmSelected({ leftId: null, rightId: null });
-                      } else {
-                        setDmSelected(next);
-                      }
-                    }}
-                  >
-                    <Text style={styles.dragItemText}>{item.text}</Text>
-                    <MaterialIcons name="volume-up" size={20} color={COLORS.gray} />
-                  </TouchableOpacity>
-                ))}
+            <View style={styles.matchingWrapper}>
+              <View style={styles.matchingHeaderRow}>
+                <Text style={styles.matchingHeaderLabel}>ไทย</Text>
+                <Text style={styles.matchingHeaderLabel}>English</Text>
               </View>
-              
-              <View style={styles.rightColumn}>
-                {question.rightItems.map((item, idx) => (
-                  <TouchableOpacity
-                    key={idx}
-                    style={[
-                      styles.dragItem,
-                      (dmSelected.rightId === idx) && styles.dragItemSelected,
-                      dmPairs.some(p=>p.rightId===idx) && styles.dragItemPaired,
-                    ]}
-                    onPress={() => {
-                      if (dmPairs.some(p=>p.rightId===idx)) {
-                        const filtered = dmPairs.filter(p=>p.rightId!==idx);
-                        setDmPairs(filtered);
-                        setCurrentAnswer(filtered);
-                        return;
-                      }
-                      const next = { leftId: dmSelected.leftId, rightId: idx };
-                      if (next.leftId !== null) {
-                        const filtered = dmPairs.filter(p=>p.rightId!==next.rightId && p.leftId!==next.leftId);
-                        const updated = [...filtered, next];
-                        setDmPairs(updated);
-                        setCurrentAnswer(updated);
-                        setDmSelected({ leftId: null, rightId: null });
-                      } else {
-                        setDmSelected(next);
-                      }
-                    }}
-                  >
-                    <Text style={styles.dragItemText}>{item.text}</Text>
-                  </TouchableOpacity>
-                ))}
+              <View style={styles.matchingColumns}>
+                <View style={styles.matchingColumn}>
+                  {question.leftItems.map((item) => {
+                    const pairedRight = dmConnections[item.id];
+                    const isSelected = dmSelectedLeft === item.id;
+                    const color = pairedRight !== undefined ? getColorForPair(item.id) : '#e0e0e0';
+
+                    return (
+                      <TouchableOpacity
+                        key={item.id}
+                        style={[
+                          styles.matchCard,
+                          isSelected && styles.matchCardSelected,
+                          pairedRight !== undefined && [
+                            styles.matchCardPaired,
+                            { borderColor: color, backgroundColor: `${color}1A` },
+                          ],
+                        ]}
+                        onPress={() => {
+                          if (pairedRight !== undefined) {
+                            const next = { ...dmConnections };
+                            delete next[item.id];
+                            setDmConnections(next);
+                            const newPairs = Object.entries(next).map(([l, r]) => ({
+                              leftId: parseInt(l, 10),
+                              rightId: r,
+                            }));
+                            setCurrentAnswer(newPairs);
+                            return;
+                          }
+                          setDmSelectedLeft(item.id);
+                          setDmSelectedRight(null);
+                        }}
+                      >
+                        <Text style={styles.matchCardText}>{item.text}</Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+
+                <View style={styles.matchingDivider} />
+
+                <View style={styles.matchingColumn}>
+                  {question.rightItems.map((item, index) => {
+                    const pairedLeftEntry = Object.entries(dmConnections).find(([, r]) => r === index);
+                    const pairedLeftId = pairedLeftEntry ? Number(pairedLeftEntry[0]) : null;
+                    const isSelected = dmSelectedRight === index;
+                    const color = pairedLeftId !== null ? getColorForPair(pairedLeftId) : '#e0e0e0';
+
+                    return (
+                      <TouchableOpacity
+                        key={index}
+                        style={[
+                          styles.matchCard,
+                          isSelected && styles.matchCardSelected,
+                          pairedLeftId !== null && [
+                            styles.matchCardPaired,
+                            { borderColor: color, backgroundColor: `${color}1A` },
+                          ],
+                        ]}
+                        onPress={() => {
+                          if (pairedLeftId !== null) {
+                            const next = Object.entries(dmConnections)
+                              .filter(([l]) => Number(l) !== pairedLeftId)
+                              .reduce((acc, [l, r]) => ({ ...acc, [l]: r }), {});
+                            setDmConnections(next);
+                            const newPairs = Object.entries(next).map(([l, r]) => ({
+                              leftId: parseInt(l, 10),
+                              rightId: r,
+                            }));
+                            setCurrentAnswer(newPairs);
+                            return;
+                          }
+                          if (dmSelectedLeft !== null) {
+                            const next = { ...dmConnections, [dmSelectedLeft]: index };
+                            setDmConnections(next);
+                            setDmSelectedLeft(null);
+                            setDmSelectedRight(null);
+                            const newPairs = Object.entries(next).map(([l, r]) => ({
+                              leftId: parseInt(l, 10),
+                              rightId: r,
+                            }));
+                            setCurrentAnswer(newPairs);
+                            return;
+                          }
+                          setDmSelectedRight(index);
+                          setDmSelectedLeft(null);
+                        }}
+                      >
+                        <View style={styles.matchCardRightContent}>
+                          <View style={{ flex: 1 }}>
+                            <Text style={styles.matchCardText}>{item.text}</Text>
+                            {item.subLabel ? (
+                              <Text style={styles.matchCardSubText}>{item.subLabel}</Text>
+                            ) : null}
+                          </View>
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
               </View>
             </View>
           </View>
         );
+      }
       
       case QUESTION_TYPES.FILL_BLANK:
         return (
@@ -889,6 +943,15 @@ const Lesson4ObjectsGame = ({ navigation, route }) => {
               <Text style={styles.instruction}>{question.instruction}</Text>
               <Text style={styles.questionText}>{question.questionText}</Text>
               <Text style={styles.hintText}>{getHintText(question.type)}</Text>
+              {question.imageSource && (
+                <View style={styles.imageContainer}>
+                  <Image
+                    source={question.imageSource}
+                    style={styles.objectImage}
+                    resizeMode="contain"
+                  />
+                </View>
+              )}
               
               <View style={styles.choicesContainer}>
                 {question.choices.map((choice) => (
@@ -904,43 +967,6 @@ const Lesson4ObjectsGame = ({ navigation, route }) => {
                   </TouchableOpacity>
                 ))}
               </View>
-            </View>
-          </View>
-        );
-      
-      case QUESTION_TYPES.ARRANGE_SENTENCE:
-        return (
-          <View style={styles.questionContainer}>
-            <Text style={styles.instruction}>{question.instruction}</Text>
-            <Text style={styles.hintText}>{getHintText(question.type)}</Text>
-            
-            <View style={styles.arrangeContainer}>
-              <Text style={styles.arrangeText}>
-                {currentAnswer ? currentAnswer.join(' ') : 'เรียงคำให้ถูกต้อง'}
-              </Text>
-            </View>
-            
-            <View style={styles.choicesContainer}>
-              {question.allParts.map((part, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={[
-                    styles.choiceButton,
-                    currentAnswer && currentAnswer.includes(part) && styles.choiceSelected,
-                  ]}
-                  onPress={() => {
-                    if (!currentAnswer) {
-                      setCurrentAnswer([part]);
-                    } else if (!currentAnswer.includes(part)) {
-                      setCurrentAnswer([...currentAnswer, part]);
-                    } else {
-                      setCurrentAnswer(currentAnswer.filter(p => p !== part));
-                    }
-                  }}
-                >
-                  <Text style={styles.choiceText}>{part}</Text>
-                </TouchableOpacity>
-              ))}
             </View>
           </View>
         );
@@ -1017,56 +1043,84 @@ const Lesson4ObjectsGame = ({ navigation, route }) => {
       />
       
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="arrow-back" size={24} color={COLORS.dark} />
-        </TouchableOpacity>
-        
-        <View style={styles.progressContainer}>
-          <View style={styles.progressBar}>
-            <View style={[styles.progressFill, { width: `${progress}%` }]} />
-          </View>
-          <View style={styles.headerMetaRow}>
-            <Text style={styles.progressText}>{currentIndex + 1} / {questions.length}</Text>
-            <View style={styles.typePill}><Text style={styles.typePillText}>{getTypeLabel(currentQuestion.type)}</Text></View>
+      <LinearGradient
+        colors={['#FF8000', '#FFA24D', '#FFD700']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.headerGradient}
+      >
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <FontAwesome name="times" size={26} color={COLORS.white} />
+          </TouchableOpacity>
+          
+          <View style={styles.progressContainer}>
+            <View style={styles.progressBar}>
+              <LinearGradient
+                colors={['#58cc02', '#7FD14F']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={[styles.progressFill, { width: `${progress}%` }]}
+              />
+            </View>
+            <View style={styles.headerMetaRow}>
+              <Text style={styles.progressText}>{currentIndex + 1} / {questions.length}</Text>
+              <View style={styles.typePill}><Text style={styles.typePillText}>{getTypeLabel(currentQuestion.type)}</Text></View>
+              <View style={styles.heartsDisplayContainer}>
+                <LottieView
+                  source={require('../assets/animations/Heart.json')}
+                  autoPlay
+                  loop
+                  style={styles.heartsIconAnimation}
+                />
+                <Text style={styles.heartsDisplay}>{hearts}</Text>
+              </View>
+            </View>
           </View>
         </View>
-      </View>
+      </LinearGradient>
 
-      {/* Stats Row */}
+      {/* Stats Row - Enhanced */}
       <View style={styles.statsRow}>
-        <View style={styles.statBadge}>
+        <View style={styles.statBadgeEnhanced}>
           <LottieView
             source={require('../assets/animations/Star.json')}
             autoPlay
             loop
             style={styles.starAnimation}
           />
-          <Text style={styles.statText}>{xpEarned} XP</Text>
+          <View style={styles.statTextContainer}>
+            <Text style={styles.statLabel}>XP</Text>
+            <Text style={styles.statValue}>{xpEarned}</Text>
+          </View>
         </View>
-        <View style={styles.statBadge}>
+        
+        <View style={styles.statDivider} />
+        
+        <View style={styles.statBadgeEnhanced}>
           <LottieView
             source={require('../assets/animations/Diamond.json')}
             autoPlay
             loop
             style={styles.diamondAnimation}
           />
-          <Text style={styles.statText}>+{diamondsEarned}</Text>
+          <View style={styles.statTextContainer}>
+            <Text style={styles.statLabel}>Diamonds</Text>
+            <Text style={styles.statValue}>+{diamondsEarned}</Text>
+          </View>
         </View>
-        <View style={styles.statBadge}>
-          <Text style={styles.statText}>🎯 {Math.min(100, Math.max(0, Math.round((score / Math.max(1, currentIndex)) * 100)))}%</Text>
-        </View>
-        <View style={styles.statBadge}>
-          <LottieView
-            source={require('../assets/animations/Streak-Fire1.json')}
-            autoPlay
-            loop
-            style={styles.streakAnimation}
-          />
-          <Text style={styles.statText}>{streak}</Text>
+        
+        <View style={styles.statDivider} />
+        
+        <View style={styles.statBadgeEnhanced}>
+          <FontAwesome name="bullseye" size={18} color={COLORS.primary} />
+          <View style={styles.statTextContainer}>
+            <Text style={styles.statLabel}>Accuracy</Text>
+            <Text style={styles.statValue}>{Math.min(100, Math.max(0, Math.round((score / Math.max(1, questions.length)) * 100)))}%</Text>
+          </View>
         </View>
       </View>
 
@@ -1075,24 +1129,61 @@ const Lesson4ObjectsGame = ({ navigation, route }) => {
         {renderQuestionComponent()}
       </ScrollView>
 
-      {/* Check Button */}
-      <View style={styles.checkContainer}>
+      {/* Check Button & Feedback - Enhanced 2-Phase */}
+      <View style={styles.checkContainerEnhanced}>
+        {lastCorrect !== null && (
+          <View style={[
+            styles.feedbackBadgeEnhanced,
+            lastCorrect ? styles.feedbackCorrectEnhanced : styles.feedbackWrongEnhanced
+          ]}>
+            <FontAwesome 
+              name={lastCorrect ? 'check-circle' : 'times-circle'} 
+              size={24} 
+              color={lastCorrect ? '#58cc02' : '#ff4b4b'}
+              style={{ marginRight: 8 }}
+            />
+            <Text style={styles.feedbackTextEnhanced}>
+              {lastCorrect ? 'ถูกต้อง! ยอดเยี่ยม' : 'พยายามอีกครั้ง'}
+            </Text>
+          </View>
+        )}
         <TouchableOpacity
           style={[
-            styles.checkButton,
-            currentAnswer === null && !checked && styles.checkButtonDisabled,
+            styles.checkButtonEnhanced,
+            currentAnswer === null && styles.checkButtonDisabledEnhanced,
           ]}
-          onPress={handleCheckAnswer}
-          disabled={currentAnswer === null && !checked}
-          activeOpacity={0.9}
+          onPress={() => {
+            if (checked) {
+              setChecked(false);
+              setLastCorrect(null);
+              if (hearts === 0) {
+                const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+                finishLesson(elapsed);
+              } else {
+                nextQuestion();
+              }
+            } else {
+              handleCheckAnswer();
+            }
+          }}
+          disabled={currentAnswer === null}
+          activeOpacity={0.85}
         >
           <LinearGradient
-            colors={[COLORS.primary, '#FFA24D']}
+            colors={currentAnswer === null ? ['#ddd', '#ccc'] : [COLORS.primary, '#FFA24D']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={styles.checkGradient}
+            style={styles.checkGradientEnhanced}
           >
-            <Text style={styles.checkButtonText}>{checked ? 'NEXT' : 'CHECK'}</Text>
+            <FontAwesome 
+              name={checked ? 'arrow-right' : 'check'} 
+              size={20} 
+              color={COLORS.white}
+              style={{ marginRight: 8 }}
+            />
+            <Text style={styles.checkButtonTextEnhanced}>
+              {checked ? (hearts === 0 ? 'จบเกม' : 'ต่อไป') : 'CHECK'}
+            </Text>
           </LinearGradient>
         </TouchableOpacity>
       </View>
@@ -1203,6 +1294,18 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 2,
   },
+  headerGradient: {
+    paddingTop: 40, // Adjust for status bar
+    paddingBottom: 15,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.lightGray,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 2,
+  },
   backButton: {
     marginRight: 15,
   },
@@ -1248,6 +1351,27 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLORS.primary,
   },
+  heartsDisplayContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.cream,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#FFE3CC',
+  },
+  heartsDisplay: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.dark,
+    marginLeft: 5,
+  },
+  heartsIconAnimation: {
+    width: 20,
+    height: 20,
+    marginRight: 5,
+  },
   statsRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -1263,26 +1387,40 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  statBadge: {
+  statBadgeEnhanced: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.white,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 15,
+    borderRadius: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 1,
     borderWidth: 1,
-    borderColor: '#F2F2F2',
+    borderColor: '#F5F5F5',
   },
-  statText: {
-    fontSize: 14,
+  statTextContainer: {
+    marginLeft: 8,
+  },
+  statLabel: {
+    fontSize: 10,
+    color: '#999',
+    marginBottom: 2,
     fontWeight: '600',
+  },
+  statValue: {
+    fontSize: 14,
+    fontWeight: '700',
     color: COLORS.dark,
-    marginLeft: 5,
+  },
+  statDivider: {
+    width: 1,
+    height: '80%',
+    backgroundColor: '#E8E8E8',
+    marginHorizontal: 10,
   },
   starAnimation: {
     width: 20,
@@ -1356,6 +1494,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 30,
   },
+  objectImage: {
+    width: 140,
+    height: 140,
+    borderRadius: 15,
+  },
   imageFallback: {
     width: 120,
     height: 120,
@@ -1425,30 +1568,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: COLORS.white,
-    paddingVertical: 15,
-    paddingHorizontal: 15,
-    borderRadius: 10,
+    paddingVertical: 13,
+    paddingHorizontal: 14,
+    borderRadius: 12,
     marginBottom: 10,
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: COLORS.lightGray,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 1,
   },
   dragItemSelected: {
     borderColor: COLORS.primary,
     backgroundColor: COLORS.cream,
-    transform: [{ scale: 1.02 }]
+    transform: [{ scale: 1.03 }],
+    shadowOpacity: 0.1,
+    elevation: 3,
   },
   dragItemPaired: {
     borderColor: '#4CAF50',
     backgroundColor: 'rgba(76,175,80,0.08)'
   },
   dragItemText: {
-    fontSize: 16,
-    fontWeight: '500',
+    fontSize: 15,
+    fontWeight: '600',
     color: COLORS.dark,
     flex: 1,
   },
@@ -1480,18 +1625,143 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     fontWeight: '900',
   },
-  arrangeContainer: {
-    backgroundColor: COLORS.cream,
-    padding: 20,
-    borderRadius: 15,
-    marginBottom: 20,
+  connectionPreview: {
+    backgroundColor: COLORS.white,
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#F2F2F2',
   },
-  arrangeText: {
-    fontSize: 18,
+  connectionTitle: {
+    fontSize: 14,
     fontWeight: '600',
+    color: COLORS.dark,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  pairTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 10,
+    marginBottom: 4,
+    borderWidth: 1,
+    borderColor: '#FFE3CC',
+  },
+  pairDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 6,
+  },
+  pairTagText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  pairRemoveBtn: {
+    marginLeft: 10,
+    padding: 2,
+  },
+  pairRemoveX: {
+    fontSize: 16,
+    color: COLORS.gray,
+  },
+  columnHeader: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.dark,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  pairIndicator: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+  },
+  matchingWrapper: {
+    marginTop: 12,
+    backgroundColor: '#FFF4E5',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 18,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  matchingHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  matchingHeaderLabel: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '700',
     color: COLORS.dark,
     textAlign: 'center',
   },
+  matchingColumns: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  matchingColumn: {
+    flex: 1,
+  },
+  matchingDivider: {
+    width: 14,
+  },
+  matchCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 14,
+    marginBottom: 12,
+    borderWidth: 2,
+    borderColor: '#FFE1C4',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  matchCardSelected: {
+    borderColor: COLORS.primary,
+    backgroundColor: 'rgba(255,128,0,0.08)',
+  },
+  matchCardPaired: {
+    borderWidth: 2.5,
+  },
+  matchCardText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.dark,
+    textAlign: 'center',
+  },
+  matchCardRightContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  matchCardSubText: {
+    marginTop: 4,
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#7A7A7A',
+    textAlign: 'center',
+  },
+
   checkContainer: {
     padding: 20,
     backgroundColor: COLORS.white,
@@ -1520,11 +1790,119 @@ const styles = StyleSheet.create({
     shadowOpacity: 0,
     elevation: 0,
   },
+  feedbackContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    marginBottom: 4,
+  },
+  feedbackText: {
+    fontSize: 16,
+    fontWeight: '700',
+    flex: 1,
+  },
+  nextButton: {
+    backgroundColor: 'rgba(255,128,0,0.9)',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    marginLeft: 12,
+  },
+  nextButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
   checkButtonText: {
     fontSize: 18,
     fontWeight: 'bold',
     color: COLORS.white,
     letterSpacing: 0.5,
+  },
+  statTextContainer: {
+    marginLeft: 8,
+  },
+  statLabel: {
+    fontSize: 11,
+    color: COLORS.gray,
+    fontWeight: '600',
+  },
+  statValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.dark,
+    marginTop: 2,
+  },
+  checkContainerEnhanced: {
+    padding: 18,
+    backgroundColor: COLORS.white,
+    borderTopWidth: 1,
+    borderTopColor: '#E8E8E8',
+    alignItems: 'center',
+  },
+  feedbackBadgeEnhanced: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    borderRadius: 16,
+    marginBottom: 18,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  feedbackCorrectEnhanced: {
+    backgroundColor: '#E8F5E9',
+    borderColor: '#4CAF50',
+    borderWidth: 2,
+  },
+  feedbackWrongEnhanced: {
+    backgroundColor: '#FBE9E7',
+    borderColor: '#FF7043',
+    borderWidth: 2,
+  },
+  feedbackTextEnhanced: {
+    fontSize: 16,
+    fontWeight: '800',
+    marginLeft: 12,
+    letterSpacing: 0.3,
+    color: '#333',
+  },
+  checkButtonEnhanced: {
+    paddingVertical: 18,
+    borderRadius: 28,
+    alignItems: 'center',
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
+    minWidth: 200,
+  },
+  checkGradientEnhanced: {
+    width: '100%',
+    paddingVertical: 18,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+  },
+  checkButtonDisabledEnhanced: {
+    backgroundColor: '#D0D0D0',
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  checkButtonTextEnhanced: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: COLORS.white,
+    letterSpacing: 0.8,
   },
 });
 

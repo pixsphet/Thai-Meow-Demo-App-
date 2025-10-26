@@ -1,3 +1,5 @@
+import { shuffle, pick, uid } from './gameUtils';
+
 export const ROUTINE_QUESTION_TYPES = {
   LISTEN_CHOOSE: 'LISTEN_CHOOSE',
   TRANSLATE_MATCH: 'TRANSLATE_MATCH',
@@ -5,9 +7,6 @@ export const ROUTINE_QUESTION_TYPES = {
   FILL_BLANK_DIALOG: 'FILL_BLANK_DIALOG',
   TIMELINE_ORDER: 'TIMELINE_ORDER',
 };
-
-const uid = () => Math.random().toString(36).substring(2, 10);
-const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
 
 // Helper: Create LISTEN_CHOOSE question
 export const makeListenChoose = (item, pool) => ({

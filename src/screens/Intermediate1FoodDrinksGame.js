@@ -21,7 +21,6 @@ import { saveProgress, restoreProgress, clearProgress } from '../services/progre
 import gameProgressService from '../services/gameProgressService';
 import levelUnlockService from '../services/levelUnlockService';
 import userStatsService from '../services/userStatsService';
-import dailyStreakService from '../services/dailyStreakService';
 
 // Contexts
 import { useProgress } from '../contexts/ProgressContext';
@@ -29,11 +28,33 @@ import { useUnifiedStats } from '../contexts/UnifiedStatsContext';
 import { useUserData } from '../contexts/UserDataContext';
 
 // Data
-const foodDrinksDataFallback = require('../data/intermediate1_food_drinks.json');
+const foodDrinksDataFallback = require('../data/intermediate1_food_20items.json');
+
+// Food image mapping
+const foodImages = {
+  'ข้าว': require('../add/Food/ข้าว.png'),
+  'ข้าวผัด': require('../add/Food/ข้าวผัด.png'),
+  'ผัดไทย': require('../add/Food/ผัดไทย.png'),
+  'ส้มตำ': require('../add/Food/ส้มตำ.png'),
+  'ต้มยำ': require('../add/Food/ต้มยำ.png'),
+  'ขนมจีน': require('../add/Food/ขนมจีน.png'),
+  'ขนมปัง': require('../add/Food/ขนมปัง.png'),
+  'ข้าวเหนียว': require('../add/Food/ข้าวเหนียว.png'),
+  'มะม่วง': require('../add/Food/มะม่วง.png'),
+  'กล้วย': require('../add/Food/กล้วย.png'),
+  'ทุเรียน': require('../add/Food/ทุเรียน.png'),
+  'ส้ม': require('../add/Food/ส้ม.png'),
+  'แตงโม': require('../add/Food/แตงโม.png'),
+  'น้ำปลา': require('../add/Food/น้ำปลา.png'),
+  'น้ำตาล': require('../add/Food/น้ำตาล.png'),
+  'เกลือ': require('../add/Food/เกลือ.png'),
+  'ไข่': require('../add/Food/ไข่.png'),
+  'แกงเขียวหวาน': require('../add/Food/แกงเขียวหวาน.png'),
+  'ไอศกรีม': require('../add/Food/ไอศกรีม.png'),
+  'ชาเย็น': require('../add/Food/ชาเย็น.png'),
+};
 
 const { width, height } = Dimensions.get('window');
-const LESSON_ID = 'intermediate1';
-const CATEGORY = 'thai-food-drinks';
 
 // Question Types
 const QUESTION_TYPES = {
@@ -41,7 +62,6 @@ const QUESTION_TYPES = {
   PICTURE_MATCH: 'PICTURE_MATCH',
   TRANSLATE_MATCH: 'TRANSLATE_MATCH',
   FILL_BLANK_DIALOG: 'FILL_BLANK_DIALOG',
-  ORDER_FLOW: 'ORDER_FLOW',
 };
 
 // Colors
@@ -76,13 +96,11 @@ const getHintText = (type) => {
     case QUESTION_TYPES.LISTEN_CHOOSE:
       return 'แตะปุ่มลำโพงเพื่อฟังซ้ำ แล้วเลือกอาหารที่ได้ยิน';
     case QUESTION_TYPES.PICTURE_MATCH:
-      return 'ดูรูป/emoji แล้วเลือกชื่ออาหารที่ตรงกัน';
+      return 'ดูรูป แล้วเลือกชื่ออาหารที่ตรงกัน';
     case QUESTION_TYPES.TRANSLATE_MATCH:
       return 'แตะเพื่อจับคู่ ไทย ↔ อังกฤษ';
     case QUESTION_TYPES.FILL_BLANK_DIALOG:
       return 'เลือกคำให้ตรงบริบทในบทสนทนา';
-    case QUESTION_TYPES.ORDER_FLOW:
-      return 'เรียงลำดับการสั่งอาหารให้ถูกต้อง';
     default:
       return '';
   }
@@ -94,7 +112,6 @@ const getTypeLabel = (type) => {
     case QUESTION_TYPES.PICTURE_MATCH: return 'จับคู่รูป';
     case QUESTION_TYPES.TRANSLATE_MATCH: return 'จับคู่ภาษา';
     case QUESTION_TYPES.FILL_BLANK_DIALOG: return 'เติมคำ';
-    case QUESTION_TYPES.ORDER_FLOW: return 'เรียงลำดับ';
     default: return '';
   }
 };
@@ -113,10 +130,14 @@ const makeListenChoose = (item, pool) => {
     questionText: 'แตะปุ่มลำโพงเพื่อฟัง',
     audioText: item.audioText || item.thai,
     correctText: item.thai,
+    rewardXP: 15,
+    rewardDiamond: 1,
+    penaltyHeart: 1,
     choices: choices.map((c, i) => ({
       id: i + 1,
       text: c.thai,
       emoji: c.emoji,
+      speakText: c.audioText || c.thai,
       isCorrect: c.id === item.id,
     })),
   };
@@ -127,17 +148,22 @@ const makePictureMatch = (item, pool) => {
     .filter(w => w.id !== item.id)
     .slice(0, 3);
   const choices = shuffle([item, ...wrongChoices]).slice(0, 4);
-  
+
   return {
     id: `pm_${item.id}_${uid()}`,
     type: QUESTION_TYPES.PICTURE_MATCH,
-    instruction: 'ดูรูป/emoji แล้วเลือกชื่ออาหาร',
+    instruction: 'ดูรูป แล้วเลือกชื่ออาหาร',
+    imageSource: foodImages[item.thai] || null,
     emoji: item.emoji || '🍲',
     correctText: item.thai,
+    rewardXP: 15,
+    rewardDiamond: 1,
+    penaltyHeart: 1,
     choices: choices.map((c, i) => ({
       id: i + 1,
       text: c.thai,
       emoji: c.emoji,
+      speakText: c.audioText || c.thai,
       isCorrect: c.id === item.id,
     })),
   };
@@ -150,6 +176,9 @@ const makeTranslateMatch = (pick4) => {
     id: `tm_${uid()}`,
     type: QUESTION_TYPES.TRANSLATE_MATCH,
     instruction: 'จับคู่ไทย ↔ อังกฤษ',
+    rewardXP: 15,
+    rewardDiamond: 1,
+    penaltyHeart: 1,
     leftItems: left,
     rightItems: right,
   };
@@ -161,21 +190,13 @@ const makeFillBlankDialog = (template, choices, answer) => ({
   instruction: 'เลือกคำให้ตรงบริบท',
   questionText: template,
   correctText: answer,
+  rewardXP: 15,
+  rewardDiamond: 1,
+  penaltyHeart: 1,
   choices: choices.map((t, i) => ({ id: i + 1, text: t })),
 });
 
-const makeOrderFlow = (sentences) => ({
-  id: `of_${uid()}`,
-  type: QUESTION_TYPES.ORDER_FLOW,
-  instruction: 'เรียงลำดับการสั่งอาหารให้ถูกต้อง',
-  correctOrder: sentences,
-  wordBank: shuffle([
-    ...sentences.map(t => ({ id: uid(), text: t })),
-    ...shuffle(['ครับ', 'ค่ะ', 'ได้ไหม', 'อีกหนึ่ง']).slice(0, 2).map(t => ({ id: uid(), text: t })),
-  ]),
-});
-
-// Generate questions (15 total): LC×5, PM×4, TM×2, FB×2, OF×2
+// Generate questions: LC×5, PM×4, TM×2, FB×2
 const generateFoodDrinksQuestions = (pool) => {
   const questions = [];
   const usedIds = new Set();
@@ -186,8 +207,7 @@ const generateFoodDrinksQuestions = (pool) => {
     if (available.length === 0) break;
     const item = pick(available);
     usedIds.add(item.id);
-    const q = makeListenChoose(item, pool);
-    if (q) questions.push(q);
+    questions.push(makeListenChoose(item, pool));
   }
   
   // PICTURE_MATCH × 4
@@ -196,8 +216,7 @@ const generateFoodDrinksQuestions = (pool) => {
     if (available.length === 0) break;
     const item = pick(available);
     usedIds.add(item.id);
-    const q = makePictureMatch(item, pool);
-    if (q) questions.push(q);
+    questions.push(makePictureMatch(item, pool));
   }
   
   // TRANSLATE_MATCH × 2
@@ -221,15 +240,6 @@ const generateFoodDrinksQuestions = (pool) => {
   ];
   dialogTemplates.forEach(t => {
     questions.push(makeFillBlankDialog(t.template, t.choices, t.answer));
-  });
-  
-  // ORDER_FLOW × 2
-  const flowSentences = [
-    ['สวัสดีครับ', 'ขอผัดไทยไม่เผ็ด', 'ทานที่ร้าน', 'คิดเงินด้วยครับ'],
-    ['ขอชาเย็นหวานน้อย', 'ทานที่ร้าน', 'ขอใบเสร็จ', 'ขอบคุณค่ะ'],
-  ];
-  flowSentences.forEach(sentences => {
-    questions.push(makeOrderFlow(sentences));
   });
   
   return shuffle(questions);
@@ -259,13 +269,34 @@ const checkAnswer = (question, userAnswer) => {
 
 const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
   const {
-    lessonId = LESSON_ID,
-    category: routeCategory = CATEGORY,
-    stageTitle = 'อาหารและเครื่องดื่ม (Food & Drinks)',
+    lessonId = 'intermediate1',
+    category: routeCategory = 'thai-food-drinks',
+    stageTitle = 'อาหารและเครื่องดื่ม',
     level: stageLevel = 'Intermediate',
+    nextStageMeta: incomingNextStageMeta,
     stageSelectRoute = 'LevelStage2',
+    replayRoute = 'Intermediate1FoodDrinksGame',
+    replayParams: incomingReplayParams,
   } = route.params || {};
 
+  const resolvedNextStageMeta = useMemo(() => {
+    if (incomingNextStageMeta) {
+      return incomingNextStageMeta;
+    }
+    return null;
+  }, [incomingNextStageMeta]);
+
+  const resolvedReplayParams = useMemo(
+    () => ({
+      lessonId,
+      category: routeCategory,
+      level: stageLevel,
+      stageTitle,
+      ...(incomingReplayParams || {}),
+    }),
+    [lessonId, routeCategory, stageLevel, stageTitle, incomingReplayParams]
+  );
+  
   // Contexts
   const { applyDelta, user: progressUser } = useProgress();
   const { stats } = useUnifiedStats();
@@ -289,8 +320,7 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
   const [resumeData, setResumeData] = useState(null);
   const [dmSelected, setDmSelected] = useState({ leftId: null, rightId: null });
   const [dmPairs, setDmPairs] = useState([]);
-  const [checked, setChecked] = useState(false);
-  const [lastCorrect, setLastCorrect] = useState(null);
+  const [currentFeedback, setCurrentFeedback] = useState(null);
   
   // Refs
   const startTimeRef = useRef(Date.now());
@@ -312,7 +342,7 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
         setQuestions(generatedQuestions);
         
         // Try to restore progress
-        const savedProgress = await restoreProgress(LESSON_ID);
+        const savedProgress = await restoreProgress(lessonId);
         if (savedProgress && savedProgress.questionsSnapshot) {
           setResumeData(savedProgress);
           setCurrentIndex(savedProgress.currentIndex || 0);
@@ -334,7 +364,7 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
     };
     
     loadFoodItems();
-  }, []);
+  }, [lessonId]);
 
   // Ensure progress-related services are initialized once per user
   useEffect(() => {
@@ -369,14 +399,6 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
       } catch (error) {
         console.warn('Failed to initialize userStatsService:', error?.message);
       }
-
-      try {
-        if (typeof dailyStreakService.setUser === 'function') {
-          dailyStreakService.setUser(userId);
-        }
-      } catch (error) {
-        console.warn('Failed to bind user to dailyStreakService:', error?.message);
-      }
     })();
   }, [progressUser?.id, userData?.id, stats?.userId, stats?._id, stats?.id]);
   
@@ -396,17 +418,17 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
       answers: answersRef.current,
       gameProgress: {
         generator: 'food_drinks',
-        lessonId: LESSON_ID,
+        lessonId,
         timestamp: Date.now(),
       },
     };
     
     try {
-      await saveProgress(LESSON_ID, snapshot);
+      await saveProgress(lessonId, snapshot);
     } catch (error) {
       console.error('Error saving progress:', error);
     }
-  }, [questions, currentIndex, hearts, score, xpEarned, diamondsEarned, streak, maxStreak]);
+  }, [questions, currentIndex, hearts, score, xpEarned, diamondsEarned, streak, maxStreak, lessonId]);
   
   // Save progress when state changes
   useEffect(() => {
@@ -434,7 +456,6 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
   
   // Handle check answer
   const handleCheckAnswer = () => {
-    if (checked) { nextQuestion(); return; }
     if (currentAnswer === null) return;
 
     const currentQuestion = questions[currentIndex];
@@ -445,20 +466,27 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
       answer: currentAnswer,
       isCorrect,
       timestamp: Date.now(),
+      rewardXP: isCorrect ? (currentQuestion.rewardXP || 15) : 0,
+      rewardDiamond: isCorrect ? (currentQuestion.rewardDiamond || 1) : 0,
+      penaltyHeart: !isCorrect ? (currentQuestion.penaltyHeart || 1) : 0,
     };
     setAnswers({ ...answersRef.current });
-    setLastCorrect(isCorrect);
-    setChecked(true);
+    setCurrentFeedback(isCorrect ? 'correct' : 'wrong');
 
     if (isCorrect) {
       const newScore = score + 1;
-      const newXp = xpEarned + 10;
-      const newDiamonds = diamondsEarned + 1;
+      const xpReward = currentQuestion.rewardXP || 15;
+      const diamondReward = currentQuestion.rewardDiamond || 1;
+      const newXp = xpEarned + xpReward;
+      const newDiamonds = diamondsEarned + diamondReward;
+
       setScore(newScore);
       setXpEarned(newXp);
       setDiamondsEarned(newDiamonds);
+      
     } else {
-      const newHearts = Math.max(0, hearts - 1);
+      const heartPenalty = currentQuestion.penaltyHeart || 1;
+      const newHearts = Math.max(0, hearts - heartPenalty);
       setHearts(newHearts);
       if (newHearts === 0) {
         const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
@@ -472,8 +500,8 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
   useEffect(() => {
     setDmSelected({ leftId: null, rightId: null });
     setDmPairs([]);
-    setChecked(false);
-    setLastCorrect(null);
+    setCurrentAnswer(null);
+    setCurrentFeedback(null);
   }, [currentIndex]);
 
   // Next question
@@ -482,7 +510,6 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
       setCurrentIndex(currentIndex + 1);
       setCurrentAnswer(null);
     } else {
-      // Game finished
       const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
       finishLesson(elapsed);
     }
@@ -529,7 +556,7 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
         : 0;
 
       const lastResults = {
-        lessonId: LESSON_ID,
+        lessonId,
         stageTitle,
         totalQuestions,
         correctAnswers,
@@ -568,7 +595,7 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
 
       try {
         await gameProgressService.saveGameSession({
-          lessonId: LESSON_ID,
+          lessonId,
           category: routeCategory,
           gameMode: 'intermediate_food_drinks',
           score: correctAnswers,
@@ -604,13 +631,13 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
       }
 
       try {
-        await clearProgress(LESSON_ID);
+        await clearProgress(lessonId);
       } catch (clearError) {
         console.warn('Failed to clear progress snapshot:', clearError?.message || clearError);
       }
 
       navigation.replace('LessonComplete', {
-        lessonId: LESSON_ID,
+        lessonId,
         stageTitle,
         score: correctAnswers,
         totalQuestions,
@@ -625,14 +652,10 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
         maxStreak,
         isUnlocked: unlockedNext,
         nextStageUnlocked: Boolean(unlockResult?.unlocked || unlockResult?.nextLevel),
+        nextStageMeta: resolvedNextStageMeta,
         stageSelectRoute,
-        replayRoute: 'Intermediate1FoodDrinksGame',
-        replayParams: {
-          lessonId: LESSON_ID,
-          category: routeCategory,
-          level: stageLevel,
-          stageTitle,
-        },
+        replayRoute,
+        replayParams: resolvedReplayParams,
         questionTypeCounts,
       });
     } catch (error) {
@@ -670,7 +693,7 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
                       styles.choiceButton,
                       currentAnswer === choice.text && styles.choiceSelected,
                     ]}
-                    onPress={() => handleAnswerSelect(choice.text)}
+                    onPress={() => handleAnswerSelect(choice.text, choice.speakText)}
                   >
                     <Text style={[styles.choiceText, { fontSize: 24 }]}>{choice.emoji}</Text>
                     <Text style={styles.choiceText}>{choice.text}</Text>
@@ -689,9 +712,13 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
               <Text style={styles.hintText}>{getHintText(question.type)}</Text>
               
               <View style={styles.imageContainer}>
-                <View style={styles.imageFallback}>
-                  <Text style={styles.emojiChar}>{question.emoji}</Text>
-                </View>
+                {question.imageSource ? (
+                  <Image source={question.imageSource} style={styles.imageFallback} />
+                ) : (
+                  <View style={styles.imageFallback}>
+                    <Text style={styles.emojiChar}>{question.emoji}</Text>
+                  </View>
+                )}
               </View>
               
               <View style={styles.choicesContainer}>
@@ -702,7 +729,7 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
                       styles.choiceButton,
                       currentAnswer === choice.text && styles.choiceSelected,
                     ]}
-                    onPress={() => handleAnswerSelect(choice.text)}
+                    onPress={() => handleAnswerSelect(choice.text, choice.speakText)}
                   >
                     <Text style={styles.choiceText}>{choice.text}</Text>
                   </TouchableOpacity>
@@ -715,36 +742,52 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
       case QUESTION_TYPES.TRANSLATE_MATCH:
         return (
           <View style={styles.questionContainer}>
-            <Text style={styles.instruction}>{question.instruction}</Text>
-            <Text style={styles.hintText}>{getHintText(question.type)}</Text>
-            
-            {dmPairs.length > 0 && (
-              <View style={styles.pairPreview}>
-                {dmPairs.map((p, idx) => (
-                  <View key={`pair-${idx}`} style={{ flexDirection: 'row', alignItems: 'center', marginRight: 8 }}>
-                    <Text style={styles.pairPreviewText}>{question.leftItems.find(i => i.id === p.leftId)?.text || '—'}</Text>
-                    <Text style={styles.pairArrow}> ↔ </Text>
-                    <Text style={styles.pairPreviewText}>{question.rightItems.find(i => i.id === p.rightId)?.text || '—'}</Text>
+            <View style={styles.questionCard}>
+              <Text style={styles.instruction}>{question.instruction}</Text>
+              <Text style={styles.hintText}>{getHintText(question.type)}</Text>
+              
+              {dmPairs.length > 0 && (
+                <View style={styles.matchedPairsContainer}>
+                  <Text style={styles.matchedLabel}>จับคู่แล้ว ({dmPairs.length}/{question.leftItems.length})</Text>
+                  <View style={styles.matchedList}>
+                    {dmPairs.map((p, idx) => (
+                      <View key={`pair-${idx}`} style={styles.matchedPairItem}>
+                        <View style={styles.matchedPairBadge}>
+                          <Text style={styles.matchedPairText}>{question.leftItems.find(i => i.id === p.leftId)?.text || '—'}</Text>
+                          <Text style={styles.matchedPairArrow}> ↔ </Text>
+                          <Text style={styles.matchedPairText}>{question.rightItems.find(i => i.id === p.rightId)?.text || '—'}</Text>
+                        </View>
+                        <TouchableOpacity
+                          onPress={() => {
+                            const filtered = dmPairs.filter(pp => !(pp.leftId === p.leftId && pp.rightId === p.rightId));
+                            setDmPairs(filtered);
+                            setCurrentAnswer(filtered);
+                          }}
+                        >
+                          <FontAwesome name="times" size={16} color={COLORS.error} />
+                        </TouchableOpacity>
+                      </View>
+                    ))}
                   </View>
-                ))}
-              </View>
-            )}
-
-            <View style={styles.dragMatchContainer}>
-              <View style={styles.leftColumn}>
+                </View>
+              )}
+              
+              <Text style={styles.matchLabel}>ไทย</Text>
+              <View style={styles.matchListLeft}>
                 {question.leftItems.map((item) => (
                   <TouchableOpacity
                     key={item.id}
                     style={[
-                      styles.dragItem,
-                      dmSelected.leftId === item.id && styles.dragItemSelected,
-                      dmPairs.some(p => p.leftId === item.id) && styles.dragItemPaired,
+                      styles.matchItem,
+                      dmSelected.leftId === item.id && styles.matchItemSelected,
+                      dmPairs.some(p => p.leftId === item.id) && styles.matchItemMatched,
                     ]}
                     onPress={() => {
                       if (dmPairs.some(p => p.leftId === item.id)) {
                         const filtered = dmPairs.filter(p => p.leftId !== item.id);
                         setDmPairs(filtered);
                         setCurrentAnswer(filtered);
+                        setDmSelected({ leftId: null, rightId: null });
                         return;
                       }
                       const next = { leftId: item.id, rightId: dmSelected.rightId };
@@ -759,26 +802,30 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
                       }
                     }}
                   >
-                    <Text style={styles.dragItemText}>{item.text}</Text>
-                    <MaterialIcons name="volume-up" size={20} color={COLORS.gray} />
+                    <View style={styles.matchItemContent}>
+                      <Text style={styles.matchItemText}>{item.text}</Text>
+                      <MaterialIcons name="volume-up" size={18} color={dmPairs.some(p => p.leftId === item.id) ? COLORS.white : COLORS.primary} />
+                    </View>
                   </TouchableOpacity>
                 ))}
               </View>
               
-              <View style={styles.rightColumn}>
+              <Text style={styles.matchLabel}>English</Text>
+              <View style={styles.matchListRight}>
                 {question.rightItems.map((item) => (
                   <TouchableOpacity
                     key={item.id}
                     style={[
-                      styles.dragItem,
-                      dmSelected.rightId === item.id && styles.dragItemSelected,
-                      dmPairs.some(p => p.rightId === item.id) && styles.dragItemPaired,
+                      styles.matchItem,
+                      dmSelected.rightId === item.id && styles.matchItemSelected,
+                      dmPairs.some(p => p.rightId === item.id) && styles.matchItemMatched,
                     ]}
                     onPress={() => {
                       if (dmPairs.some(p => p.rightId === item.id)) {
                         const filtered = dmPairs.filter(p => p.rightId !== item.id);
                         setDmPairs(filtered);
                         setCurrentAnswer(filtered);
+                        setDmSelected({ leftId: null, rightId: null });
                         return;
                       }
                       const next = { leftId: dmSelected.leftId, rightId: item.id };
@@ -793,8 +840,10 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
                       }
                     }}
                   >
-                    <Text style={styles.dragItemText}>{item.text}</Text>
-                    <MaterialIcons name="volume-up" size={20} color={COLORS.gray} />
+                    <View style={styles.matchItemContent}>
+                      <Text style={styles.matchItemText}>{item.text}</Text>
+                      <MaterialIcons name="volume-up" size={18} color={dmPairs.some(p => p.rightId === item.id) ? COLORS.white : COLORS.primary} />
+                    </View>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -824,43 +873,6 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
                   </TouchableOpacity>
                 ))}
               </View>
-            </View>
-          </View>
-        );
-      
-      case QUESTION_TYPES.ORDER_FLOW:
-        return (
-          <View style={styles.questionContainer}>
-            <Text style={styles.instruction}>{question.instruction}</Text>
-            <Text style={styles.hintText}>{getHintText(question.type)}</Text>
-            
-            <View style={styles.arrangeContainer}>
-              <Text style={styles.arrangeText}>
-                {currentAnswer ? currentAnswer.join(' ') : 'เรียงคำให้ถูกต้อง'}
-              </Text>
-            </View>
-            
-            <View style={styles.choicesContainer}>
-              {question.wordBank.map((part, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={[
-                    styles.choiceButton,
-                    currentAnswer && currentAnswer.includes(part.text) && styles.choiceSelected,
-                  ]}
-                  onPress={() => {
-                    if (!currentAnswer) {
-                      setCurrentAnswer([part.text]);
-                    } else if (!currentAnswer.includes(part.text)) {
-                      setCurrentAnswer([...currentAnswer, part.text]);
-                    } else {
-                      setCurrentAnswer(currentAnswer.filter(p => p !== part.text));
-                    }
-                  }}
-                >
-                  <Text style={styles.choiceText}>{part.text}</Text>
-                </TouchableOpacity>
-              ))}
             </View>
           </View>
         );
@@ -925,90 +937,152 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
   
   return (
     <SafeAreaView style={styles.container}>
-      {/* Background gradient for depth */}
       <LinearGradient
         colors={['#FFF5E5', '#FFFFFF']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.bg}
       />
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="arrow-back" size={24} color={COLORS.dark} />
-        </TouchableOpacity>
-        
-        <View style={styles.progressContainer}>
-          <View style={styles.progressBar}>
-            <View style={[styles.progressFill, { width: `${progress}%` }]} />
-          </View>
-          <View style={styles.headerMetaRow}>
-            <Text style={styles.progressText}>{currentIndex + 1} / {questions.length}</Text>
-            <View style={styles.typePill}><Text style={styles.typePillText}>{getTypeLabel(currentQuestion.type)}</Text></View>
+      <LinearGradient
+        colors={['#FF8000', '#FFA24D', '#FFD700']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.headerGradient}
+      >
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <FontAwesome name="times" size={26} color={COLORS.white} />
+          </TouchableOpacity>
+          
+          <View style={styles.progressContainer}>
+            <View style={styles.progressBar}>
+              <LinearGradient
+                colors={['#58cc02', '#7FD14F']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={[styles.progressFill, { width: `${progress}%` }]}
+              />
+            </View>
+            <View style={styles.headerMetaRow}>
+              <Text style={styles.progressText}>{currentIndex + 1} / {questions.length}</Text>
+              <View style={styles.typePill}><Text style={styles.typePillText}>{getTypeLabel(currentQuestion.type)}</Text></View>
+              <View style={styles.heartsDisplayContainer}>
+                <LottieView
+                  source={require('../assets/animations/Heart.json')}
+                  autoPlay
+                  loop
+                  style={styles.heartsIconAnimation}
+                />
+                <Text style={styles.heartsDisplay}>{hearts}</Text>
+              </View>
+            </View>
           </View>
         </View>
-      </View>
+      </LinearGradient>
       
-      {/* Stats Row */}
       <View style={styles.statsRow}>
-        <View style={styles.statBadge}>
+        <View style={styles.statBadgeEnhanced}>
           <LottieView
             source={require('../assets/animations/Star.json')}
             autoPlay
             loop
             style={styles.starAnimation}
           />
-          <Text style={styles.statText}>{xpEarned} XP</Text>
+          <View style={styles.statTextContainer}>
+            <Text style={styles.statLabel}>XP</Text>
+            <Text style={styles.statValue}>{xpEarned}</Text>
+          </View>
         </View>
-        <View style={styles.statBadge}>
+        
+        <View style={styles.statDivider} />
+        
+        <View style={styles.statBadgeEnhanced}>
           <LottieView
             source={require('../assets/animations/Diamond.json')}
             autoPlay
             loop
             style={styles.diamondAnimation}
           />
-          <Text style={styles.statText}>+{diamondsEarned}</Text>
+          <View style={styles.statTextContainer}>
+            <Text style={styles.statLabel}>Diamonds</Text>
+            <Text style={styles.statValue}>+{diamondsEarned}</Text>
+          </View>
         </View>
-        <View style={styles.statBadge}>
-          <Text style={styles.statText}>🎯 {Math.min(100, Math.max(0, Math.round((score / Math.max(1, currentIndex)) * 100)))}%</Text>
-        </View>
-        <View style={styles.statBadge}>
-          <LottieView
-            source={require('../assets/animations/Streak-Fire1.json')}
-            autoPlay
-            loop
-            style={styles.streakAnimation}
-          />
-          <Text style={styles.statText}>{streak}</Text>
+        
+        <View style={styles.statDivider} />
+        
+        <View style={styles.statBadgeEnhanced}>
+          <FontAwesome name="bullseye" size={18} color={COLORS.primary} />
+          <View style={styles.statTextContainer}>
+            <Text style={styles.statLabel}>Accuracy</Text>
+            <Text style={styles.statValue}>{Math.min(100, Math.max(0, Math.round((score / Math.max(1, questions.length)) * 100)))}%</Text>
+          </View>
         </View>
       </View>
-      
-      {/* Question */}
+
       <ScrollView style={styles.questionScrollView}>
         {renderQuestionComponent()}
       </ScrollView>
-      
-      {/* Check Button */}
-      <View style={styles.checkContainer}>
+
+      <View style={styles.checkContainerEnhanced}>
+        {currentFeedback && (
+          <View style={[
+            styles.feedbackBadgeEnhanced,
+            currentFeedback === 'correct' ? styles.feedbackCorrectEnhanced : styles.feedbackWrongEnhanced
+          ]}>
+            <FontAwesome 
+              name={currentFeedback === 'correct' ? 'check-circle' : 'times-circle'} 
+              size={24} 
+              color={currentFeedback === 'correct' ? '#58cc02' : '#ff4b4b'}
+              style={{ marginRight: 8 }}
+            />
+            <Text style={styles.feedbackTextEnhanced}>
+              {currentFeedback === 'correct' ? 'ถูกต้อง! ยอดเยี่ยม' : 'พยายามอีกครั้ง'}
+            </Text>
+          </View>
+        )}
         <TouchableOpacity
           style={[
-            styles.checkButton,
-            currentAnswer === null && !checked && styles.checkButtonDisabled,
+            styles.checkButtonEnhanced,
+            currentAnswer === null && styles.checkButtonDisabledEnhanced,
           ]}
-          onPress={handleCheckAnswer}
-          disabled={currentAnswer === null && !checked}
-          activeOpacity={0.9}
+          onPress={() => {
+            if (currentFeedback !== null) {
+              setCurrentFeedback(null);
+              if (hearts === 0) {
+                const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+                finishLesson(elapsed);
+              } else {
+                nextQuestion();
+              }
+            } else {
+              if (currentAnswer === null) {
+                return;
+              }
+              handleCheckAnswer();
+            }
+          }}
+          disabled={currentAnswer === null}
+          activeOpacity={0.85}
         >
           <LinearGradient
-            colors={[COLORS.primary, '#FFA24D']}
+            colors={currentAnswer === null ? ['#ddd', '#ccc'] : [COLORS.primary, '#FFA24D']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={styles.checkGradient}
+            style={styles.checkGradientEnhanced}
           >
-            <Text style={styles.checkButtonText}>{checked ? 'NEXT' : 'CHECK'}</Text>
+            <FontAwesome 
+              name={currentFeedback !== null ? 'arrow-right' : 'check'} 
+              size={20} 
+              color={COLORS.white}
+              style={{ marginRight: 8 }}
+            />
+            <Text style={styles.checkButtonTextEnhanced}>
+              {currentFeedback !== null ? (hearts === 0 ? 'จบเกม' : 'ต่อไป') : 'CHECK'}
+            </Text>
           </LinearGradient>
         </TouchableOpacity>
       </View>
@@ -1105,12 +1179,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: COLORS.white,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  headerGradient: {
+    paddingTop: 40,
+    paddingBottom: 10,
     paddingHorizontal: 20,
-    paddingVertical: 15,
-    backgroundColor: 'rgba(255,255,255,0.92)',
     borderBottomWidth: 1,
     borderBottomColor: COLORS.lightGray,
     shadowColor: '#000',
@@ -1118,6 +1190,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 6,
     elevation: 2,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
   },
   backButton: {
     marginRight: 15,
@@ -1141,7 +1219,7 @@ const styles = StyleSheet.create({
   progressText: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.dark,
+    color: COLORS.white,
     marginTop: 5,
   },
   headerMetaRow: {
@@ -1160,6 +1238,26 @@ const styles = StyleSheet.create({
     borderColor: '#FFE3CC',
   },
   typePillText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.primary,
+  },
+  heartsDisplayContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.cream,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#FFE3CC',
+  },
+  heartsIconAnimation: {
+    width: 20,
+    height: 20,
+    marginRight: 5,
+  },
+  heartsDisplay: {
     fontSize: 12,
     fontWeight: '700',
     color: COLORS.primary,
@@ -1209,10 +1307,6 @@ const styles = StyleSheet.create({
     height: 20,
   },
   diamondAnimation: {
-    width: 20,
-    height: 20,
-  },
-  streakAnimation: {
     width: 20,
     height: 20,
   },
@@ -1290,6 +1384,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 6,
     elevation: 3,
+    resizeMode: 'contain',
   },
   emojiChar: {
     fontSize: 48,
@@ -1413,39 +1508,210 @@ const styles = StyleSheet.create({
     color: COLORS.dark,
     textAlign: 'center',
   },
-  checkContainer: {
-    padding: 20,
+  checkContainerEnhanced: {
+    padding: 18,
     backgroundColor: COLORS.white,
     borderTopWidth: 1,
-    borderTopColor: COLORS.lightGray,
+    borderTopColor: '#E8E8E8',
+    alignItems: 'center',
   },
-  checkButton: {
+  feedbackBadgeEnhanced: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    borderRadius: 16,
+    marginBottom: 18,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  feedbackCorrectEnhanced: {
+    backgroundColor: '#E8F5E9',
+    borderColor: '#4CAF50',
+    borderWidth: 2,
+  },
+  feedbackWrongEnhanced: {
+    backgroundColor: '#FBE9E7',
+    borderColor: '#FF7043',
+    borderWidth: 2,
+  },
+  feedbackTextEnhanced: {
+    fontSize: 16,
+    fontWeight: '800',
+    marginLeft: 12,
+    letterSpacing: 0.3,
+    color: '#333',
+  },
+  checkButtonEnhanced: {
     backgroundColor: COLORS.primary,
-    paddingVertical: 16,
+    paddingVertical: 18,
     borderRadius: 28,
     alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
     shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 10,
   },
-  checkGradient: {
+  checkGradientEnhanced: {
     width: '100%',
-    paddingVertical: 16,
+    paddingVertical: 18,
     borderRadius: 28,
     alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
   },
-  checkButtonDisabled: {
+  checkButtonDisabledEnhanced: {
     backgroundColor: COLORS.lightGray,
     shadowOpacity: 0,
     elevation: 0,
   },
-  checkButtonText: {
+  checkButtonTextEnhanced: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '800',
     color: COLORS.white,
-    letterSpacing: 0.5,
+    letterSpacing: 1,
+  },
+  statBadgeEnhanced: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 1,
+    borderWidth: 1,
+    borderColor: '#F5F5F5',
+  },
+  statTextContainer: {
+    marginLeft: 8,
+  },
+  statLabel: {
+    fontSize: 10,
+    color: '#999',
+    marginBottom: 2,
+    fontWeight: '600',
+  },
+  statValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.dark,
+  },
+  statDivider: {
+    width: 1,
+    height: '80%',
+    backgroundColor: '#E8E8E8',
+    marginHorizontal: 10,
+  },
+  matchedPairsContainer: {
+    backgroundColor: '#E8F5E9',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 18,
+    borderLeftWidth: 4,
+    borderLeftColor: '#4CAF50',
+  },
+  matchedLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#2E7D32',
+    marginBottom: 10,
+  },
+  matchedList: {
+    gap: 8,
+  },
+  matchedPairItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  matchedPairBadge: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#4CAF50',
+  },
+  matchedPairText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.dark,
+  },
+  matchedPairArrow: {
+    fontSize: 14,
+    marginHorizontal: 8,
+    color: '#4CAF50',
+    fontWeight: '700',
+  },
+  matchLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.primary,
+    marginBottom: 10,
+    marginTop: 15,
+  },
+  matchListLeft: {
+    marginBottom: 16,
+    gap: 10,
+  },
+  matchListRight: {
+    marginBottom: 16,
+    gap: 10,
+  },
+  matchItem: {
+    backgroundColor: COLORS.white,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#FFE8CC',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  matchItemSelected: {
+    borderColor: COLORS.primary,
+    backgroundColor: COLORS.cream,
+    borderWidth: 3,
+    shadowColor: COLORS.primary,
+    shadowOpacity: 0.2,
+  },
+  matchItemMatched: {
+    borderColor: '#4CAF50',
+    backgroundColor: 'rgba(76,175,80,0.12)',
+    borderWidth: 2,
+  },
+  matchItemContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  matchItemText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.dark,
+    flex: 1,
+    marginRight: 10,
+  },
+  dragMatchContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
   },
 });
 

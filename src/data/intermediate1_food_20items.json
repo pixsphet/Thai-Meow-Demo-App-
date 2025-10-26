@@ -1,0 +1,182 @@
+[
+  {
+    "id": 1,
+    "thai": "ข้าว",
+    "roman": "khao",
+    "en": "rice",
+    "emoji": "🍚",
+    "audioText": "ข้าว",
+    "isActive": true
+  },
+  {
+    "id": 2,
+    "thai": "ข้าวผัด",
+    "roman": "khao phat",
+    "en": "fried rice",
+    "emoji": "🍚",
+    "audioText": "ข้าวผัด",
+    "isActive": true
+  },
+  {
+    "id": 3,
+    "thai": "ผัดไทย",
+    "roman": "phat thai",
+    "en": "pad thai",
+    "emoji": "🍜",
+    "audioText": "ผัดไทย",
+    "isActive": true
+  },
+  {
+    "id": 4,
+    "thai": "ส้มตำ",
+    "roman": "som tam",
+    "en": "papaya salad",
+    "emoji": "🥗",
+    "audioText": "ส้มตำ",
+    "isActive": true
+  },
+  {
+    "id": 5,
+    "thai": "ต้มยำ",
+    "roman": "tom yam",
+    "en": "tom yum",
+    "emoji": "🍲",
+    "audioText": "ต้มยำ",
+    "isActive": true
+  },
+  {
+    "id": 6,
+    "thai": "ขนมจีน",
+    "roman": "khamon chin",
+    "en": "chinese pastry",
+    "emoji": "🥟",
+    "audioText": "ขนมจีน",
+    "isActive": true
+  },
+  {
+    "id": 7,
+    "thai": "ขนมปัง",
+    "roman": "khamon pang",
+    "en": "bread",
+    "emoji": "🍞",
+    "audioText": "ขนมปัง",
+    "isActive": true
+  },
+  {
+    "id": 8,
+    "thai": "ข้าวเหนียว",
+    "roman": "khao neao",
+    "en": "sticky rice",
+    "emoji": "🍚",
+    "audioText": "ข้าวเหนียว",
+    "isActive": true
+  },
+  {
+    "id": 9,
+    "thai": "มะม่วง",
+    "roman": "mamung",
+    "en": "mango",
+    "emoji": "🥭",
+    "audioText": "มะม่วง",
+    "isActive": true
+  },
+  {
+    "id": 10,
+    "thai": "กล้วย",
+    "roman": "kluay",
+    "en": "banana",
+    "emoji": "🍌",
+    "audioText": "กล้วย",
+    "isActive": true
+  },
+  {
+    "id": 11,
+    "thai": "ทุเรียน",
+    "roman": "thurian",
+    "en": "durian",
+    "emoji": "🌰",
+    "audioText": "ทุเรียน",
+    "isActive": true
+  },
+  {
+    "id": 12,
+    "thai": "ส้ม",
+    "roman": "som",
+    "en": "orange",
+    "emoji": "🍊",
+    "audioText": "ส้ม",
+    "isActive": true
+  },
+  {
+    "id": 13,
+    "thai": "แตงโม",
+    "roman": "taengmo",
+    "en": "watermelon",
+    "emoji": "🍉",
+    "audioText": "แตงโม",
+    "isActive": true
+  },
+  {
+    "id": 14,
+    "thai": "น้ำปลา",
+    "roman": "nam pla",
+    "en": "fish sauce",
+    "emoji": "🧂",
+    "audioText": "น้ำปลา",
+    "isActive": true
+  },
+  {
+    "id": 15,
+    "thai": "น้ำตาล",
+    "roman": "nam taan",
+    "en": "sugar",
+    "emoji": "🍯",
+    "audioText": "น้ำตาล",
+    "isActive": true
+  },
+  {
+    "id": 16,
+    "thai": "เกลือ",
+    "roman": "klua",
+    "en": "salt",
+    "emoji": "🧂",
+    "audioText": "เกลือ",
+    "isActive": true
+  },
+  {
+    "id": 17,
+    "thai": "ไข่",
+    "roman": "khai",
+    "en": "egg",
+    "emoji": "🥚",
+    "audioText": "ไข่",
+    "isActive": true
+  },
+  {
+    "id": 18,
+    "thai": "แกงเขียวหวาน",
+    "roman": "kaeng khiao wan",
+    "en": "green curry",
+    "emoji": "🍛",
+    "audioText": "แกงเขียวหวาน",
+    "isActive": true
+  },
+  {
+    "id": 19,
+    "thai": "ไอศกรีม",
+    "roman": "ai sa krim",
+    "en": "ice cream",
+    "emoji": "🍦",
+    "audioText": "ไอศกรีม",
+    "isActive": true
+  },
+  {
+    "id": 20,
+    "thai": "ชาเย็น",
+    "roman": "cha yen",
+    "en": "thai iced tea",
+    "emoji": "🍵",
+    "audioText": "ชาเย็น",
+    "isActive": true
+  }
+]

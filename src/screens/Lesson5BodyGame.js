@@ -9,6 +9,7 @@ import {
   Image,
   Dimensions,
   Animated,
+  Alert,
 } from 'react-native';
 import { FontAwesome, MaterialIcons, Ionicons } from '@expo/vector-icons';
 import LottieView from 'lottie-react-native';
@@ -36,10 +37,8 @@ const { width, height } = Dimensions.get('window');
 // Question Types
 const QUESTION_TYPES = {
   LISTEN_CHOOSE: 'LISTEN_CHOOSE',
-  PICTURE_MATCH: 'PICTURE_MATCH',
   DRAG_MATCH: 'DRAG_MATCH',
   FILL_BLANK: 'FILL_BLANK',
-  ARRANGE_SENTENCE: 'ARRANGE_SENTENCE',
 };
 
 // Colors
@@ -76,14 +75,10 @@ const getHintText = (type) => {
   switch (type) {
     case QUESTION_TYPES.LISTEN_CHOOSE:
       return 'แตะปุ่มลำโพงเพื่อฟังซ้ำ แล้วเลือกคำที่ได้ยิน';
-    case QUESTION_TYPES.PICTURE_MATCH:
-      return 'ดูรูปอวัยวะตรงกลาง แล้วเลือกคำที่ตรงกัน';
     case QUESTION_TYPES.DRAG_MATCH:
       return 'แตะเพื่อจับคู่ ชื่อภาษาไทย ↔ ความหมายภาษาอังกฤษ';
     case QUESTION_TYPES.FILL_BLANK:
       return 'แตะตัวเลือกเพื่อเติมคำให้ถูกต้อง';
-    case QUESTION_TYPES.ARRANGE_SENTENCE:
-      return 'แตะคำเรียงตามลำดับให้ถูกต้อง';
     default:
       return '';
   }
@@ -98,10 +93,8 @@ const SHOW_ROMAN = false;
 const getTypeLabel = (type) => {
   switch (type) {
     case QUESTION_TYPES.LISTEN_CHOOSE: return 'ฟังเสียงเลือกคำ';
-    case QUESTION_TYPES.PICTURE_MATCH: return 'จับคู่จากรูปภาพ';
     case QUESTION_TYPES.DRAG_MATCH: return 'จับคู่ไทย ↔ อังกฤษ';
     case QUESTION_TYPES.FILL_BLANK: return 'เติมคำให้ถูก';
-    case QUESTION_TYPES.ARRANGE_SENTENCE: return 'เรียงคำ';
     default: return '';
   }
 };
@@ -119,27 +112,6 @@ const makeListenChoose = (word, pool) => {
     instruction: 'ฟังเสียงแล้วเลือกคำที่ได้ยิน',
     questionText: 'แตะปุ่มลำโพงเพื่อฟัง',
     audioText: word.audioText,
-    correctText: word.char,
-    choices: choices.map((c, i) => ({
-      id: i + 1,
-      text: SHOW_ROMAN ? (c.roman || c.name) : c.char,
-      speakText: c.audioText || c.name || c.roman || c.char,
-      isCorrect: c.char === word.char,
-    })),
-  };
-};
-
-const makePictureMatch = (word, pool) => {
-  const wrongChoices = pool
-    .filter(w => w.char !== word.char)
-    .slice(0, 3);
-  const choices = shuffle([word, ...wrongChoices]).slice(0, 4);
-  
-  return {
-    id: `pm_${word.char}_${uid()}`,
-    type: QUESTION_TYPES.PICTURE_MATCH,
-    instruction: 'ดูรูปแล้วเลือกคำที่ตรงกัน',
-    imageKey: word.image,
     correctText: word.char,
     choices: choices.map((c, i) => ({
       id: i + 1,
@@ -191,36 +163,24 @@ const makeFillBlank = (word, pool) => {
     .slice(0, 2);
   const choices = shuffle([word, ...wrongChoices]).slice(0, 3);
   
+  const displayText = SHOW_ROMAN ? (word.roman || word.char) : word.char;
+  
   return {
     id: `fb_${word.char}_${uid()}`,
     type: QUESTION_TYPES.FILL_BLANK,
     instruction: 'เติมคำในช่องว่าง',
     questionText: template,
-    correctText: word.char,
+    correctText: displayText,
     choices: choices.map((c, i) => ({
       id: i + 1,
       text: SHOW_ROMAN ? (c.roman || c.name) : c.char,
       speakText: c.audioText || c.name || c.roman || c.char,
-      isCorrect: c.char === word.char,
+      isCorrect: (SHOW_ROMAN ? (c.roman || c.name) : c.char) === displayText,
     })),
   };
 };
 
-const makeArrange = (word) => {
-  const parts = [word.char, `เป็น`, `ส่วน`, `ของ`, `ร่างกาย`];
-  const distractors = ['ครับ', 'ค่ะ', 'ไหม'];
-  const allParts = shuffle([...parts, ...distractors]);
-  
-  return {
-    id: `arr_${word.char}_${uid()}`,
-    type: QUESTION_TYPES.ARRANGE_SENTENCE,
-    instruction: 'เรียงคำให้ถูกต้อง',
-    correctOrder: parts,
-    allParts,
-  };
-};
-
-// Generate questions (target 14): LC×4, PM×3, DM×3, FB×2, ARR×2
+// Generate questions (target 12): LC×4, DM×4, FB×4
 const generateBodyQuestions = (pool) => {
   const questions = [];
   const usedChars = new Set();
@@ -233,18 +193,8 @@ const generateBodyQuestions = (pool) => {
     usedChars.add(word.char);
     questions.push(makeListenChoose(word, pool));
   }
-  
-  // PICTURE_MATCH × 3
-  for (let i = 0; i < 3; i++) {
-    const available = pool.filter(w => !usedChars.has(w.char));
-    if (available.length === 0) break;
-    const word = pick(available);
-    usedChars.add(word.char);
-    questions.push(makePictureMatch(word, pool));
-  }
-  
-  // DRAG_MATCH × 3
-  for (let i = 0; i < 3; i++) {
+  // DRAG_MATCH × 4
+  for (let i = 0; i < 4; i++) {
     const available = pool.filter(w => !usedChars.has(w.char));
     if (available.length === 0) break;
     const word = pick(available);
@@ -252,22 +202,13 @@ const generateBodyQuestions = (pool) => {
     questions.push(makeDragMatch(word, pool));
   }
   
-  // FILL_BLANK × 2
-  for (let i = 0; i < 2; i++) {
+  // FILL_BLANK × 4
+  for (let i = 0; i < 4; i++) {
     const available = pool.filter(w => !usedChars.has(w.char));
     if (available.length === 0) break;
     const word = pick(available);
     usedChars.add(word.char);
     questions.push(makeFillBlank(word, pool));
-  }
-  
-  // ARRANGE_SENTENCE × 2
-  for (let i = 0; i < 2; i++) {
-    const available = pool.filter(w => !usedChars.has(w.char));
-    if (available.length === 0) break;
-    const word = pick(available);
-    usedChars.add(word.char);
-    questions.push(makeArrange(word));
   }
   
   return shuffle(questions);
@@ -277,7 +218,6 @@ const generateBodyQuestions = (pool) => {
 const checkAnswer = (question, userAnswer) => {
   switch (question.type) {
     case QUESTION_TYPES.LISTEN_CHOOSE:
-    case QUESTION_TYPES.PICTURE_MATCH:
     case QUESTION_TYPES.FILL_BLANK:
       return userAnswer === question.correctText;
     
@@ -286,9 +226,6 @@ const checkAnswer = (question, userAnswer) => {
         question.leftItems.find(left => left.id === pair.leftId)?.correctMatch ===
         question.rightItems.find(right => right.id === pair.rightId)?.text
       );
-    
-    case QUESTION_TYPES.ARRANGE_SENTENCE:
-      return Array.isArray(userAnswer) && JSON.stringify(userAnswer) === JSON.stringify(question.correctOrder);
     
     default:
       return false;
@@ -351,6 +288,7 @@ const Lesson5BodyGame = ({ navigation, route }) => {
   const [dmPairs, setDmPairs] = useState([]);
   const [checked, setChecked] = useState(false);
   const [lastCorrect, setLastCorrect] = useState(null);
+  const [currentFeedback, setCurrentFeedback] = useState(null); // 'correct'|'wrong'|null
   
   // Refs
   const startTimeRef = useRef(Date.now());
@@ -491,12 +429,19 @@ const Lesson5BodyGame = ({ navigation, route }) => {
   
   // Handle check answer
   const handleCheckAnswer = () => {
-    if (checked) { nextQuestion(); return; }
     if (currentAnswer === null) return;
 
     const currentQuestion = questions[currentIndex];
     const isCorrect = checkAnswer(currentQuestion, currentAnswer);
 
+    console.debug(`[Answer Check] Q${currentIndex + 1}: ${isCorrect ? '✓ CORRECT' : '✗ WRONG'}`, {
+      type: currentQuestion.type,
+      answer: currentAnswer,
+      correct: isCorrect,
+      score: score + (isCorrect ? 1 : 0),
+    });
+
+    // Save answer
     answersRef.current[currentIndex] = {
       questionId: currentQuestion.id,
       answer: currentAnswer,
@@ -504,6 +449,9 @@ const Lesson5BodyGame = ({ navigation, route }) => {
       timestamp: Date.now(),
     };
     setAnswers({ ...answersRef.current });
+
+    // Show feedback
+    setCurrentFeedback(isCorrect ? 'correct' : 'wrong');
     setLastCorrect(isCorrect);
     setChecked(true);
 
@@ -518,9 +466,14 @@ const Lesson5BodyGame = ({ navigation, route }) => {
       const newHearts = Math.max(0, hearts - 1);
       setHearts(newHearts);
       if (newHearts === 0) {
-        const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
-        finishLesson(elapsed);
-        return;
+        Alert.alert(
+          'หัวใจหมดแล้ว',
+          'ซื้อหัวใจเพิ่มเพื่อเล่นต่อ',
+          [
+            { text: 'ไปร้านหัวใจ', onPress: () => navigation.navigate('GemShop') },
+            { text: 'ยกเลิก', style: 'cancel' }
+          ]
+        );
       }
     }
   };
@@ -531,6 +484,7 @@ const Lesson5BodyGame = ({ navigation, route }) => {
     setDmPairs([]);
     setChecked(false);
     setLastCorrect(null);
+    setCurrentFeedback(null); // Reset feedback
   }, [currentIndex]);
 
   // Next question
@@ -538,6 +492,7 @@ const Lesson5BodyGame = ({ navigation, route }) => {
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(currentIndex + 1);
       setCurrentAnswer(null);
+      setCurrentFeedback(null); // Reset feedback
     } else {
       const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
       finishLesson(elapsed);
@@ -742,202 +697,149 @@ const Lesson5BodyGame = ({ navigation, route }) => {
           </View>
         );
       
-      case QUESTION_TYPES.PICTURE_MATCH:
-        return (
-          <View style={styles.questionContainer}>
-            <View style={styles.questionCard}>
-              <Text style={styles.instruction}>{question.instruction}</Text>
-              <Text style={styles.hintText}>{getHintText(question.type)}</Text>
-              
-              <View style={styles.imageContainer}>
-                <View style={styles.imageFallback}>
-                  <Text style={styles.consonantChar}>{question.imageKey}</Text>
-                </View>
-              </View>
-              
-              <View style={styles.choicesContainer}>
-                {question.choices.map((choice) => (
-                  <TouchableOpacity
-                    key={choice.id}
-                    style={[
-                      styles.choiceButton,
-                      currentAnswer === choice.text && styles.choiceSelected,
-                    ]}
-                  onPress={() => handleAnswerSelect(choice.text, choice.speakText)}
-                  >
-                  <Text
-                    style={[
-                      styles.choiceText,
-                      isThaiText(choice.text) && { fontSize: 26, fontWeight: '900' }
-                    ]}
-                  >
-                    {choice.text}
-                  </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-          </View>
-        );
-      
       case QUESTION_TYPES.DRAG_MATCH:
         return (
           <View style={styles.questionContainer}>
             <Text style={styles.instruction}>{question.instruction}</Text>
             <Text style={styles.hintText}>{getHintText(question.type)}</Text>
             
-            {(dmSelected.leftId || dmSelected.rightId || dmPairs.length > 0) && (
-              <View style={styles.pairPreview}>
-                {dmPairs.map((p, idx) => (
-                  <View key={`pair-${idx}`} style={{ flexDirection:'row', alignItems:'center', marginRight:8 }}>
-                    <Text style={styles.pairPreviewText}>{question.leftItems.find(i=>i.id===p.leftId)?.text || '—'}</Text>
-                    <Text style={styles.pairArrow}> ↔ </Text>
-                    <Text style={styles.pairPreviewText}>{question.rightItems.find(i=>i.id===p.rightId)?.text || '—'}</Text>
-                  </View>
-                ))}
-                {(dmSelected.leftId || dmSelected.rightId) && (
-                  <View style={{ flexDirection:'row', alignItems:'center' }}>
-                    <Text style={[styles.pairPreviewText,{opacity:0.6}]}>{question.leftItems.find(i=>i.id===dmSelected.leftId)?.text || '—'}</Text>
-                    <Text style={styles.pairArrow}> ↔ </Text>
-                    <Text style={[styles.pairPreviewText,{opacity:0.6}]}>{question.rightItems.find(i=>i.id===dmSelected.rightId)?.text || '—'}</Text>
-                  </View>
-                )}
-              </View>
-            )}
-
             <View style={styles.dragMatchContainer}>
-              <View style={styles.leftColumn}>
-                {question.leftItems.map((item) => (
-                  <TouchableOpacity
-                    key={item.id}
-                    style={[
-                      styles.dragItem,
-                      (dmSelected.leftId === item.id) && styles.dragItemSelected,
-                      dmPairs.some(p=>p.leftId===item.id) && styles.dragItemPaired,
-                    ]}
-                    onPress={() => {
-                      playTTS(item.speakText);
-                      if (dmPairs.some(p=>p.leftId===item.id)) {
-                        const filtered = dmPairs.filter(p=>p.leftId!==item.id);
-                        setDmPairs(filtered);
-                        setCurrentAnswer(filtered);
-                        return;
-                      }
-                      const next = { leftId: item.id, rightId: dmSelected.rightId };
-                      if (next.rightId) {
-                        const filtered = dmPairs.filter(p=>p.rightId!==next.rightId && p.leftId!==next.leftId);
-                        const updated = [...filtered, next];
-                        setDmPairs(updated);
-                        setCurrentAnswer(updated);
-                        setDmSelected({ leftId: null, rightId: null });
-                      } else {
-                        setDmSelected(next);
-                      }
-                    }}
-                  >
-                    <Text style={styles.dragItemText}>{item.text}</Text>
-                    <MaterialIcons name="volume-up" size={20} color={COLORS.gray} />
-                  </TouchableOpacity>
-                ))}
+              {/* Left Column - Thai */}
+              <View style={styles.dragColumn}>
+                <Text style={styles.columnLabel}>ภาษาไทย</Text>
+                <View style={styles.leftColumn}>
+                  {question.leftItems.map((item) => (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={[
+                        styles.dragItem,
+                        (dmSelected.leftId === item.id) && styles.dragItemSelected,
+                        dmPairs.some(p=>p.leftId===item.id) && styles.dragItemPaired,
+                      ]}
+                      onPress={() => {
+                        playTTS(item.speakText);
+                        if (dmPairs.some(p=>p.leftId===item.id)) {
+                          const filtered = dmPairs.filter(p=>p.leftId!==item.id);
+                          setDmPairs(filtered);
+                          setCurrentAnswer(filtered);
+                          return;
+                        }
+                        const next = { leftId: item.id, rightId: dmSelected.rightId };
+                        if (next.rightId) {
+                          const filtered = dmPairs.filter(p=>p.rightId!==next.rightId && p.leftId!==next.leftId);
+                          const updated = [...filtered, next];
+                          setDmPairs(updated);
+                          setCurrentAnswer(updated);
+                          setDmSelected({ leftId: null, rightId: null });
+                        } else {
+                          setDmSelected(next);
+                        }
+                      }}
+                    >
+                      <View style={styles.dragItemContent}>
+                        <Text style={styles.dragItemText}>{item.text}</Text>
+                        <TouchableOpacity 
+                          onPress={() => playTTS(item.speakText)}
+                          style={styles.speakButton}
+                        >
+                          <MaterialIcons name="volume-up" size={18} color={COLORS.primary} />
+                        </TouchableOpacity>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </View>
               
-              <View style={styles.rightColumn}>
-                {question.rightItems.map((item) => (
-                  <TouchableOpacity
-                    key={item.id}
-                    style={[
-                      styles.dragItem,
-                      (dmSelected.rightId === item.id) && styles.dragItemSelected,
-                      dmPairs.some(p=>p.rightId===item.id) && styles.dragItemPaired,
-                    ]}
-                    onPress={() => {
-                      playTTS(item.speakText);
-                      if (dmPairs.some(p=>p.rightId===item.id)) {
-                        const filtered = dmPairs.filter(p=>p.rightId!==item.id);
-                        setDmPairs(filtered);
-                        setCurrentAnswer(filtered);
-                        return;
-                      }
-                      const next = { leftId: dmSelected.leftId, rightId: item.id };
-                      if (next.leftId) {
-                        const filtered = dmPairs.filter(p=>p.rightId!==next.rightId && p.leftId!==next.leftId);
-                        const updated = [...filtered, next];
-                        setDmPairs(updated);
-                        setCurrentAnswer(updated);
-                        setDmSelected({ leftId: null, rightId: null });
-                      } else {
-                        setDmSelected(next);
-                      }
-                    }}
-                  >
-                    <Text style={styles.dragItemText}>{item.text}</Text>
-                    <MaterialIcons name="volume-up" size={20} color={COLORS.gray} />
-                  </TouchableOpacity>
-                ))}
+              {/* Connection Lines / Arrow */}
+              <View style={styles.dragConnector}>
+                <Text style={styles.connectorArrow}>↔</Text>
+              </View>
+              
+              {/* Right Column - English */}
+              <View style={styles.dragColumn}>
+                <Text style={styles.columnLabel}>ภาษาอังกฤษ</Text>
+                <View style={styles.rightColumn}>
+                  {question.rightItems.map((item) => (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={[
+                        styles.dragItem,
+                        (dmSelected.rightId === item.id) && styles.dragItemSelected,
+                        dmPairs.some(p=>p.rightId===item.id) && styles.dragItemPaired,
+                      ]}
+                      onPress={() => {
+                        playTTS(item.speakText);
+                        if (dmPairs.some(p=>p.rightId===item.id)) {
+                          const filtered = dmPairs.filter(p=>p.rightId!==item.id);
+                          setDmPairs(filtered);
+                          setCurrentAnswer(filtered);
+                          return;
+                        }
+                        const next = { leftId: dmSelected.leftId, rightId: item.id };
+                        if (next.leftId) {
+                          const filtered = dmPairs.filter(p=>p.rightId!==next.rightId && p.leftId!==next.leftId);
+                          const updated = [...filtered, next];
+                          setDmPairs(updated);
+                          setCurrentAnswer(updated);
+                          setDmSelected({ leftId: null, rightId: null });
+                        } else {
+                          setDmSelected(next);
+                        }
+                      }}
+                    >
+                      <View style={styles.dragItemContent}>
+                        <Text style={styles.dragItemText}>{item.text}</Text>
+                        <TouchableOpacity 
+                          onPress={() => playTTS(item.speakText)}
+                          style={styles.speakButton}
+                        >
+                          <MaterialIcons name="volume-up" size={18} color={COLORS.primary} />
+                        </TouchableOpacity>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </View>
             </View>
+            
+            {/* Pairs Preview */}
+            {dmPairs.length > 0 && (
+              <View style={styles.pairsPreviewContainer}>
+                <Text style={styles.pairsPreviewLabel}>✓ จับคู่แล้ว:</Text>
+                {dmPairs.map((p, idx) => (
+                  <View key={`pair-${idx}`} style={styles.pairItem}>
+                    <Text style={styles.pairText}>{question.leftItems.find(i=>i.id===p.leftId)?.text}</Text>
+                    <Text style={styles.pairArrow}> ↔ </Text>
+                    <Text style={styles.pairText}>{question.rightItems.find(i=>i.id===p.rightId)?.text}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
           </View>
         );
       
       case QUESTION_TYPES.FILL_BLANK:
         return (
           <View style={styles.questionContainer}>
-            <View style={styles.questionCard}>
-              <Text style={styles.instruction}>{question.instruction}</Text>
-              <Text style={styles.questionText}>{question.questionText}</Text>
-              <Text style={styles.hintText}>{getHintText(question.type)}</Text>
-              
-              <View style={styles.choicesContainer}>
-                {question.choices.map((choice) => (
-                  <TouchableOpacity
-                    key={choice.id}
-                    style={[
-                      styles.choiceButton,
-                      currentAnswer === choice.text && styles.choiceSelected,
-                    ]}
-                    onPress={() => handleAnswerSelect(choice.text)}
-                  >
-                    <Text style={styles.choiceText}>{choice.text}</Text>
-                  </TouchableOpacity>
+      <View style={styles.questionCard}>
+        <Text style={styles.instruction}>{question.instruction}</Text>
+        <Text style={styles.questionText}>{question.questionText}</Text>
+        <Text style={styles.hintText}>{getHintText(question.type)}</Text>
+        
+        <View style={styles.choicesContainer}>
+          {question.choices.map((choice) => (
+            <TouchableOpacity
+              key={choice.id}
+              style={[
+                styles.choiceButton,
+                currentAnswer === choice.text && styles.choiceSelected,
+              ]}
+              onPress={() => handleAnswerSelect(choice.text, choice.speakText)}
+            >
+              <Text style={styles.choiceText}>{choice.text}</Text>
+            </TouchableOpacity>
                 ))}
               </View>
-            </View>
-          </View>
-        );
-      
-      case QUESTION_TYPES.ARRANGE_SENTENCE:
-        return (
-          <View style={styles.questionContainer}>
-            <Text style={styles.instruction}>{question.instruction}</Text>
-            <Text style={styles.hintText}>{getHintText(question.type)}</Text>
-            
-            <View style={styles.arrangeContainer}>
-              <Text style={styles.arrangeText}>
-                {currentAnswer ? currentAnswer.join(' ') : 'เรียงคำให้ถูกต้อง'}
-              </Text>
-            </View>
-            
-            <View style={styles.choicesContainer}>
-              {question.allParts.map((part, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={[
-                    styles.choiceButton,
-                    currentAnswer && currentAnswer.includes(part) && styles.choiceSelected,
-                  ]}
-                  onPress={() => {
-                    if (!currentAnswer) {
-                      setCurrentAnswer([part]);
-                    } else if (!currentAnswer.includes(part)) {
-                      setCurrentAnswer([...currentAnswer, part]);
-                    } else {
-                      setCurrentAnswer(currentAnswer.filter(p => p !== part));
-                    }
-                  }}
-                >
-                  <Text style={styles.choiceText}>{part}</Text>
-                </TouchableOpacity>
-              ))}
             </View>
           </View>
         );
@@ -1002,85 +904,154 @@ const Lesson5BodyGame = ({ navigation, route }) => {
   
   return (
     <SafeAreaView style={styles.container}>
+      {/* Background gradient for depth */}
       <LinearGradient
         colors={['#FFF5E5', '#FFFFFF']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.bg}
       />
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="arrow-back" size={24} color={COLORS.dark} />
-        </TouchableOpacity>
-        
-        <View style={styles.progressContainer}>
-          <View style={styles.progressBar}>
-            <View style={[styles.progressFill, { width: `${progress}%` }]} />
-          </View>
-          <View style={styles.headerMetaRow}>
-            <Text style={styles.progressText}>{currentIndex + 1} / {questions.length}</Text>
-            <View style={styles.typePill}><Text style={styles.typePillText}>{getTypeLabel(currentQuestion.type)}</Text></View>
+      {/* Header */}
+      <LinearGradient
+        colors={['#FF8000', '#FFA24D', '#FFD700']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.headerGradient}
+      >
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <FontAwesome name="times" size={26} color={COLORS.white} />
+          </TouchableOpacity>
+          
+          <View style={styles.progressContainer}>
+            <View style={styles.progressBar}>
+              <LinearGradient
+                colors={['#58cc02', '#7FD14F']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={[styles.progressFill, { width: `${progress}%` }]}
+              />
+            </View>
+            <View style={styles.headerMetaRow}>
+              <Text style={styles.progressText}>{currentIndex + 1} / {questions.length}</Text>
+              <View style={styles.typePill}><Text style={styles.typePillText}>{getTypeLabel(currentQuestion.type)}</Text></View>
+              <View style={styles.heartsDisplayContainer}>
+                <LottieView
+                  source={require('../assets/animations/Heart.json')}
+                  autoPlay
+                  loop
+                  style={styles.heartsIconAnimation}
+                />
+                <Text style={styles.heartsDisplay}>{hearts}</Text>
+              </View>
+            </View>
           </View>
         </View>
-      </View>
+      </LinearGradient>
       
+      {/* Stats Row - Enhanced */}
       <View style={styles.statsRow}>
-        <View style={styles.statBadge}>
+        <View style={styles.statBadgeEnhanced}>
           <LottieView
             source={require('../assets/animations/Star.json')}
             autoPlay
             loop
             style={styles.starAnimation}
           />
-          <Text style={styles.statText}>{xpEarned} XP</Text>
+          <View style={styles.statTextContainer}>
+            <Text style={styles.statLabel}>XP</Text>
+            <Text style={styles.statValue}>{xpEarned}</Text>
+          </View>
         </View>
-        <View style={styles.statBadge}>
+        
+        <View style={styles.statDivider} />
+        
+        <View style={styles.statBadgeEnhanced}>
           <LottieView
             source={require('../assets/animations/Diamond.json')}
             autoPlay
             loop
             style={styles.diamondAnimation}
           />
-          <Text style={styles.statText}>+{diamondsEarned}</Text>
+          <View style={styles.statTextContainer}>
+            <Text style={styles.statLabel}>Diamonds</Text>
+            <Text style={styles.statValue}>+{diamondsEarned}</Text>
+          </View>
         </View>
-        <View style={styles.statBadge}>
-          <Text style={styles.statText}>🎯 {Math.min(100, Math.max(0, Math.round((score / Math.max(1, currentIndex)) * 100)))}%</Text>
-        </View>
-        <View style={styles.statBadge}>
-          <LottieView
-            source={require('../assets/animations/Streak-Fire1.json')}
-            autoPlay
-            loop
-            style={styles.streakAnimation}
-          />
-          <Text style={styles.statText}>{streak}</Text>
+        
+        <View style={styles.statDivider} />
+        
+        <View style={styles.statBadgeEnhanced}>
+          <FontAwesome name="bullseye" size={18} color={COLORS.primary} />
+          <View style={styles.statTextContainer}>
+            <Text style={styles.statLabel}>Accuracy</Text>
+            <Text style={styles.statValue}>{Math.min(100, Math.max(0, Math.round((score / Math.max(1, currentIndex)) * 100)))}%</Text>
+          </View>
         </View>
       </View>
       
+      {/* Question */}
       <ScrollView style={styles.questionScrollView}>
         {renderQuestionComponent()}
       </ScrollView>
-      
-      <View style={styles.checkContainer}>
+
+      {/* Check Button - Enhanced 2-Phase */}
+      <View style={styles.checkContainerEnhanced}>
+        {currentFeedback && (
+          <View style={[
+            styles.feedbackBadgeEnhanced,
+            currentFeedback === 'correct' ? styles.feedbackCorrectEnhanced : styles.feedbackWrongEnhanced
+          ]}>
+            <FontAwesome 
+              name={currentFeedback === 'correct' ? 'check-circle' : 'times-circle'} 
+              size={24} 
+              color={currentFeedback === 'correct' ? '#58cc02' : '#ff4b4b'}
+              style={{ marginRight: 8 }}
+            />
+            <Text style={styles.feedbackTextEnhanced}>
+              {currentFeedback === 'correct' ? 'ถูกต้อง! ยอดเยี่ยม' : 'พยายามอีกครั้ง'}
+            </Text>
+          </View>
+        )}
         <TouchableOpacity
           style={[
-            styles.checkButton,
-            currentAnswer === null && !checked && styles.checkButtonDisabled,
+            styles.checkButtonEnhanced,
+            (currentAnswer === null && dmPairs.length === 0) && styles.checkButtonDisabledEnhanced,
           ]}
-          onPress={handleCheckAnswer}
-          disabled={currentAnswer === null && !checked}
-          activeOpacity={0.9}
+          onPress={() => {
+            if (currentFeedback !== null) {
+              setCurrentFeedback(null);
+              if (hearts === 0) {
+                const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+                finishLesson(elapsed);
+              } else {
+                nextQuestion();
+              }
+            } else {
+              handleCheckAnswer();
+            }
+          }}
+          disabled={(currentAnswer === null && dmPairs.length === 0)}
+          activeOpacity={0.85}
         >
           <LinearGradient
-            colors={[COLORS.primary, '#FFA24D']}
+            colors={(currentAnswer === null && dmPairs.length === 0) ? ['#ddd', '#ccc'] : [COLORS.primary, '#FFA24D']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={styles.checkGradient}
+            style={styles.checkGradientEnhanced}
           >
-            <Text style={styles.checkButtonText}>{checked ? 'NEXT' : 'CHECK'}</Text>
+            <FontAwesome 
+              name={currentFeedback !== null ? 'arrow-right' : 'check'} 
+              size={20} 
+              color={COLORS.white}
+              style={{ marginRight: 8 }}
+            />
+            <Text style={styles.checkButtonTextEnhanced}>
+              {currentFeedback !== null ? (hearts === 0 ? 'จบเกม' : 'ต่อไป') : 'CHECK'}
+            </Text>
           </LinearGradient>
         </TouchableOpacity>
       </View>
@@ -1095,6 +1066,28 @@ const styles = StyleSheet.create({
   },
   bg: {
     ...StyleSheet.absoluteFillObject,
+  },
+  headerGradient: {
+    paddingTop: 10,
+    paddingBottom: 15,
+  },
+  heartsIconAnimation: {
+    width: 20,
+    height: 20,
+  },
+  heartsDisplayContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  heartsDisplay: {
+    color: COLORS.white,
+    fontSize: 14,
+    fontWeight: '700',
+    marginLeft: 4,
   },
   loadingContainer: {
     flex: 1,
@@ -1182,9 +1175,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 15,
-    backgroundColor: 'rgba(255,255,255,0.92)',
+    backgroundColor: 'transparent',
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.lightGray,
+    borderBottomColor: 'rgba(255,255,255,0.2)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
@@ -1193,6 +1186,9 @@ const styles = StyleSheet.create({
   },
   backButton: {
     marginRight: 15,
+  },
+  headerGradient: {
+    paddingTop: 15,
   },
   progressContainer: {
     flex: 1,
@@ -1213,7 +1209,7 @@ const styles = StyleSheet.create({
   progressText: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.dark,
+    color: COLORS.white,
     marginTop: 5,
   },
   headerMetaRow: {
@@ -1224,23 +1220,23 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between'
   },
   typePill: {
-    backgroundColor: COLORS.cream,
+    backgroundColor: 'rgba(255,255,255,0.25)',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#FFE3CC',
+    borderColor: 'rgba(255,255,255,0.4)',
   },
   typePillText: {
     fontSize: 12,
     fontWeight: '700',
-    color: COLORS.primary,
+    color: COLORS.white,
   },
   statsRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
     backgroundColor: 'rgba(255,245,229,0.9)',
     borderTopWidth: 1,
     borderBottomWidth: 1,
@@ -1250,6 +1246,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 4,
     elevation: 2,
+    overflow: 'visible',
   },
   statBadge: {
     flexDirection: 'row',
@@ -1292,33 +1289,33 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   instruction: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '600',
     color: COLORS.dark,
-    marginBottom: 15,
+    marginBottom: 12,
     textAlign: 'center',
   },
   questionText: {
-    fontSize: 16,
+    fontSize: 15,
     color: COLORS.gray,
-    marginBottom: 20,
+    marginBottom: 15,
     textAlign: 'center',
   },
   hintText: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#8A8A8A',
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   speakerButton: {
     alignSelf: 'center',
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 70,
+    height: 70,
+    borderRadius: 35,
     backgroundColor: COLORS.cream,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -1329,16 +1326,16 @@ const styles = StyleSheet.create({
   },
   questionCard: {
     backgroundColor: '#FFFFFF',
-    padding: 16,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-    borderWidth: 1,
-    borderColor: '#F2F2F2',
-    overflow: 'hidden'
+    padding: 18,
+    borderRadius: 20,
+    shadowColor: '#FF8000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+    borderWidth: 2,
+    borderColor: '#FFE8CC',
+    overflow: 'hidden',
   },
   imageContainer: {
     alignItems: 'center',
@@ -1373,27 +1370,32 @@ const styles = StyleSheet.create({
     width: '48%',
     backgroundColor: COLORS.white,
     paddingVertical: 18,
-    paddingHorizontal: 22,
+    paddingHorizontal: 18,
     borderRadius: 18,
-    marginBottom: 15,
+    marginBottom: 12,
     borderWidth: 2,
-    borderColor: COLORS.lightGray,
+    borderColor: '#FFE8CC',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 4,
   },
   choiceSelected: {
     borderColor: COLORS.primary,
-    backgroundColor: COLORS.cream,
-    transform: [{ scale: 1.02 }],
+    backgroundColor: 'rgba(255,128,0,0.08)',
+    borderWidth: 3,
+    transform: [{ scale: 1.05 }],
+    shadowColor: COLORS.primary,
+    shadowOpacity: 0.25,
   },
   choiceText: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '800',
     color: COLORS.dark,
+    textAlign: 'center',
+    lineHeight: 26,
   },
   dragMatchContainer: {
     flexDirection: 'row',
@@ -1407,6 +1409,16 @@ const styles = StyleSheet.create({
   rightColumn: {
     flex: 1,
     marginLeft: 10,
+  },
+  dragColumn: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  columnLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.dark,
+    marginBottom: 10,
   },
   dragItem: {
     flexDirection: 'row',
@@ -1435,30 +1447,56 @@ const styles = StyleSheet.create({
     borderColor: '#4CAF50',
     backgroundColor: 'rgba(76,175,80,0.08)'
   },
+  dragItemContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
   dragItemText: {
     fontSize: 16,
     fontWeight: '500',
     color: COLORS.dark,
     flex: 1,
   },
-  pairPreview: {
+  speakButton: {
+    padding: 5,
+  },
+  dragConnector: {
     alignSelf: 'center',
-    flexDirection: 'row',
-    alignItems: 'center',
+    marginVertical: 20,
+    paddingHorizontal: 10,
+  },
+  connectorArrow: {
+    fontSize: 24,
+    color: COLORS.primary,
+    fontWeight: '900',
+  },
+  pairsPreviewContainer: {
     backgroundColor: '#FFF',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 18,
+    padding: 12,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: '#F2F2F2',
-    marginBottom: 12,
+    marginTop: 15,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 4,
     elevation: 2,
   },
-  pairPreviewText: {
+  pairsPreviewLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.dark,
+    marginBottom: 8,
+  },
+  pairItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 5,
+  },
+  pairText: {
     fontSize: 14,
     fontWeight: '700',
     color: COLORS.dark,
@@ -1468,18 +1506,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
     color: COLORS.primary,
     fontWeight: '900',
-  },
-  arrangeContainer: {
-    backgroundColor: COLORS.cream,
-    padding: 20,
-    borderRadius: 15,
-    marginBottom: 20,
-  },
-  arrangeText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: COLORS.dark,
-    textAlign: 'center',
   },
   checkContainer: {
     padding: 20,
@@ -1514,6 +1540,108 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: COLORS.white,
     letterSpacing: 0.5,
+  },
+  statBadgeEnhanced: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 1,
+    borderWidth: 1,
+    borderColor: '#F5F5F5',
+  },
+  statTextContainer: {
+    marginLeft: 8,
+  },
+  statLabel: {
+    fontSize: 10,
+    color: '#999',
+    marginBottom: 2,
+    fontWeight: '600',
+  },
+  statValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.dark,
+  },
+  statDivider: {
+    width: 1,
+    height: '80%',
+    backgroundColor: '#E8E8E8',
+    marginHorizontal: 10,
+  },
+  checkContainerEnhanced: {
+    padding: 18,
+    backgroundColor: COLORS.white,
+    borderTopWidth: 1,
+    borderTopColor: '#E8E8E8',
+    alignItems: 'center',
+  },
+  feedbackBadgeEnhanced: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    borderRadius: 16,
+    marginBottom: 18,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  feedbackCorrectEnhanced: {
+    backgroundColor: '#E8F5E9',
+    borderColor: '#4CAF50',
+    borderWidth: 2,
+  },
+  feedbackWrongEnhanced: {
+    backgroundColor: '#FBE9E7',
+    borderColor: '#FF7043',
+    borderWidth: 2,
+  },
+  feedbackTextEnhanced: {
+    fontSize: 16,
+    fontWeight: '800',
+    marginLeft: 12,
+    letterSpacing: 0.3,
+    color: '#333',
+  },
+  checkButtonEnhanced: {
+    paddingVertical: 18,
+    borderRadius: 28,
+    alignItems: 'center',
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
+    minWidth: 200,
+  },
+  checkGradientEnhanced: {
+    width: '100%',
+    paddingVertical: 18,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+  },
+  checkButtonDisabledEnhanced: {
+    backgroundColor: '#D0D0D0',
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  checkButtonTextEnhanced: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: COLORS.white,
+    letterSpacing: 0.8,
   },
 });
 

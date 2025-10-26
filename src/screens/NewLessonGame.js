@@ -2388,7 +2388,12 @@ const NewLessonGame = ({ navigation, route }) => {
                 </View>
 
                 <View style={styles.heartsContainer}>
-                    <FontAwesome name="heart" size={20} color="#ff4b4b" />
+                    <LottieView
+                        source={require('../assets/animations/Heart.json')}
+                        autoPlay
+                        loop
+                        style={styles.heartsAnimation}
+                    />
                     <Text style={styles.heartsText}>{hearts}</Text>
                 </View>
 
@@ -3213,6 +3218,10 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 18,
         fontWeight: 'bold',
+    },
+    heartsAnimation: {
+        width: 40,
+        height: 40,
     },
 });
 

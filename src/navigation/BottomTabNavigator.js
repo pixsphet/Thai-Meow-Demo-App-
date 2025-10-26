@@ -4,6 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
+import { LinearGradient } from 'expo-linear-gradient';
 
 // Screens
 import HomeScreen from '../screens/HomeScreen';
@@ -32,11 +33,11 @@ import GemShopScreen from '../screens/GemShopScreen';
 import GreetingStage3Game from '../screens/GreetingStage3Game';
 import Lesson4ObjectsGame from '../screens/Lesson4ObjectsGame';
 import Lesson5BodyGame from '../screens/Lesson5BodyGame';
-import Advanced1IdiomsGame from '../screens/Advanced1IdiomsGame';
-import Advanced2OccupationsGame from '../screens/Advanced2OccupationsGame';
+import Advanced5IdiomsGame from '../screens/Advanced5IdiomsGame';
+import Advanced1OccupationsGame from '../screens/Advanced1OccupationsGame';
+import Advanced2TopicsGame from '../screens/Advanced2TopicsGame';
 import Advanced3DirectionsGame from '../screens/Advanced3DirectionsGame';
 import Advanced4ComplexVerbsGame from '../screens/Advanced4ComplexVerbsGame';
-import Advanced5OpinionsGame from '../screens/Advanced5OpinionsGame';
 import Intermediate1FoodDrinksGame from '../screens/Intermediate1FoodDrinksGame';
 import IntermediateEmotionsGame from '../screens/IntermediateEmotionsGame';
 import IntermediatePlacesGame from '../screens/IntermediatePlacesGame';
@@ -183,13 +184,18 @@ const MainStackNavigator = () => {
         options={{ headerShown: false }}
       />
       <Stack.Screen 
-        name="Advanced1IdiomsGame" 
-        component={Advanced1IdiomsGame} 
+        name="Advanced5IdiomsGame" 
+        component={Advanced5IdiomsGame} 
         options={{ headerShown: false }}
       />
       <Stack.Screen 
-        name="Advanced2OccupationsGame" 
-        component={Advanced2OccupationsGame} 
+        name="Advanced1OccupationsGame" 
+        component={Advanced1OccupationsGame} 
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="Advanced2TopicsGame" 
+        component={Advanced2TopicsGame} 
         options={{ headerShown: false }}
       />
       <Stack.Screen 
@@ -200,11 +206,6 @@ const MainStackNavigator = () => {
       <Stack.Screen 
         name="Advanced4ComplexVerbsGame" 
         component={Advanced4ComplexVerbsGame} 
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen 
-        name="Advanced5OpinionsGame" 
-        component={Advanced5OpinionsGame} 
         options={{ headerShown: false }}
       />
       <Stack.Screen 
@@ -245,7 +246,6 @@ const CustomTabBar = ({ navigation }) => {
     left: 12,
     right: 12,
     bottom: 26,
-    backgroundColor: theme.colors.background,
     elevation: 10,
     shadowColor: '#000',
     shadowOpacity: 0.12,
@@ -262,6 +262,8 @@ const CustomTabBar = ({ navigation }) => {
     justifyContent: 'space-between',
     alignItems: 'center',
   };
+
+  const tabBarGradient = ['#FFF5E6', '#FFFFFF'];
 
   const tabItems = [
     {
@@ -291,7 +293,12 @@ const CustomTabBar = ({ navigation }) => {
   ];
 
   return (
-    <View style={tabBarStyle}>
+    <LinearGradient
+      colors={tabBarGradient}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={tabBarStyle}
+    >
       {tabItems.map((item) => (
         <TouchableOpacity
           key={item.name}
@@ -321,7 +328,7 @@ const CustomTabBar = ({ navigation }) => {
           </Text>
         </TouchableOpacity>
       ))}
-    </View>
+    </LinearGradient>
   );
 };
 
