@@ -58,6 +58,13 @@ const getNeighborChars = (char, pool) => {
   return pool.filter(c => groups[group]?.includes(c.char) && c.char !== char);
 };
 
+const SENTENCE_ORDER_TYPES = new Set([
+  'ARRANGE_SENTENCE',
+  'ORDER_TILES',
+  'ARRANGE_IDIOM',
+  'ORDER_FLOW',
+]);
+
 const normalizeConsonantItem = (item = {}) => ({
   char: item.char || item.thai,
   meaning: item.meaning || item.en,
@@ -1061,8 +1068,8 @@ const NewLessonGame = ({ navigation, route }) => {
     
     const [currentQuestIndex, setCurrentQuestIndex] = useState(0);
     const [userAnswer, setUserAnswer] = useState(null); 
-    const [isCorrect, setIsCorrect] = useState(null); 
-    const [questions, setQuestions] = useState([]);
+   const [isCorrect, setIsCorrect] = useState(null); 
+   const [questions, setQuestions] = useState([]);
     const [loading, setLoading] = useState(true);
     const initialHearts = Number.isFinite(unifiedStats?.hearts) ? unifiedStats.hearts : 5;
     const [score, setScore] = useState(0);
@@ -1096,6 +1103,16 @@ const NewLessonGame = ({ navigation, route }) => {
     const [perLetter, setPerLetter] = useState({});
     const [lessonCharacters, setLessonCharacters] = useState([]);
     const sessionFinalizedRef = useRef(false);
+
+    useEffect(() => {
+        if (!questions || questions.length === 0) {
+            return;
+        }
+        const filtered = questions.filter((q) => q && !SENTENCE_ORDER_TYPES.has(q.type));
+        if (filtered.length !== questions.length) {
+            setQuestions(filtered);
+        }
+    }, [questions]);
     
     // ข้อมูลความคืบหน้าแบบละเอียด
     const [gameProgress, setGameProgress] = useState({
@@ -1509,12 +1526,16 @@ const NewLessonGame = ({ navigation, route }) => {
                     currentIndex: savedProgress.currentIndex,
                 });
 
-                setQuestions(savedProgress.questionsSnapshot);
+                const sanitizedSnapshot = (savedProgress.questionsSnapshot || []).filter(
+                    q => q && !SENTENCE_ORDER_TYPES.has(q.type)
+                );
+                setQuestions(sanitizedSnapshot);
+                const sanitizedLastIndex = Math.max(sanitizedSnapshot.length - 1, 0);
                 const nextIndex = Math.max(
                     0,
                     Math.min(
                         savedProgress.currentIndex || savedProgress.currentQuestionIndex || 0,
-                        savedProgress.questionsSnapshot.length - 1
+                        sanitizedLastIndex
                     )
                 );
                 setCurrentQuestIndex(nextIndex);
@@ -1559,12 +1580,15 @@ const NewLessonGame = ({ navigation, route }) => {
             }
 
             const gameQuestions = generateQuestions(pool, { type: questionType });
+            const filteredQuestions = Array.isArray(gameQuestions)
+                ? gameQuestions.filter(q => q && !SENTENCE_ORDER_TYPES.has(q.type))
+                : [];
 
-            if (!Array.isArray(gameQuestions) || gameQuestions.length === 0) {
+            if (!Array.isArray(filteredQuestions) || filteredQuestions.length === 0) {
                 throw new Error(`No ${questionType} questions generated`);
             }
 
-            setQuestions(gameQuestions);
+            setQuestions(filteredQuestions);
             setCurrentQuestIndex(0);
             setIsCorrect(null);
             setUserAnswer(null);
@@ -1579,7 +1603,7 @@ const NewLessonGame = ({ navigation, route }) => {
             setGameProgress(prev => ({
                 ...prev,
                 startTime: Date.now(),
-                totalQuestions: gameQuestions.length,
+                totalQuestions: filteredQuestions.length,
                 completedQuestions: 0,
                 correctAnswers: 0,
                 wrongAnswers: 0,
@@ -1600,13 +1624,13 @@ const NewLessonGame = ({ navigation, route }) => {
                 category: currentCategory,
                 generator: questionType,
                 currentIndex: 0,
-                total: gameQuestions.length,
+                total: filteredQuestions.length,
                 hearts: 5,
                 score: 0,
                 xp: 0,
                 perLetter: {},
                 answers: {},
-                questionsSnapshot: gameQuestions,
+                questionsSnapshot: filteredQuestions,
                 updatedAt: Date.now()
             });
 
@@ -1625,12 +1649,16 @@ const NewLessonGame = ({ navigation, route }) => {
                     type: isVowelLesson ? 'vowel' : 'consonant'
                 });
 
-                if (!fallbackQuestions.length) {
+                const filteredFallbackQuestions = fallbackQuestions.filter(
+                    q => q && !SENTENCE_ORDER_TYPES.has(q.type)
+                );
+
+                if (!filteredFallbackQuestions.length) {
                     throw new Error('Fallback question generation failed');
                 }
 
                 setLessonCharacters(fallbackPool);
-                setQuestions(fallbackQuestions);
+                setQuestions(filteredFallbackQuestions);
                 setCurrentQuestIndex(0);
                 setIsCorrect(null);
                 setUserAnswer(null);
@@ -1645,7 +1673,7 @@ const NewLessonGame = ({ navigation, route }) => {
                 setGameProgress(prev => ({
                     ...prev,
                     startTime: Date.now(),
-                    totalQuestions: fallbackQuestions.length,
+                    totalQuestions: filteredFallbackQuestions.length,
                     completedQuestions: 0,
                     correctAnswers: 0,
                     wrongAnswers: 0,
@@ -1666,13 +1694,13 @@ const NewLessonGame = ({ navigation, route }) => {
                     category: currentCategory,
                     generator: isVowelLesson ? 'vowels' : 'consonants',
                     currentIndex: 0,
-                    total: fallbackQuestions.length,
+                    total: filteredFallbackQuestions.length,
                     hearts: 5,
                     score: 0,
                     xp: 0,
                     perLetter: {},
                     answers: {},
-                    questionsSnapshot: fallbackQuestions,
+                    questionsSnapshot: filteredFallbackQuestions,
                     updatedAt: Date.now()
                 });
             } catch (fallbackError) {

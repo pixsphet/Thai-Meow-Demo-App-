@@ -75,6 +75,13 @@ const QUESTION_TYPES = {
   ARRANGE_SENTENCE: 'ARRANGE_SENTENCE',
 };
 
+const SENTENCE_ORDER_TYPES = new Set([
+  QUESTION_TYPES.ARRANGE_SENTENCE,
+  'ORDER_TILES',
+  'ARRANGE_IDIOM',
+  'ORDER_FLOW',
+]);
+
 // Colors
 const COLORS = {
   primary: '#FF8000',
@@ -150,6 +157,10 @@ const makeListenChoose = (word, pool) => {
     questionText: 'แตะปุ่มลำโพงเพื่อฟังเสียง',
     audioText: word.audioText,
     correctText: word.char,
+    // Rewards for this question
+    rewardXP: 15,      // XP for correct answer
+    rewardDiamond: 1,  // Diamond for correct answer
+    penaltyHeart: 1,   // Heart loss for wrong answer
     choices: choices.map((c, i) => ({
       id: i + 1,
       text: SHOW_ROMAN ? (c.roman || c.name) : c.char,
@@ -171,6 +182,10 @@ const makePictureMatch = (word, pool) => {
     instruction: 'ดูภาพแล้วเลือกสระให้ถูกต้อง',
     imageKey: word.image,
     correctText: word.char,
+    // Rewards for this question
+    rewardXP: 15,      // XP for correct answer
+    rewardDiamond: 1,  // Diamond for correct answer
+    penaltyHeart: 1,   // Heart loss for wrong answer
     choices: choices.map((c, i) => ({
       id: i + 1,
       text: SHOW_ROMAN ? (c.roman || c.name) : c.char,
@@ -203,6 +218,10 @@ const makeDragMatch = (word, pool) => {
     id: `dm_${word.char}_${uid()}`,
     type: QUESTION_TYPES.DRAG_MATCH,
     instruction: 'จับคู่เสียงกับสระ',
+    // Rewards for this question
+    rewardXP: 15,      // XP for correct answer
+    rewardDiamond: 1,  // Diamond for correct answer
+    penaltyHeart: 1,   // Heart loss for wrong answer
     leftItems,
     rightItems,
   };
@@ -227,6 +246,10 @@ const makeFillBlank = (word, pool) => {
     instruction: 'เติมคำในช่องว่าง',
     questionText: template,
     correctText: word.char,
+    // Rewards for this question
+    rewardXP: 15,      // XP for correct answer
+    rewardDiamond: 1,  // Diamond for correct answer
+    penaltyHeart: 1,   // Heart loss for wrong answer
     choices: choices.map((c, i) => ({
       id: i + 1,
       text: SHOW_ROMAN ? (c.roman || c.name) : c.char,
@@ -245,6 +268,10 @@ const makeArrange = (word) => {
     id: `arr_${word.char}_${uid()}`,
     type: QUESTION_TYPES.ARRANGE_SENTENCE,
     instruction: 'เรียงคำให้ถูกต้อง',
+    // Rewards for this question
+    rewardXP: 15,      // XP for correct answer
+    rewardDiamond: 1,  // Diamond for correct answer
+    penaltyHeart: 1,   // Heart loss for wrong answer
     correctOrder: parts,
     allParts,
   };
@@ -288,14 +315,6 @@ const generateVowelQuestions = (pool) => {
     const word = pick(available);
     usedChars.add(word.char);
     questions.push(makeFillBlank(word, pool));
-  }
-  
-  // ARRANGE × 1
-  const available2 = pool.filter(w => !usedChars.has(w.char));
-  if (available2.length > 0) {
-    const word = pick(available2);
-    usedChars.add(word.char);
-    questions.push(makeArrange(word));
   }
   
   return shuffle(questions);
@@ -387,6 +406,16 @@ const VowelStage2Game = ({ navigation, route }) => {
   const gameFinishedRef = useRef(false);
   const serviceInitRef = useRef(false);
 
+  useEffect(() => {
+    if (!questions || questions.length === 0) {
+      return;
+    }
+    const filtered = questions.filter((q) => q && !SENTENCE_ORDER_TYPES.has(q.type));
+    if (filtered.length !== questions.length) {
+      setQuestions(filtered);
+    }
+  }, [questions]);
+
   // Load vowels data
   useEffect(() => {
     const loadVowels = async () => {
@@ -395,12 +424,22 @@ const VowelStage2Game = ({ navigation, route }) => {
         setVowels(normalizedVowels);
         
         const generatedQuestions = generateVowelQuestions(normalizedVowels);
-        setQuestions(generatedQuestions);
+        const filteredQuestions = generatedQuestions.filter(q => !SENTENCE_ORDER_TYPES.has(q.type));
+        setQuestions(filteredQuestions);
         
         const savedProgress = await restoreProgress(lessonId);
         if (savedProgress && savedProgress.questionsSnapshot) {
-          setResumeData(savedProgress);
-          setCurrentIndex(savedProgress.currentIndex || 0);
+          const sanitizedSnapshot = (savedProgress.questionsSnapshot || []).filter(
+            q => q && !SENTENCE_ORDER_TYPES.has(q.type)
+          );
+
+          const resumePayload = {
+            ...savedProgress,
+            questionsSnapshot: sanitizedSnapshot,
+          };
+
+          setResumeData(resumePayload);
+          setCurrentIndex(Math.min(savedProgress.currentIndex || 0, Math.max(sanitizedSnapshot.length - 1, 0)));
           setHearts(savedProgress.hearts || 5);
           setStreak(savedProgress.streak || 0);
           setMaxStreak(savedProgress.maxStreak || 0);
@@ -409,6 +448,10 @@ const VowelStage2Game = ({ navigation, route }) => {
           setDiamondsEarned(savedProgress.diamondsEarned || 0);
           setAnswers(savedProgress.answers || {});
           answersRef.current = savedProgress.answers || {};
+
+          if (sanitizedSnapshot.length > 0) {
+            setQuestions(sanitizedSnapshot);
+          }
         }
         
         setLoading(false);
@@ -421,54 +464,53 @@ const VowelStage2Game = ({ navigation, route }) => {
     loadVowels();
   }, [lessonId]);
 
+  // ใช้ useMemo สำหรับ userId ที่ stable
+  const stableUserId = useMemo(() => {
+    return progressUser?.id || userData?.id || stats?.userId || stats?._id || stats?.id;
+  }, [progressUser?.id, userData?.id, stats?.userId, stats?._id, stats?.id]);
+
   // Initialize services
   useEffect(() => {
-    const userId =
-      progressUser?.id ||
-      userData?.id ||
-      stats?.userId ||
-      stats?._id ||
-      stats?.id;
-
-    if (!userId || serviceInitRef.current) {
+    if (!stableUserId || serviceInitRef.current) {
       return;
     }
 
     serviceInitRef.current = true;
+    console.log('🔧 Initializing services for user:', stableUserId);
 
     (async () => {
       try {
-        await gameProgressService.initialize(userId);
+        await gameProgressService.initialize(stableUserId);
       } catch (error) {
         console.warn('Failed to initialize gameProgressService:', error?.message || error);
       }
 
       try {
-        await levelUnlockService.initialize(userId);
+        await levelUnlockService.initialize(stableUserId);
       } catch (error) {
         console.warn('Failed to initialize levelUnlockService:', error?.message || error);
       }
 
       try {
-        await userStatsService.initialize(userId);
+        await userStatsService.initialize(stableUserId);
       } catch (error) {
         console.warn('Failed to initialize userStatsService:', error?.message || error);
       }
 
       try {
         if (typeof dailyStreakService.setUser === 'function') {
-          dailyStreakService.setUser(userId);
+          dailyStreakService.setUser(stableUserId);
         }
       } catch (error) {
         console.warn('Failed to bind user to dailyStreakService:', error?.message || error);
       }
     })();
-  }, [progressUser?.id, userData?.id, stats?.userId, stats?._id, stats?.id]);
+  }, [stableUserId]); // dependency ลดลงเหลือแค่ stableUserId
 
-  // Auto-save progress
+  // Auto-save progress (debounced)
   const autosave = useCallback(async () => {
-    if (questions.length === 0) return;
-    
+    if (questions.length === 0 || !gameStarted || gameFinished) return;
+
     const snapshot = {
       questionsSnapshot: questions,
       currentIndex,
@@ -485,19 +527,23 @@ const VowelStage2Game = ({ navigation, route }) => {
         timestamp: Date.now(),
       },
     };
-    
+
     try {
       await saveProgress(lessonId, snapshot);
     } catch (error) {
       console.error('Error saving progress:', error);
     }
-  }, [questions, currentIndex, hearts, score, xpEarned, diamondsEarned, streak, maxStreak, lessonId]);
+  }, [questions, currentIndex, hearts, score, xpEarned, diamondsEarned, streak, maxStreak, lessonId, gameStarted, gameFinished]);
 
-  // Save progress when state changes
+  // Save progress when state changes (debounced)
   useEffect(() => {
-    if (gameStarted && !gameFinished) {
+    if (!gameStarted || gameFinished) return;
+
+    const timer = setTimeout(() => {
       autosave();
-    }
+    }, 1000); // Debounce 1 second
+
+    return () => clearTimeout(timer);
   }, [currentIndex, hearts, score, streak, gameStarted, gameFinished, autosave]);
 
   // Play TTS
@@ -536,18 +582,32 @@ const VowelStage2Game = ({ navigation, route }) => {
     setChecked(true);
 
     if (isCorrect) {
+      // Correct answer - use question's reward data
+      const xpReward = currentQuestion.rewardXP || 15;
+      const diamondReward = currentQuestion.rewardDiamond || 1;
       const newScore = score + 1;
-      const newXp = xpEarned + 15;
-      const newDiamonds = diamondsEarned + 1;
+      const newXp = xpEarned + xpReward;
+      const newDiamonds = diamondsEarned + diamondReward;
       setScore(newScore);
       setXpEarned(newXp);
       setDiamondsEarned(newDiamonds);
     } else {
-      const newHearts = Math.max(0, hearts - 1);
+      // Wrong answer - use question's penalty data
+      const heartPenalty = currentQuestion.penaltyHeart || 1;
+      const newHearts = Math.max(0, hearts - heartPenalty);
       setHearts(newHearts);
-      if (newHearts === 0) {
-        const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
-        finishLesson(elapsed);
+      if (newHearts <= 0) {
+        Alert.alert(
+          'หัวใจหมดแล้ว',
+          'ซื้อหัวใจเพิ่มเพื่อเล่นต่อ',
+          [
+            { text: 'ไปร้านหัวใจ', onPress: () => navigation.navigate('GemShop') },
+            { text: 'ยกเลิก', style: 'cancel', onPress: () => {
+              const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+              finishLesson(elapsed);
+            }}
+          ]
+        );
         return;
       }
     }

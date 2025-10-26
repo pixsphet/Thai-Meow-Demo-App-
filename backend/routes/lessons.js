@@ -71,22 +71,37 @@ const findLessonDocument = async (lessonId) => {
 // GET /api/lessons/unlocked - Get unlocked levels for authenticated user
 router.get('/unlocked', auth, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user?.id;
     const User = require('../models/User');
-    
-    const user = await User.findById(userId).select('unlockedLevels');
-    
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found',
+
+    if (!userId) {
+      return res.json({
+        success: true,
+        data: {
+          unlockedLevels: ['level1'],
+          source: 'guest',
+        },
       });
     }
-    
+
+    const user = await User.findById(userId).select('unlockedLevels');
+
+    if (!user) {
+      console.warn(`⚠️ unlockedLevels: user ${userId} not found, returning defaults`);
+      return res.json({
+        success: true,
+        data: {
+          unlockedLevels: ['level1'],
+          source: 'default',
+        },
+      });
+    }
+
     res.json({
       success: true,
       data: {
         unlockedLevels: user.unlockedLevels || ['level1'],
+        source: 'user',
       },
     });
   } catch (error) {
@@ -102,19 +117,36 @@ router.get('/unlocked', auth, async (req, res) => {
 // POST /api/lessons/check-unlock/:levelId - Check if next level should unlock for authenticated user
 router.post('/check-unlock/:levelId', auth, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user?.id;
     const { levelId } = req.params;
     const { accuracy, score } = req.body;
     const User = require('../models/User');
     
-    // Parse level number from levelId (e.g., 'level2' => 2)
-    const currentLevelNum = parseInt(levelId.replace('level', ''));
-    const nextLevelId = `level${currentLevelNum + 1}`;
-    
+    // Determine nextLevelId robustly for different level id formats:
+    // - Beginner: 'level1' -> 'level2'
+    // - Intermediate: 'level_intermediate_1' -> 'level_intermediate_2'
+    // - Advanced: 'level1_advanced' -> 'level2_advanced'
+    const extractNumber = (str) => {
+      const m = String(str).match(/(\d+)/);
+      return m ? parseInt(m[0], 10) : NaN;
+    };
+
+    let nextLevelId;
+    if (String(levelId).toLowerCase().includes('intermediate')) {
+      const n = extractNumber(levelId);
+      nextLevelId = Number.isFinite(n) ? `level_intermediate_${n + 1}` : null;
+    } else if (String(levelId).toLowerCase().includes('_advanced') || String(levelId).toLowerCase().endsWith('advanced')) {
+      const n = extractNumber(levelId);
+      nextLevelId = Number.isFinite(n) ? `level${n + 1}_advanced` : null;
+    } else {
+      const n = extractNumber(levelId);
+      nextLevelId = Number.isFinite(n) ? `level${n + 1}` : null;
+    }
+
     // Check if accuracy >= 70%
-    const shouldUnlock = accuracy >= 70;
+    const shouldUnlock = accuracy >= 70 && !!nextLevelId;
     
-    if (shouldUnlock) {
+    if (shouldUnlock && userId) {
       // Update user's unlockedLevels in DB
       await User.findByIdAndUpdate(
         userId,
@@ -134,7 +166,11 @@ router.post('/check-unlock/:levelId', auth, async (req, res) => {
         nextLevel: nextLevelId,
         accuracy: accuracy,
         shouldUnlock: shouldUnlock,
-        message: shouldUnlock ? `Congrats! Level ${nextLevelId} unlocked!` : `Need ≥70% to unlock (got ${accuracy}%)`,
+        message: shouldUnlock
+          ? userId
+            ? `Congrats! Level ${nextLevelId} unlocked!`
+            : 'Unlocked locally (guest mode)'
+          : `Need ≥70% to unlock (got ${accuracy}%)`,
       },
     });
   } catch (error) {

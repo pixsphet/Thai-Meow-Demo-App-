@@ -1,5 +1,8 @@
+const path = require('path');
 const mongoose = require('mongoose');
-require('dotenv').config({ path: './.env' });
+const dotenv = require('dotenv');
+
+dotenv.config({ path: path.join(__dirname, '..', 'config.env') });
 
 // Define Greeting schema inline
 const greetingSchema = new mongoose.Schema({
@@ -186,13 +189,21 @@ const greetingsData = [
   },
 ];
 
-const seedGreetings = async () => {
+const seedGreetings = async (options = {}) => {
+  const { mongoUri = process.env.MONGODB_URI, skipConnect = false } = options;
+
+  if (!mongoUri) {
+    throw new Error('MONGODB_URI is not defined');
+  }
+
   try {
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://user:password@cluster.mongodb.net/thai-meow', {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-    console.log('✅ MongoDB connected');
+    if (!skipConnect) {
+      await mongoose.connect(mongoUri, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      });
+      console.log('✅ MongoDB connected');
+    }
 
     // Clear existing greetings
     await Greeting.deleteMany({});
@@ -201,12 +212,28 @@ const seedGreetings = async () => {
     // Insert new data
     const inserted = await Greeting.insertMany(greetingsData);
     console.log(`✅ Seeded ${inserted.length} greetings`);
-
-    process.exit(0);
   } catch (error) {
     console.error('❌ Error seeding greetings:', error);
-    process.exit(1);
+    throw error;
+  } finally {
+    if (!skipConnect) {
+      await mongoose.disconnect();
+    }
   }
 };
 
-seedGreetings();
+if (require.main === module) {
+  seedGreetings()
+    .then(() => process.exit(0))
+    .catch(async (error) => {
+      console.error('❌ Error seeding greetings:', error);
+      try {
+        await mongoose.disconnect();
+      } catch (disconnectError) {
+        console.error('⚠️ Failed disconnect:', disconnectError);
+      }
+      process.exit(1);
+    });
+}
+
+module.exports = seedGreetings;

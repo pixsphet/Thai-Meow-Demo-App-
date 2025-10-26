@@ -25,13 +25,30 @@ router.post('/unlock-level', auth, async (req, res) => {
     const userId = req.user.id;
     const { levelId } = req.body;
     
-    console.log('🔓 [Unlock Attempt] userId:', userId, 'levelId:', levelId);
-    if (!levelId) {
+    const trimmedLevelId = typeof levelId === 'string' ? levelId.trim() : levelId;
+    console.log('🔓 [Unlock Attempt] userId:', userId, 'levelId:', trimmedLevelId);
+    if (!trimmedLevelId) {
       return res.status(400).json({
         success: false,
         message: 'levelId is required'
       });
     }
+
+    // Simple validation: accept only known level id patterns to avoid accidental cross-tier additions
+    const isBeginner = /^level\d+$/i.test(trimmedLevelId);
+    const isIntermediate = /^level_intermediate_\d+$/i.test(trimmedLevelId);
+    const isAdvanced = /^level\d+_advanced$/i.test(trimmedLevelId);
+
+    if (!isBeginner && !isIntermediate && !isAdvanced) {
+      console.warn(`⚠️ Rejecting unlock for malformed levelId=${trimmedLevelId} (user ${userId})`);
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid levelId format',
+        data: { levelId: trimmedLevelId }
+      });
+    }
+
+    console.log(`🔎 Level tier detected: ${isBeginner ? 'beginner' : isIntermediate ? 'intermediate' : 'advanced'}`);
 
     // Update user's unlockedLevels if not already unlocked
     const user = await User.findByIdAndUpdate(

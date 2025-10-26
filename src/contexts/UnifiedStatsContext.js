@@ -56,8 +56,10 @@ export const UnifiedStatsProvider = ({ children }) => {
           setLoading(false);
         }
       } else {
-        console.log('⚠️ No user ID available, setting stats to null');
-        setStats(null);
+        console.log('⚠️ No user ID available, initializing guest stats');
+        await realUserStatsService.initialize(null);
+        const guestStats = await realUserStatsService.getUserStats();
+        setStats(guestStats);
         setLoading(false);
       }
     };
@@ -91,10 +93,6 @@ export const UnifiedStatsProvider = ({ children }) => {
   // Update stats function
   const updateStats = useCallback(async (updates) => {
     try {
-      if (!user?.id) {
-        throw new Error('No user ID available');
-      }
-
       const updatedStats = await realUserStatsService.updateUserStats(updates);
       setStats(updatedStats);
       return updatedStats;

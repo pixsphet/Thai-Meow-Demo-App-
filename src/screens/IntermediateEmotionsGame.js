@@ -338,7 +338,6 @@ const IntermediateEmotionsGame = ({ navigation, route }) => {
   const [gameStarted, setGameStarted] = useState(false);
   const [gameFinished, setGameFinished] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [resumeData, setResumeData] = useState(null);
   const [dmSelected, setDmSelected] = useState({ leftId: null, rightId: null });
   const [dmPairs, setDmPairs] = useState([]); // {leftId,rightId}
   // const [showFireStreakAlert, setShowFireStreakAlert] = useState(false);
@@ -597,13 +596,6 @@ const IntermediateEmotionsGame = ({ navigation, route }) => {
     startTimeRef.current = Date.now();
   };
   
-  // Resume game
-  const resumeGame = () => {
-    setGameStarted(true);
-    setGameFinished(false);
-    gameFinishedRef.current = false;
-    startTimeRef.current = Date.now();
-  };
   
   // Finish lesson
   const finishLesson = async (timeSpentOverrideSec) => {
@@ -1145,12 +1137,6 @@ const IntermediateEmotionsGame = ({ navigation, route }) => {
           </View>
 
           {/* Player Stats Display removed per request */}
-          
-          {resumeData && (
-            <TouchableOpacity style={styles.resumeButton} onPress={resumeGame} activeOpacity={0.9}>
-              <Text style={styles.resumeButtonText}>เล่นต่อจากข้อที่ {resumeData.currentIndex + 1}</Text>
-            </TouchableOpacity>
-          )}
           
           <TouchableOpacity style={styles.startButton} onPress={startGame} activeOpacity={0.9}>
             <LinearGradient

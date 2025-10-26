@@ -9,6 +9,7 @@ import {
   Image,
   Dimensions,
   Animated,
+  Alert,
 } from 'react-native';
 import { FontAwesome, MaterialIcons, Ionicons } from '@expo/vector-icons';
 import LottieView from 'lottie-react-native';
@@ -60,6 +61,13 @@ const QUESTION_TYPES = {
   CHALLENGE: 'CHALLENGE',
 };
 
+const SENTENCE_ORDER_TYPES = new Set([
+  'ARRANGE_SENTENCE',
+  'ORDER_TILES',
+  'ARRANGE_IDIOM',
+  'ORDER_FLOW',
+]);
+
 // Colors
 const COLORS = {
   primary: '#FF8000',
@@ -71,6 +79,8 @@ const COLORS = {
   lightGray: '#f5f5f5',
   gray: '#666',
 };
+
+const AOB_TIME_LIMIT = 5;
 
 // Helper Functions
 const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
@@ -397,49 +407,7 @@ const makeAorB = (word, pool = [], usedChars = new Set()) => {
   };
 };
 
-// Memory Match: flip cards to match characters with their names
-const makeMemoryMatch = (wordList) => {
-  const cards = [];
-  const pairs = wordList.slice(0, 6).map(w => ({
-    char: w.char,
-    name: w.name,
-    audioText: w.audioText,
-  }));
-  
-  // Create card pairs (character + name for each word)
-  pairs.forEach((pair, idx) => {
-    cards.push({
-      id: `mm_char_${idx}`,
-      type: 'char',
-      front: pair.char,
-      back: pair.char,
-      pairId: idx,
-      audioText: pair.audioText,
-    });
-    cards.push({
-      id: `mm_name_${idx}`,
-      type: 'name',
-      front: '?',
-      back: pair.name,
-      pairId: idx,
-      audioText: pair.audioText,
-    });
-  });
-  
-  const shuffledCards = shuffle(cards);
-  
-  return {
-    id: `mm_${uid()}`,
-    type: QUESTION_TYPES.MEMORY_MATCH,
-    instruction: 'จับคู่ตัวอักษรกับชื่ออ่าน',
-    // Rewards for this question
-    rewardXP: 15,
-    rewardDiamond: 1,
-    penaltyHeart: 1,
-    cards: shuffledCards,
-    pairCount: pairs.length,
-  };
-};
+// Memory Match removed from Consonant game
 
 // Challenge: mini game combining multiple quick question types
 const makeChallenge = (word, pool = [], usedChars = new Set()) => {
@@ -603,7 +571,7 @@ const ConsonantStage1Game = ({ navigation, route }) => {
   
   // Contexts
   const { applyDelta, user: progressUser } = useProgress();
-  const { stats } = useUnifiedStats();
+  const { hearts: unifiedHearts, updateStats, stats } = useUnifiedStats();
   const { userData } = useUserData();
   
   // State
@@ -611,7 +579,7 @@ const ConsonantStage1Game = ({ navigation, route }) => {
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentAnswer, setCurrentAnswer] = useState(null);
-  const [hearts, setHearts] = useState(5);
+  const [hearts, setHearts] = useState(unifiedHearts || 5);
   // Streak counts kept for stats but UI/alerts removed
   const [streak, setStreak] = useState(0);
   const [maxStreak, setMaxStreak] = useState(0);
@@ -627,10 +595,10 @@ const ConsonantStage1Game = ({ navigation, route }) => {
   const [dmPairs, setDmPairs] = useState([]); // {leftId,rightId}
   // const [showFireStreakAlert, setShowFireStreakAlert] = useState(false);
   const [currentFeedback, setCurrentFeedback] = useState(null); // 'correct'|'wrong'|null
+  const [aobTimeLeft, setAobTimeLeft] = useState(null);
   
   // Memory Match state
-  const [mmFlipped, setMmFlipped] = useState(new Set()); // card IDs that are flipped
-  const [mmMatched, setMmMatched] = useState(new Set()); // pair IDs that are matched
+  // Memory Match removed per request
   
   // Challenge state
   const [challengeSubIndex, setChallengeSubIndex] = useState(0); // current sub-question in challenge
@@ -641,6 +609,47 @@ const ConsonantStage1Game = ({ navigation, route }) => {
   const progressRef = useRef(null);
   const gameFinishedRef = useRef(false);
   const serviceInitRef = useRef(false);
+  const aobTimerRef = useRef(null);
+  const aobTimeoutHandledRef = useRef(false);
+  const activeAobKeyRef = useRef(null);
+
+  const stopAobTimer = useCallback((resetDisplay = true) => {
+    if (aobTimerRef.current) {
+      clearInterval(aobTimerRef.current);
+      aobTimerRef.current = null;
+    }
+    if (resetDisplay) {
+      setAobTimeLeft(null);
+    }
+  }, []);
+
+  const getActiveAorBKey = useCallback(() => {
+    const question = questions[currentIndex];
+    if (!question) return null;
+
+    if (question.type === QUESTION_TYPES.A_OR_B) {
+      return question.id;
+    }
+
+    if (question.type === QUESTION_TYPES.CHALLENGE) {
+      const subQuestion = question.subQuestions?.[challengeSubIndex];
+      if (subQuestion?.type === QUESTION_TYPES.A_OR_B) {
+        return `${question.id}:${challengeSubIndex}`;
+      }
+    }
+
+    return null;
+  }, [questions, currentIndex, challengeSubIndex]);
+
+  useEffect(() => {
+    if (!questions || questions.length === 0) {
+      return;
+    }
+    const filtered = questions.filter((q) => q && !SENTENCE_ORDER_TYPES.has(q.type));
+    if (filtered.length !== questions.length) {
+      setQuestions(filtered);
+    }
+  }, [questions]);
   
   // Load consonants data
   useEffect(() => {
@@ -652,14 +661,25 @@ const ConsonantStage1Game = ({ navigation, route }) => {
         
         // Generate questions
         const generatedQuestions = generateConsonantQuestions(normalizedConsonants);
-        setQuestions(generatedQuestions);
+        const filteredQuestions = generatedQuestions.filter(q => !SENTENCE_ORDER_TYPES.has(q.type));
+        setQuestions(filteredQuestions);
         
         // Try to restore progress
         const savedProgress = await restoreProgress(lessonId);
         if (savedProgress && savedProgress.questionsSnapshot) {
-          setResumeData(savedProgress);
-          setCurrentIndex(savedProgress.currentIndex || 0);
-          setHearts(savedProgress.hearts || 5);
+          const sanitizedSnapshot = (savedProgress.questionsSnapshot || []).filter(
+            (q) => q && !SENTENCE_ORDER_TYPES.has(q.type)
+          );
+
+          const resumePayload = {
+            ...savedProgress,
+            questionsSnapshot: sanitizedSnapshot,
+          };
+
+          setResumeData(resumePayload);
+          setCurrentIndex(Math.min(savedProgress.currentIndex || 0, Math.max(sanitizedSnapshot.length - 1, 0)));
+          // ใช้ hearts จาก UnifiedStats ไม่ใช่ savedProgress
+          setHearts(unifiedHearts || 5);
           setStreak(savedProgress.streak || 0);
           setMaxStreak(savedProgress.maxStreak || 0);
           setScore(savedProgress.score || 0);
@@ -667,6 +687,12 @@ const ConsonantStage1Game = ({ navigation, route }) => {
           setDiamondsEarned(savedProgress.diamondsEarned || 0);
           setAnswers(savedProgress.answers || {});
           answersRef.current = savedProgress.answers || {};
+
+          if (sanitizedSnapshot.length > 0) {
+            setQuestions(sanitizedSnapshot);
+          } else {
+            setQuestions(filteredQuestions);
+          }
         }
         
         setLoading(false);
@@ -679,56 +705,73 @@ const ConsonantStage1Game = ({ navigation, route }) => {
     loadConsonants();
   }, [lessonId]);
 
+  // ใช้ useMemo สำหรับ userId ที่ stable
+  const stableUserId = useMemo(() => {
+    return progressUser?.id || userData?.id || stats?.userId || stats?._id || stats?.id;
+  }, [progressUser?.id, userData?.id, stats?.userId, stats?._id, stats?.id]);
+
   // Ensure progress-related services are initialized once per user
   useEffect(() => {
-    const userId =
-      progressUser?.id ||
-      userData?.id ||
-      stats?.userId ||
-      stats?._id ||
-      stats?.id;
-
-    if (!userId || serviceInitRef.current) {
+    if (!stableUserId || serviceInitRef.current) {
       return;
     }
 
     serviceInitRef.current = true;
+    console.log('🔧 Initializing services for user:', stableUserId);
 
     (async () => {
       try {
-        await gameProgressService.initialize(userId);
+        await gameProgressService.initialize(stableUserId);
       } catch (error) {
         console.warn('Failed to initialize gameProgressService:', error?.message || error);
       }
 
       try {
-        await levelUnlockService.initialize(userId);
+        await levelUnlockService.initialize(stableUserId);
       } catch (error) {
         console.warn('Failed to initialize levelUnlockService:', error?.message || error);
       }
 
       try {
-        await userStatsService.initialize(userId);
+        await userStatsService.initialize(stableUserId);
       } catch (error) {
         console.warn('Failed to initialize userStatsService:', error?.message || error);
       }
 
       try {
         if (typeof dailyStreakService.setUser === 'function') {
-          dailyStreakService.setUser(userId);
+          dailyStreakService.setUser(stableUserId);
         }
       } catch (error) {
         console.warn('Failed to bind user to dailyStreakService:', error?.message || error);
       }
     })();
-  }, [progressUser?.id, userData?.id, stats?.userId, stats?._id, stats?.id]);
+  }, [stableUserId]); // dependency ลดลงเหลือแค่ stableUserId
+
+  // Sync hearts from UnifiedStats - เป็น source of truth หลัก
+  useEffect(() => {
+    if (Number.isFinite(unifiedHearts)) {
+      if (hearts !== unifiedHearts) {
+        console.log('🔄 Syncing hearts from UnifiedStats:', unifiedHearts);
+        setHearts(unifiedHearts);
+      }
+    }
+  }, [unifiedHearts]);
+
+  // Update hearts back to UnifiedStats ทันทีเมื่อเปลี่ยนแปลง
+  useEffect(() => {
+    if (hearts !== unifiedHearts) {
+      console.log('📤 Updating hearts to UnifiedStats:', hearts);
+      updateStats({ hearts });
+    }
+  }, [hearts]);
   
-  // Auto-save progress
+  // Auto-save progress (debounced)
   const autosave = useCallback(async () => {
-    if (questions.length === 0) return;
-    
+    if (questions.length === 0 || !gameStarted || gameFinished) return;
+
     console.debug(`[AutoSave] Q${currentIndex + 1}/${questions.length}`, { score, hearts, xpEarned });
-    
+
     const snapshot = {
       questionsSnapshot: questions,
       currentIndex,
@@ -745,19 +788,23 @@ const ConsonantStage1Game = ({ navigation, route }) => {
         timestamp: Date.now(),
       },
     };
-    
+
     try {
       await saveProgress(lessonId, snapshot);
     } catch (error) {
       console.error('Error saving progress:', error);
     }
-  }, [questions, currentIndex, hearts, score, xpEarned, diamondsEarned, streak, maxStreak, lessonId]);
-  
-  // Save progress when state changes
+  }, [questions, currentIndex, hearts, score, xpEarned, diamondsEarned, streak, maxStreak, lessonId, gameStarted, gameFinished]);
+
+  // Save progress when state changes (debounced)
   useEffect(() => {
-    if (gameStarted && !gameFinished) {
+    if (!gameStarted || gameFinished) return;
+
+    const timer = setTimeout(() => {
       autosave();
-    }
+    }, 1000); // Debounce 1 second
+
+    return () => clearTimeout(timer);
   }, [currentIndex, hearts, score, streak, gameStarted, gameFinished, autosave]);
   
   // Play TTS
@@ -769,16 +816,10 @@ const ConsonantStage1Game = ({ navigation, route }) => {
     }
   }, []);
   
-  // Handle answer selection
-  const handleAnswerSelect = (answer, speakText) => {
-    setCurrentAnswer(answer);
-    if (speakText) {
-      vaja9TtsService.playThai(speakText);
-    }
-  };
-  
   // Handle check answer
-  const handleCheckAnswer = (overrideAnswer) => {
+  const handleCheckAnswer = useCallback((overrideAnswer) => {
+    stopAobTimer();
+    aobTimeoutHandledRef.current = true;
     const answerToCheck = overrideAnswer !== undefined ? overrideAnswer : currentAnswer;
     if (answerToCheck === null) return;
     
@@ -846,15 +887,110 @@ const ConsonantStage1Game = ({ navigation, route }) => {
       }
       // Show feedback - don't auto-advance, user must click CHECK to continue
     }
-  };
+  }, [
+    stopAobTimer,
+    currentAnswer,
+    questions,
+    currentIndex,
+    score,
+    xpEarned,
+    diamondsEarned,
+    hearts,
+    navigation,
+  ]);
+  
+  const handleAnswerSelect = (answer, speakText) => {
+    const question = questions[currentIndex];
+    const isAorB = question?.type === QUESTION_TYPES.A_OR_B;
+
+  if (isAorB) {
+    aobTimeoutHandledRef.current = true;
+    stopAobTimer();
+  }
+
+  setCurrentAnswer(answer);
+  if (speakText) {
+    vaja9TtsService.playThai(speakText);
+  }
+
+  if (isAorB) {
+    handleCheckAnswer(answer);
+  }
+};
+
+  const triggerAobTimeout = useCallback(() => {
+    const question = questions[currentIndex];
+    if (!question) {
+      return;
+    }
+
+    if (question.type === QUESTION_TYPES.A_OR_B) {
+      const timeoutChoice = {
+        letter: '⏰',
+        thai: 'หมดเวลา',
+        roman: '',
+        isCorrect: false,
+        isTimeout: true,
+      };
+      setCurrentAnswer(timeoutChoice);
+      handleCheckAnswer(timeoutChoice);
+      return;
+    }
+
+    if (question.type === QUESTION_TYPES.CHALLENGE) {
+      const subQuestion = question.subQuestions?.[challengeSubIndex];
+      if (subQuestion?.type === QUESTION_TYPES.A_OR_B) {
+        setCurrentAnswer(false);
+        handleCheckAnswer(false);
+      }
+    }
+  }, [questions, currentIndex, challengeSubIndex, handleCheckAnswer]);
+  
+  useEffect(() => {
+    const key = getActiveAorBKey();
+    activeAobKeyRef.current = key;
+    aobTimeoutHandledRef.current = false;
+
+    stopAobTimer(false);
+
+    const hasAnswered = Boolean(answersRef.current[currentIndex]);
+
+    if (!gameStarted || gameFinished || !key || hasAnswered || currentFeedback !== null) {
+      setAobTimeLeft(null);
+      return;
+    }
+
+    setAobTimeLeft(AOB_TIME_LIMIT);
+
+    aobTimerRef.current = setInterval(() => {
+      setAobTimeLeft((prev) => {
+        if (prev === null) {
+          return prev;
+        }
+
+        if (prev <= 1) {
+          stopAobTimer();
+          if (!aobTimeoutHandledRef.current) {
+            aobTimeoutHandledRef.current = true;
+            triggerAobTimeout();
+          }
+          return 0;
+        }
+
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      stopAobTimer();
+    };
+  }, [gameStarted, gameFinished, currentFeedback, getActiveAorBKey, stopAobTimer, triggerAobTimeout]);
   
   // Reset drag-match state when index changes
   useEffect(() => {
     setDmSelected({ leftId: null, rightId: null });
     setDmPairs([]);
     setCurrentFeedback(null);
-    setMmFlipped(new Set());
-    setMmMatched(new Set());
     setChallengeSubIndex(0);
   }, [currentIndex]);
 
@@ -1419,6 +1555,13 @@ const ConsonantStage1Game = ({ navigation, route }) => {
               <Text style={styles.instruction}>{question.instruction}</Text>
               <Text style={styles.hintText}>{getHintText(question.type)}</Text>
               
+              {aobTimeLeft !== null && (
+                <View style={styles.aobTimerBadge}>
+                  <MaterialIcons name="timer" size={18} color="#fff" />
+                  <Text style={styles.aobTimerText}>{aobTimeLeft}</Text>
+                </View>
+              )}
+              
               <TouchableOpacity
                 style={styles.speakerButton}
                 onPress={() => vaja9TtsService.playThai(question.audioText)}
@@ -1435,6 +1578,7 @@ const ConsonantStage1Game = ({ navigation, route }) => {
                       currentAnswer === choice && styles.aobButtonSelected,
                     ]}
                     onPress={() => handleAnswerSelect(choice)}
+                    disabled={currentFeedback !== null}
                   >
                     <Text style={styles.aobLetter}>{choice.letter}</Text>
                     <Text style={styles.aobText}>
@@ -1449,73 +1593,7 @@ const ConsonantStage1Game = ({ navigation, route }) => {
           </View>
         );
       
-      case QUESTION_TYPES.MEMORY_MATCH:
-        console.debug(`[Q${currentIndex + 1}/${questions.length}] MEMORY_MATCH`, { questionId: question.id, pairCount: question.pairCount });
-        return (
-          <View style={styles.questionContainer}>
-            <View style={styles.questionCard}>
-              <Text style={styles.instruction}>{question.instruction}</Text>
-              <Text style={styles.hintText}>{getHintText(question.type)}</Text>
-              
-              <View style={styles.memoryGrid}>
-                {question.cards.map((card) => (
-                  <TouchableOpacity
-                    key={card.id}
-                    style={[
-                      styles.memoryCard,
-                      mmMatched.has(card.pairId) && styles.memoryCardMatched,
-                    ]}
-                    onPress={() => {
-                      if (mmMatched.has(card.pairId)) return; // Already matched
-                      
-                      const newFlipped = new Set(mmFlipped);
-                      if (newFlipped.has(card.id)) {
-                        newFlipped.delete(card.id);
-                      } else {
-                        newFlipped.add(card.id);
-                      }
-                      setMmFlipped(newFlipped);
-                      
-                      // Check if 2 cards are flipped
-                      const flippedCards = question.cards.filter(c => newFlipped.has(c.id));
-                      if (flippedCards.length === 2) {
-                        const [card1, card2] = flippedCards;
-                        if (card1.pairId === card2.pairId) {
-                          // Match found!
-                          vaja9TtsService.playThai(card1.audioText);
-                          const newMatched = new Set(mmMatched);
-                          newMatched.add(card1.pairId);
-                          setMmMatched(newMatched);
-                          setMmFlipped(new Set());
-                          
-                          // Auto-check if all matched
-                          if (newMatched.size === question.pairCount) {
-                            setTimeout(() => {
-                              setCurrentAnswer(Array.from(newMatched));
-                              setCurrentFeedback('correct');
-                            }, 300);
-                          }
-                        } else {
-                          // No match, flip back
-                          setTimeout(() => {
-                            setMmFlipped(new Set());
-                          }, 800);
-                        }
-                      }
-                    }}
-                    disabled={mmMatched.has(card.pairId)}
-                  >
-                    {mmFlipped.has(card.id) || mmMatched.has(card.pairId) ? (
-                      <Text style={styles.memoryCardText}>{card.back}</Text>
-                    ) : (
-                      <Text style={styles.memoryCardFront}>?</Text>
-                    )}
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-          </View>
-        );
+      // MEMORY_MATCH removed from ConsonantStage1Game
       
       case QUESTION_TYPES.ARRANGE_SENTENCE:
         return (
@@ -1656,6 +1734,12 @@ const ConsonantStage1Game = ({ navigation, route }) => {
                   <Text style={[styles.instruction, { fontSize: 16 }]}>
                     ข้อที่ {challengeSubIndex + 1} / {question.subQuestions.length}
                   </Text>
+                  {aobTimeLeft !== null && (
+                    <View style={styles.aobTimerBadge}>
+                      <MaterialIcons name="timer" size={18} color="#fff" />
+                      <Text style={styles.aobTimerText}>{aobTimeLeft}</Text>
+                    </View>
+                  )}
                   <TouchableOpacity
                     style={styles.speakerButton}
                     onPress={() => vaja9TtsService.playThai(subQ.audioText)}
@@ -1671,20 +1755,12 @@ const ConsonantStage1Game = ({ navigation, route }) => {
                           currentAnswer === choice && styles.aobButtonSelected,
                         ]}
                         onPress={() => {
-                          setCurrentAnswer(choice);
-                          const isCorrect = choice.isCorrect;
-                          setCurrentFeedback(isCorrect ? 'correct' : 'wrong');
-                          setTimeout(() => {
-                            if (challengeSubIndex < question.subQuestions.length - 1) {
-                              setChallengeSubIndex(challengeSubIndex + 1);
-                              setCurrentAnswer(null);
-                              setCurrentFeedback(null);
-                            } else {
-                              // Last sub-question, mark whole challenge as done
-                              setCurrentAnswer(isCorrect);
-                            }
-                          }, 600);
+                          aobTimeoutHandledRef.current = true;
+                          stopAobTimer();
+                          setCurrentAnswer(choice.isCorrect);
+                          handleCheckAnswer(choice.isCorrect);
                         }}
+                        disabled={currentFeedback !== null}
                       >
                         <Text style={styles.aobLetter}>{choice.letter}</Text>
                         <Text style={styles.aobText}>
@@ -2494,6 +2570,28 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLORS.dark,
   },
+  aobTimerBadge: {
+    alignSelf: 'center',
+    marginTop: 12,
+    marginBottom: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 18,
+    backgroundColor: '#FF6B35',
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#FF6B35',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  aobTimerText: {
+    marginLeft: 6,
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.white,
+  },
   aobContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -2573,6 +2671,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: COLORS.dark,
+  },
+  memoryCardSubtitle: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: COLORS.gray,
+    marginTop: 4,
+  },
+  memoryImage: {
+    width: 96,
+    height: 96,
+    borderRadius: 12,
   },
   playerStatsContainer: {
     marginBottom: 20,
@@ -2722,6 +2831,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 16,
     elevation: 10,
+    width: 220,
+    alignSelf: 'center',
   },
   checkGradientEnhanced: {
     width: '100%',

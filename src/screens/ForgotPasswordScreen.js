@@ -169,6 +169,9 @@ const ForgotPasswordScreen = () => {
                         onChangeText={onChangeText}
                         placeholder={placeholder}
                         placeholderTextColor={theme.textSecondary}
+                        // Accessibility / autofill hints
+                        textContentType="name"
+                        autoComplete="name"
                         autoCapitalize="words"
                         autoCorrect={false}
                         spellCheck={false}
@@ -215,6 +218,9 @@ const ForgotPasswordScreen = () => {
                         placeholder={placeholder}
                         placeholderTextColor={theme.textSecondary}
                         secureTextEntry={!showPassword}
+                        // Provide proper content type for iOS autofill and password managers
+                        textContentType={Platform.OS === 'ios' ? 'newPassword' : 'none'}
+                        autoComplete={Platform.OS === 'ios' ? 'password' : 'off'}
                         editable={true}
                         autoCapitalize="none"
                         autoCorrect={false}
@@ -323,6 +329,8 @@ const ForgotPasswordScreen = () => {
                                     placeholder="กรอกอีเมลของคุณ"
                                     placeholderTextColor={theme.textSecondary}
                                     keyboardType="email-address"
+                                    textContentType="emailAddress"
+                                    autoComplete="email"
                                     autoCapitalize="none"
                                     autoCorrect={false}
                                     autoFocus={false}

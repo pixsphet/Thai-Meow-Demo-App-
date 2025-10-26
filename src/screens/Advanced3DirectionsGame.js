@@ -27,6 +27,13 @@ const QUESTION_TYPES = {
   CLOZE_DEFINITION: 'CLOZE_DEFINITION',    // ปิดคำในนิยาม
 };
 
+const SENTENCE_ORDER_TYPES = new Set([
+  QUESTION_TYPES.ARRANGE_SENTENCE,
+  'ORDER_TILES',
+  'ARRANGE_IDIOM',
+  'ORDER_FLOW',
+]);
+
 const COLORS = {
   primary: '#FF8000',
   cream: '#FFF5E5',
@@ -285,16 +292,31 @@ const Advanced3DirectionsGame = ({ navigation, route }) => {
   const serviceInitRef = useRef(false);
 
   useEffect(() => {
+    if (!questions || questions.length === 0) {
+      return;
+    }
+    const filtered = questions.filter((q) => q && !SENTENCE_ORDER_TYPES.has(q.type));
+    if (filtered.length !== questions.length) {
+      setQuestions(filtered);
+    }
+  }, [questions]);
+
+  useEffect(() => {
     const loadDirections = async () => {
       try {
         const normalized = (directionsDataFallback || []).map(normalizeDirection).filter(i => i && i.thai);
         setDirections(normalized);
-        setQuestions(generateDirectionsQuestions(normalized));
+        const generated = generateDirectionsQuestions(normalized);
+        const filteredGenerated = generated.filter(q => q && !SENTENCE_ORDER_TYPES.has(q.type));
+        setQuestions(filteredGenerated);
         
         const savedProgress = await restoreProgress(lessonId);
         if (savedProgress && savedProgress.questionsSnapshot) {
-          setResumeData(savedProgress);
-          setCurrentIndex(savedProgress.currentIndex || 0);
+          const sanitizedSnapshot = (savedProgress.questionsSnapshot || []).filter(
+            q => q && !SENTENCE_ORDER_TYPES.has(q.type)
+          );
+          setResumeData({ ...savedProgress, questionsSnapshot: sanitizedSnapshot });
+          setCurrentIndex(Math.min(savedProgress.currentIndex || 0, Math.max(sanitizedSnapshot.length - 1, 0)));
           setHearts(savedProgress.hearts || 5);
           setStreak(savedProgress.streak || 0);
           setMaxStreak(savedProgress.maxStreak || 0);
@@ -303,6 +325,10 @@ const Advanced3DirectionsGame = ({ navigation, route }) => {
           setDiamondsEarned(savedProgress.diamondsEarned || 0);
           setAnswers(savedProgress.answers || {});
           answersRef.current = savedProgress.answers || {};
+
+          if (sanitizedSnapshot.length > 0) {
+            setQuestions(sanitizedSnapshot);
+          }
         }
         setLoading(false);
       } catch (error) {

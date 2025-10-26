@@ -1,7 +1,8 @@
+const path = require('path');
 const mongoose = require('mongoose');
-require('dotenv').config({ path: './config.env' });
+const dotenv = require('dotenv');
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/thai-meow';
+dotenv.config({ path: path.join(__dirname, '..', 'config.env') });
 
 const idiomsSchema = new mongoose.Schema({
   thai: { type: String, required: true, index: true },
@@ -274,14 +275,24 @@ const idiomsData = [
   },
 ];
 
-const seedIdioms = async () => {
-  try {
-    await mongoose.connect(MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+const DEFAULT_MONGO_URI = process.env.MONGODB_URI;
 
-    console.log('✅ Connected to MongoDB');
+const seedIdioms = async (options = {}) => {
+  const { mongoUri = DEFAULT_MONGO_URI, skipConnect = false } = options;
+
+  if (!mongoUri) {
+    throw new Error('MONGODB_URI is not defined');
+  }
+
+  try {
+    if (!skipConnect) {
+      await mongoose.connect(mongoUri, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      });
+
+      console.log('✅ Connected to MongoDB');
+    }
 
     // Clear existing idioms
     await Idiom.deleteMany({ category: 'thai-idioms' });
@@ -290,14 +301,29 @@ const seedIdioms = async () => {
     // Insert new idioms
     const inserted = await Idiom.insertMany(idiomsData);
     console.log(`✅ Successfully seeded ${inserted.length} idioms`);
-
-    await mongoose.connection.close();
-    console.log('✅ Database connection closed');
   } catch (error) {
     console.error('❌ Error seeding idioms:', error);
-    process.exit(1);
+    throw error;
+  } finally {
+    if (!skipConnect) {
+      await mongoose.disconnect();
+      console.log('✅ Database connection closed');
+    }
   }
 };
 
-// Run seed
-seedIdioms();
+if (require.main === module) {
+  seedIdioms()
+    .then(() => process.exit(0))
+    .catch(async (error) => {
+      console.error('❌ Error seeding idioms:', error);
+      try {
+        await mongoose.disconnect();
+      } catch (disconnectError) {
+        console.error('⚠️ Failed to close MongoDB connection cleanly:', disconnectError);
+      }
+      process.exit(1);
+    });
+}
+
+module.exports = seedIdioms;

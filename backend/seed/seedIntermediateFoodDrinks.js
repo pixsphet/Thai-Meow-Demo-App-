@@ -1,19 +1,8 @@
 const mongoose = require('mongoose');
 const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '../config.env') });
+const dotenv = require('dotenv');
 
-// MongoDB Connection
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/thai-meow';
-
-mongoose.connect(MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-}).then(() => {
-  console.log('✓ MongoDB connected for seeding Intermediate Food Drinks');
-}).catch((err) => {
-  console.error('✗ MongoDB connection error:', err);
-  process.exit(1);
-});
+dotenv.config({ path: path.join(__dirname, '../config.env') });
 
 // Define Schema
 const foodDrinksSchema = new mongoose.Schema({
@@ -507,8 +496,24 @@ const foodDrinksData = [
 ];
 
 // Seed Function
-const seedData = async () => {
+const DEFAULT_MONGO_URI = process.env.MONGODB_URI;
+
+const seedIntermediateFoodDrinks = async (options = {}) => {
+  const { mongoUri = DEFAULT_MONGO_URI, skipConnect = false } = options;
+
+  if (!mongoUri) {
+    throw new Error('MONGODB_URI is not defined');
+  }
+
   try {
+    if (!skipConnect) {
+      await mongoose.connect(mongoUri, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      });
+      console.log('✓ MongoDB connected for seeding Intermediate Food Drinks');
+    }
+
     // Clear existing data
     await FoodDrinksVocab.deleteMany({});
     console.log('✓ Cleared existing data');
@@ -516,15 +521,29 @@ const seedData = async () => {
     // Insert new data
     const result = await FoodDrinksVocab.insertMany(foodDrinksData);
     console.log(`✓ Inserted ${result.length} food & drinks vocabulary items`);
-
-    mongoose.connection.close();
-    console.log('✓ Connection closed');
   } catch (err) {
     console.error('✗ Seed error:', err);
-    mongoose.connection.close();
-    process.exit(1);
+    throw err;
+  } finally {
+    if (!skipConnect) {
+      await mongoose.disconnect();
+      console.log('✓ Connection closed');
+    }
   }
 };
 
-// Run Seeder
-seedData();
+if (require.main === module) {
+  seedIntermediateFoodDrinks()
+    .then(() => process.exit(0))
+    .catch(async (err) => {
+      console.error('✗ Seed error:', err);
+      try {
+        await mongoose.disconnect();
+      } catch (disconnectError) {
+        console.error('⚠️ Failed to disconnect MongoDB cleanly:', disconnectError);
+      }
+      process.exit(1);
+    });
+}
+
+module.exports = seedIntermediateFoodDrinks;

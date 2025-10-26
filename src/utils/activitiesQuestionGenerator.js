@@ -57,6 +57,7 @@ const makeListenChoose = (item, pool, usedWords = new Set()) => {
       text: `${c.emoji} ${c.thai}`,
       speakText: c.audioText,
       isCorrect: c.thai === item.thai,
+      subtitle: c.english || '',
     })),
   };
 };
@@ -84,6 +85,7 @@ const makePictureMatch = (item, pool, usedWords = new Set()) => {
       text: `${c.emoji} ${c.thai}`,
       speakText: c.audioText,
       isCorrect: c.thai === item.thai,
+      subtitle: c.english || '',
     })),
   };
 };
@@ -95,6 +97,7 @@ const makeTranslateMatch = (item, pool, usedWords = new Set()) => {
   const leftItems = allItems.map((w, i) => ({
     id: `left_${i + 1}`,
     text: w.thai,
+    subtitle: w.english || '',
     correctMatch: w.english,
     speakText: w.audioText,
   }));
@@ -102,6 +105,7 @@ const makeTranslateMatch = (item, pool, usedWords = new Set()) => {
   const rightItems = allItems.map((w, i) => ({
     id: `right_${i + 1}`,
     text: w.english,
+    subtitle: w.thai,
     correctMatch: w.thai,
     speakText: w.audioText,
   }));
@@ -155,7 +159,9 @@ const makeFillBlankDialog = (item, pool) => {
       thai: c.thai,
       english: c.english,
       text: `${c.emoji} ${c.thai}`,
+      speakText: c.audioText,
       isCorrect: c.thai === dialog.correct,
+      subtitle: c.english || '',
     })),
   };
 };

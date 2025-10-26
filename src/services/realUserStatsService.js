@@ -5,6 +5,7 @@ import { getXpProgress } from '../utils/leveling';
 class RealUserStatsService {
   constructor() {
     this.userId = null;
+    this.isGuest = false;
     this.isOnline = true;
     this.lastNetworkCheck = 0;
     this.networkCheckInterval = 30000; // Check every 30 seconds
@@ -16,13 +17,28 @@ class RealUserStatsService {
   // Initialize with user ID
   async initialize(userId) {
     console.log('🔧 RealUserStatsService: Initializing with user ID:', userId);
+
+    if (!userId) {
+      this.userId = 'guest';
+      this.isGuest = true;
+      this.isOnline = false;
+      console.log('👤 RealUserStatsService: Guest mode enabled (local stats only)');
+      return;
+    }
+
     this.userId = userId;
+    this.isGuest = false;
     await this.checkNetworkStatus();
     console.log('✅ RealUserStatsService: Initialized successfully');
   }
 
   // Check network status with throttling
   async checkNetworkStatus() {
+    if (this.isGuest) {
+      this.isOnline = false;
+      return;
+    }
+
     const now = Date.now();
     if (now - this.lastNetworkCheck < this.networkCheckInterval) {
       return; // Skip check if done recently
@@ -66,6 +82,11 @@ class RealUserStatsService {
   async getUserStats() {
     if (!this.userId) {
       throw new Error('User ID not initialized');
+    }
+
+    if (this.isGuest) {
+      const localStats = await this.loadLocalStats();
+      return localStats || this.getDefaultStats();
     }
 
     // Throttle API calls
@@ -122,6 +143,17 @@ class RealUserStatsService {
   async updateUserStats(updates) {
     if (!this.userId) {
       throw new Error('User ID not initialized');
+    }
+
+    if (this.isGuest) {
+      const currentStats = (await this.loadLocalStats()) || this.getDefaultStats();
+      const mergedStats = {
+        ...currentStats,
+        ...updates,
+        lastUpdated: new Date().toISOString(),
+      };
+      await this.saveLocalStats(mergedStats);
+      return mergedStats;
     }
 
     try {
@@ -208,6 +240,7 @@ class RealUserStatsService {
   // Queue stats update for sync
   async queueStatsUpdate(stats) {
     const queueKey = `stats_sync_queue_${this.userId}`;
+    if (this.isGuest) return;
     const queue = await this.getStatsSyncQueue();
     queue.push({ stats, timestamp: Date.now() });
     await AsyncStorage.setItem(queueKey, JSON.stringify(queue));
@@ -215,6 +248,7 @@ class RealUserStatsService {
 
   // Get stats sync queue
   async getStatsSyncQueue() {
+    if (this.isGuest) return [];
     const queueKey = `stats_sync_queue_${this.userId}`;
     const data = await AsyncStorage.getItem(queueKey);
     return data ? JSON.parse(data) : [];
@@ -222,7 +256,7 @@ class RealUserStatsService {
 
   // Sync queued stats updates
   async syncQueuedStats() {
-    if (!this.isOnline) return;
+    if (this.isGuest || !this.isOnline) return;
 
     const queue = await this.getStatsSyncQueue();
     if (queue.length === 0) return;

@@ -38,6 +38,13 @@ import {
 } from '../utils/advancedTopicsQuestionGenerator';
 import { COLORS, shuffle, pick, uid, isThaiText, normalizeTopic } from '../utils/gameUtils';
 
+const SENTENCE_ORDER_TYPES = new Set([
+  ADVANCED_TOPICS_QUESTION_TYPES.ARRANGE_SENTENCE,
+  'ORDER_TILES',
+  'ARRANGE_IDIOM',
+  'ORDER_FLOW',
+]);
+
 const { width, height } = Dimensions.get('window');
 
 // UI helper for hint texts per question type
@@ -165,6 +172,16 @@ const Advanced2TopicsGame = ({ navigation, route }) => {
   const progressRef = useRef(null);
   const gameFinishedRef = useRef(false);
   const serviceInitRef = useRef(false);
+
+  useEffect(() => {
+    if (!questions || questions.length === 0) {
+      return;
+    }
+    const filtered = questions.filter((q) => q && !SENTENCE_ORDER_TYPES.has(q.type));
+    if (filtered.length !== questions.length) {
+      setQuestions(filtered);
+    }
+  }, [questions]);
   
   // Load topics data
   useEffect(() => {
@@ -175,13 +192,17 @@ const Advanced2TopicsGame = ({ navigation, route }) => {
         
         // Generate questions using learn-play flow (14 questions)
         const generatedQuestions = generateAdvancedTopicsLessonFlow(normalizedTopics, 14);
-        setQuestions(generatedQuestions);
+        const filteredGenerated = generatedQuestions.filter(q => q && !SENTENCE_ORDER_TYPES.has(q.type));
+        setQuestions(filteredGenerated);
         
         // Try to restore progress
         const savedProgress = await restoreProgress(lessonId);
         if (savedProgress && savedProgress.questionsSnapshot) {
-          setResumeData(savedProgress);
-          setCurrentIndex(savedProgress.currentIndex || 0);
+          const sanitizedSnapshot = (savedProgress.questionsSnapshot || []).filter(
+            q => q && !SENTENCE_ORDER_TYPES.has(q.type)
+          );
+          setResumeData({ ...savedProgress, questionsSnapshot: sanitizedSnapshot });
+          setCurrentIndex(Math.min(savedProgress.currentIndex || 0, Math.max(sanitizedSnapshot.length - 1, 0)));
           setHearts(savedProgress.hearts || 5);
           setStreak(savedProgress.streak || 0);
           setMaxStreak(savedProgress.maxStreak || 0);
@@ -190,6 +211,10 @@ const Advanced2TopicsGame = ({ navigation, route }) => {
           setDiamondsEarned(savedProgress.diamondsEarned || 0);
           setAnswers(savedProgress.answers || {});
           answersRef.current = savedProgress.answers || {};
+
+          if (sanitizedSnapshot.length > 0) {
+            setQuestions(sanitizedSnapshot);
+          }
         }
         
         setLoading(false);

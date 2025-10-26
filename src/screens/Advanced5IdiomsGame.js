@@ -44,6 +44,13 @@ const QUESTION_TYPES = {
   TRUE_FALSE_EXPLANATION: 'TRUE_FALSE_EXPLANATION',
 };
 
+const SENTENCE_ORDER_TYPES = new Set([
+  QUESTION_TYPES.ARRANGE_IDIOM,
+  'ARRANGE_SENTENCE',
+  'ORDER_TILES',
+  'ORDER_FLOW',
+]);
+
 // Colors
 const COLORS = {
   primary: '#FF8000',
@@ -293,6 +300,16 @@ const Advanced5IdiomsGame = ({ navigation, route }) => {
   const answersRef = useRef({});
   const gameFinishedRef = useRef(false);
   const serviceInitRef = useRef(false);
+
+  useEffect(() => {
+    if (!questions || questions.length === 0) {
+      return;
+    }
+    const filtered = questions.filter((q) => q && !SENTENCE_ORDER_TYPES.has(q.type));
+    if (filtered.length !== questions.length) {
+      setQuestions(filtered);
+    }
+  }, [questions]);
   
   // Load idioms data
   useEffect(() => {
@@ -305,13 +322,17 @@ const Advanced5IdiomsGame = ({ navigation, route }) => {
         
         // ✨ ใช้ flow สลับเรียน–เล่น 20 ข้อ (10 สำนวน)
         const generatedQuestions = generateIdiomsLessonFlow(normalizedIdioms, 20);
-        setQuestions(generatedQuestions);
+        const filteredGenerated = generatedQuestions.filter(q => q && !SENTENCE_ORDER_TYPES.has(q.type));
+        setQuestions(filteredGenerated);
         
         // Try to restore progress
         const savedProgress = await restoreProgress(lessonId);
         if (savedProgress && savedProgress.questionsSnapshot) {
-          setResumeData(savedProgress);
-          setCurrentIndex(savedProgress.currentIndex || 0);
+          const sanitizedSnapshot = (savedProgress.questionsSnapshot || []).filter(
+            q => q && !SENTENCE_ORDER_TYPES.has(q.type)
+          );
+          setResumeData({ ...savedProgress, questionsSnapshot: sanitizedSnapshot });
+          setCurrentIndex(Math.min(savedProgress.currentIndex || 0, Math.max(sanitizedSnapshot.length - 1, 0)));
           setHearts(savedProgress.hearts || 5);
           setStreak(savedProgress.streak || 0);
           setMaxStreak(savedProgress.maxStreak || 0);
@@ -320,6 +341,10 @@ const Advanced5IdiomsGame = ({ navigation, route }) => {
           setDiamondsEarned(savedProgress.diamondsEarned || 0);
           setAnswers(savedProgress.answers || {});
           answersRef.current = savedProgress.answers || {};
+
+          if (sanitizedSnapshot.length > 0) {
+            setQuestions(sanitizedSnapshot);
+          }
         }
         
         setLoading(false);

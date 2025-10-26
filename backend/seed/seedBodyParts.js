@@ -1,17 +1,8 @@
+const path = require('path');
 const mongoose = require('mongoose');
-require('dotenv').config();
+const dotenv = require('dotenv');
 
-// Connect to MongoDB
-const connectDB = async () => {
-  try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/thaimeow');
-    console.log('✅ Connected to MongoDB');
-    return conn;
-  } catch (error) {
-    console.error('❌ MongoDB Connection Error:', error);
-    process.exit(1);
-  }
-};
+dotenv.config({ path: path.join(__dirname, '..', 'config.env') });
 
 // Define Body Parts Schema
 const bodyPartSchema = new mongoose.Schema({
@@ -279,9 +270,20 @@ const bodyPartsData = [
 ];
 
 // Main function
-const seedBodyParts = async () => {
+const seedBodyParts = async (options = {}) => {
+  const { mongoUri = process.env.MONGODB_URI, skipConnect = false } = options;
+
+  if (!mongoUri) {
+    throw new Error('MONGODB_URI is not defined');
+  }
   try {
-    await connectDB();
+    if (!skipConnect) {
+      await mongoose.connect(mongoUri, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      });
+      console.log('✅ Connected to MongoDB');
+    }
 
     // Clear existing data
     await BodyPart.deleteMany({});
@@ -290,14 +292,28 @@ const seedBodyParts = async () => {
     // Insert new data
     const result = await BodyPart.insertMany(bodyPartsData);
     console.log(`✅ Successfully seeded ${result.length} body parts`);
-
-    mongoose.connection.close();
   } catch (error) {
     console.error('❌ Seeding Error:', error);
-    mongoose.connection.close();
-    process.exit(1);
+    throw error;
+  } finally {
+    if (!skipConnect) {
+      await mongoose.disconnect();
+    }
   }
 };
 
-// Run seed
-seedBodyParts();
+if (require.main === module) {
+  seedBodyParts()
+    .then(() => process.exit(0))
+    .catch(async (error) => {
+      console.error('❌ Seeding Error:', error);
+      try {
+        await mongoose.disconnect();
+      } catch (err) {
+        console.error('⚠️ Failed to disconnect mongoose cleanly:', err);
+      }
+      process.exit(1);
+    });
+}
+
+module.exports = seedBodyParts;

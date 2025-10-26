@@ -4,7 +4,7 @@
       "thai": "ช้าง",
       "english": "elephant",
       "descriptionTH": "ช้างเป็นสัตว์เลี้ยงลูกด้วยนมขนาดใหญ่ มีงวงยาวอาศัยในป่าและสวนสัตว์ทั่วโลก ช้างมีความฉลาดและจดจำได้ดี มักใช้ช่วยขนของหนัก",
-      "descriptionEN": "Elephants are large mammals with long trunks living in forests and zoos worldwide They are intelligent with excellent memory often used to carry heavy items",
+      "descriptionEN": "Elephants are large mammals with long trunks living in forests and zoos worldwide They are intelligent with excellent memory often used to carry heavy items.",
       "imageKey": "Animals/ช้าง",
       "examplesTH": [
         "ช้างเป็นสัตว์ที่ฉลาดมาก",
@@ -21,7 +21,7 @@
       "thai": "ม้า",
       "english": "horse",
       "descriptionTH": "ม้าเป็นสัตว์เลี้ยงที่นิยมเลี้ยงทั่วโลกม้าวิ่งเร็วและร่างกายแข็งแรง ใช้ขี่บรรทุกหรือลากเกวียน มาตั้งแต่สมัยโบราณ ม้ายังเป็นเพื่อนที่ดีของมนุษย์",
-      "descriptionEN": "Horses are popular domesticated animals worldwide known for speed and strength Used for riding carrying loads and pulling carts since ancient times They are loyal companions",
+      "descriptionEN": "Horses are popular domesticated animals worldwide known for speed and strength Used for riding carrying loads and pulling carts since ancient times They are loyal companions.",
       "imageKey": "Animals/ม้า",
       "examplesTH": [
         "เด็กๆชอบขี่ม้า",
@@ -38,7 +38,7 @@
       "thai": "วัว",
       "english": "cow",
       "descriptionTH": "วัวเป็นสัตว์เลี้ยงที่ให้ประโยชน์มากวัวให้นมและเนื้อ ประเทศไทยมีไร่วัวเลี้ยงมากมายวัวชอบกินหญ้าและมักอยู่ทุ่งหญ้าวัวเป็นสัตว์สงบและน่ารัก",
-      "descriptionEN": "Cows provide milk and meat Thailand has many cow farms Cows like eating grass and usually live in grasslands They are calm and gentle animals",
+      "descriptionEN": "Cows provide milk and meat Thailand has many cow farms Cows like eating grass and usually live in grasslands They are calm and gentle animals.",
       "imageKey": "Animals/วัว",
       "examplesTH": [
         "วัวให้นมที่แสนอร่อย",
@@ -55,7 +55,7 @@
       "thai": "ควาย",
       "english": "water buffalo",
       "descriptionTH": "ควายเป็นสัตว์เลี้ยงใหญ่และแข็งแรง ชาวนาไทยนิยมเลี้ยงควาย ใช้ช่วยไถนาหรือขนของหนัก ควายชอบอาบน้ำและเล่นน้ำ",
-      "descriptionEN": "Water buffaloes are large strong animals popular among Thai farmers used for plowing fields or carrying heavy items They love bathing and playing in water",
+      "descriptionEN": "Water buffaloes are large strong animals popular among Thai farmers used for plowing fields or carrying heavy items They love bathing and playing in water.",
       "imageKey": "Animals/ควาย",
       "examplesTH": [
         "ควายช่วยชาวนาไถนา",
@@ -72,7 +72,7 @@
       "thai": "หมา",
       "english": "dog",
       "descriptionTH": "หมาเป็นเพื่อนที่ดีที่สุดของมนุษย์หมาเป็นภักดีและซื่อสัตย์ ฝึกให้ช่วยงานต่างๆได้ หมามีหลายพันธุ์และขนาด",
-      "descriptionEN": "Dogs are humans best friends loyal and faithful Trained to help with various tasks There are many breeds in different sizes",
+      "descriptionEN": "Dogs are humans best friends loyal and faithful Trained to help with various tasks There are many breeds in different sizes.",
       "imageKey": "Animals/หมา",
       "examplesTH": [
         "หมาของฉันชื่อบัดดี้",
@@ -89,7 +89,7 @@
       "thai": "แมว",
       "english": "cat",
       "descriptionTH": "แมวเป็นสัตว์เลี้ยงที่ค่อนข้อยนิติรนแมวชอบนอนและเล่นมีอุ้งเท้านุ่มและเล็บแหลมแมวกระโดดสูงได้",
-      "descriptionEN": "Cats are independent pets love sleeping and playing have soft paws and sharp claws Cats can jump very high",
+      "descriptionEN": "Cats are independent pets love sleeping and playing have soft paws and sharp claws Cats can jump very high.",
       "imageKey": "Animals/แมว",
       "examplesTH": [
         "แมวนอนทั้งวัน",
@@ -106,7 +106,7 @@
       "thai": "ปลา",
       "english": "fish",
       "descriptionTH": "ปลาอาศัยอยู่ในน้ำหายใจด้วยเหงือกมีหลายรูปแบบสีสวยงามปลาเป็นอาหารโปรดปลาช่วยสุขภาพ",
-      "descriptionEN": "Fish live in water breathe through gills come in many shapes and beautiful colors Fish are a favorite food good for health",
+      "descriptionEN": "Fish live in water breathe through gills come in many shapes and beautiful colors Fish are a favorite food good for health.",
       "imageKey": "Animals/ปลา",
       "examplesTH": [
         "ดูปลาในตู้ปลาสวย",
@@ -123,7 +123,7 @@
       "thai": "นก",
       "english": "bird",
       "descriptionTH": "นกมีปีกบินได้มีขนสวยงามเสียงร้องไพเราะมีหลายชนิดบางชนิดร้องเพลงไพเราะนกอาศัยบนต้นไม้",
-      "descriptionEN": "Birds have wings and can fly have beautiful feathers and lovely songs There are many species some sing beautifully Birds live in trees",
+      "descriptionEN": "Birds have wings and can fly have beautiful feathers and lovely songs There are many species some sing beautifully Birds live in trees.",
       "imageKey": "Animals/นก",
       "examplesTH": [
         "ฟังเสียงนกร้องเช้า",
@@ -140,7 +140,7 @@
       "thai": "ไก่",
       "english": "chicken",
       "descriptionTH": "ไก่ให้ไข่และเนื้อไก่ขันตอนเช้าไก่เป็นอาหารสำคัญของไทยไก่มีหลายพันธุ์",
-      "descriptionEN": "Chickens provide eggs and meat Chickens crow in the morning Chicken is important Thai food There are many breeds",
+      "descriptionEN": "Chickens provide eggs and meat Chickens crow in the morning Chicken is important Thai food There are many breeds.",
       "imageKey": "Animals/ไก่",
       "examplesTH": [
         "ไก่ขันตอนเช้า",
@@ -157,7 +157,7 @@
       "thai": "หมู",
       "english": "pig",
       "descriptionTH": "หมูให้เนื้อและไขมันหมูมีจมูกยืดหางสั้นชอบนอนหมกดินหมูส่วนใหญ่มีขนขาวหรือดำ",
-      "descriptionEN": "Pigs provide meat and fat have long snouts short tails love rolling in mud Most pigs have white or black fur",
+      "descriptionEN": "Pigs provide meat and fat have long snouts short tails love rolling in mud Most pigs have white or black fur.",
       "imageKey": "Animals/หมู",
       "examplesTH": [
         "หมูมีจมูกยืด",
@@ -174,7 +174,7 @@
       "thai": "ลิง",
       "english": "monkey",
       "descriptionTH": "ลิงเป็นสัตว์เลี้ยงลูกด้วยนมที่ฉลาดมากลิงชอบปีนต้นไม้กินผลไม้มีความคล่องตัวสูงบางตัวมีหางยาว",
-      "descriptionEN": "Monkeys are very intelligent mammals love climbing trees eating fruits are highly agile Some have long tails",
+      "descriptionEN": "Monkeys are very intelligent mammals love climbing trees eating fruits are highly agile Some have long tails.",
       "imageKey": "Animals/ลิง",
       "examplesTH": [
         "ลิงปีนต้นไม้เก่ง",
@@ -191,7 +191,7 @@
       "thai": "เสือ",
       "english": "tiger",
       "descriptionTH": "เสือเป็นสัตว์ป่าที่แข็งและดุเป็นสัตว์ล่าอาหารเสือมีลายสวยงามอาศัยในป่า",
-      "descriptionEN": "Tigers are wild strong and fierce predatory animals have beautiful stripes live in forests",
+      "descriptionEN": "Tigers are wild strong and fierce predatory animals have beautiful stripes live in forests.",
       "imageKey": "Animals/เสือ",
       "examplesTH": [
         "เสือมีลายสวยงาม",
@@ -208,7 +208,7 @@
       "thai": "หมี",
       "english": "bear",
       "descriptionTH": "หมีเป็นสัตว์ป่าขนาดใหญ่ขนหนาและร่างกายใหญ่หมีปีนต้นไม้กินสัตว์เล็กหมีบางชนิดชอบน้ำผึ้ง",
-      "descriptionEN": "Bears are large wild animals with thick fur big bodies can climb trees eat small animals Some bears love honey",
+      "descriptionEN": "Bears are large wild animals with thick fur big bodies can climb trees eat small animals Some bears love honey.",
       "imageKey": "Animals/หมี",
       "examplesTH": [
         "หมีมีขนหนา",
@@ -225,7 +225,7 @@
       "thai": "กระต่าย",
       "english": "rabbit",
       "descriptionTH": "กระต่ายเป็นสัตว์เลี้ยงน่ารักหูยาวหางสั้นขยายพันธุ์เร็วชอบกินแครอทและผักกระต่ายวิ่งเร็ว",
-      "descriptionEN": "Rabbits are cute pets with long ears short tails reproduce quickly love eating carrots and vegetables hop very fast",
+      "descriptionEN": "Rabbits are cute pets with long ears short tails reproduce quickly love eating carrots and vegetables hop very fast.",
       "imageKey": "Animals/กระต่าย",
       "examplesTH": [
         "กระต่ายมีหูยาว",
@@ -242,7 +242,7 @@
       "thai": "ยีราฟ",
       "english": "giraffe",
       "descriptionTH": "ยีราฟสูงมากคอยาวขายาวอาศัยในแอฟริกายีราฟกินใบไม้จากต้นสูงยีราฟมีลายจุดสวยงาม",
-      "descriptionEN": "Giraffes are very tall with long necks and legs live in Africa eat leaves from tall trees have beautiful spotted patterns",
+      "descriptionEN": "Giraffes are very tall with long necks and legs live in Africa eat leaves from tall trees have beautiful spotted patterns.",
       "imageKey": "Animals/ยีราฟ",
       "examplesTH": [
         "ยีราฟสูงมาก",
@@ -259,7 +259,7 @@
       "thai": "สิงโต",
       "english": "lion",
       "descriptionTH": "สิงโตเป็นราชาแห่งป่ามีแผงคอสวยงามแข็งแรงและฉลาดเป็นสัตว์ล่าอาหารอาศัยในแอฟริกาและเอเชีย",
-      "descriptionEN": "Lions are kings of the jungle with beautiful manes strong and intelligent predators live in Africa and Asia",
+      "descriptionEN": "Lions are kings of the jungle with beautiful manes strong and intelligent predators live in Africa and Asia.",
       "imageKey": "Animals/สิงโต",
       "examplesTH": [
         "สิงโตมีแผงคอสวย",
@@ -276,7 +276,7 @@
       "thai": "จระเข้",
       "english": "crocodile",
       "descriptionTH": "จระเข้เป็นสัตว์น้ำเลื้อยมีฟันแหลมขากรรไกรแข็งแรงชอบอาศัยในแม่น้ำและบึงเป็นสัตว์ล่าอันตราย",
-      "descriptionEN": "Crocodiles are reptiles that live in water have sharp teeth strong jaws love living in rivers and swamps are dangerous predators",
+      "descriptionEN": "Crocodiles are reptiles that live in water have sharp teeth strong jaws love living in rivers and swamps are dangerous predators.",
       "imageKey": "Animals/จระเข้",
       "examplesTH": [
         "จระเข้มีฟันแหลม",
@@ -293,7 +293,7 @@
       "thai": "งู",
       "english": "snake",
       "descriptionTH": "งูเป็นสัตว์เลื้อยคลานมีหลายชนิดบางตัวมีพิษบางตัวไม่มีพิษงูเลื้อยพลิ้งได้อาศัยในป่าหรือดิน",
-      "descriptionEN": "Snakes are reptiles many species some venomous some harmless can slither and coil live in forests or underground",
+      "descriptionEN": "Snakes are reptiles many species some venomous some harmless can slither and coil live in forests or underground.",
       "imageKey": "Animals/งู",
       "examplesTH": [
         "งูเลื้อยบนดิน",
@@ -310,7 +310,7 @@
       "thai": "เต่า",
       "english": "turtle",
       "descriptionTH": "เต่าเป็นสัตว์เลื้อยคลานกระดองแข็งอาศัยทั้งบกและน้ำมีขาสั้นเคลื่อนช้าเต่ามีอายุยืนมาก",
-      "descriptionEN": "Turtles are reptiles with hard shells live both on land and in water have short legs move slowly turtles live very long",
+      "descriptionEN": "Turtles are reptiles with hard shells live both on land and in water have short legs move slowly turtles live very long.",
       "imageKey": "Animals/เต่า",
       "examplesTH": [
         "เต่ามีกระดองแข็ง",
@@ -327,7 +327,7 @@
       "thai": "กบ",
       "english": "frog",
       "descriptionTH": "กบเป็นสัตว์ครึ่งบกครึ่งน้ำผิวหนังชื้นชอบอาศัยใกล้น้ำกบกระโดดได้ดีกบบางตัวส่งเสียงดังตอนฝนตก",
-      "descriptionEN": "Frogs are amphibians with moist skin live near water frogs can jump well some frogs make loud sounds when it rains",
+      "descriptionEN": "Frogs are amphibians with moist skin live near water frogs can jump well some frogs make loud sounds when it rains.",
       "imageKey": "Animals/กบ",
       "examplesTH": [
         "กบกระโดดสูง",
@@ -344,7 +344,7 @@
       "thai": "ผีเสื้อ",
       "english": "butterfly",
       "descriptionTH": "ผีเสื้อเป็นแมลงปีกสวยงามมีสีหลากหลายบินจากดอกไม้ดอกหนึ่งไปอีกดอกหนึ่งผีเสื้อเป็นสัญลักษณ์ความสวยงาม",
-      "descriptionEN": "Butterflies are insects with beautiful wings have various colors fly from flower to flower symbolize beauty",
+      "descriptionEN": "Butterflies are insects with beautiful wings have various colors fly from flower to flower symbolize beauty.",
       "imageKey": "Animals/ผีเสื้อ",
       "examplesTH": [
         "ผีเสื้อมีปีกสวย",
@@ -361,7 +361,7 @@
       "thai": "ยุง",
       "english": "mosquito",
       "descriptionTH": "ยุงเป็นแมลงเล็กน่ารำคาญกัดดูดเลือดมนุษย์มักมากตอนฝนตกยุงนำโรค",
-      "descriptionEN": "Mosquitoes are small annoying insects bite and suck human blood often come when it rains can carry diseases",
+      "descriptionEN": "Mosquitoes are small annoying insects bite and suck human blood often come when it rains can carry diseases.",
       "imageKey": "Animals/ยุง",
       "examplesTH": [
         "ยุงกัดตอนกลางคืน",
@@ -378,7 +378,7 @@
       "thai": "มด",
       "english": "ant",
       "descriptionTH": "มดเป็นแมลงเล็กอาศัยและทำงานร่วมกันเป็นทีมมดแบกอาหารหนักกว่าตัวเองหลายเท่ามดอาศัยในรังดิน",
-      "descriptionEN": "Ants are small insects live and work together as team can carry food many times heavier than themselves live in underground nests",
+      "descriptionEN": "Ants are small insects live and work together as team can carry food many times heavier than themselves live in underground nests.",
       "imageKey": "Animals/มด",
       "examplesTH": [
         "มดทำงานเป็นทีม",
@@ -395,7 +395,7 @@
       "thai": "แมลงวัน",
       "english": "fly",
       "descriptionTH": "แมลงวันเป็นแมลงบินเร็วบินไปหาอาหารแมลงวันอาศัยทุกที่นำโรค",
-      "descriptionEN": "Flies are fast-flying insects fly around looking for food flies live everywhere can carry diseases",
+      "descriptionEN": "Flies are fast-flying insects fly around looking for food flies live everywhere can carry diseases.",
       "imageKey": "Animals/แมลงวัน",
       "examplesTH": [
         "แมลงวันบินเร็ว",
@@ -412,7 +412,7 @@
       "thai": "ปู",
       "english": "crab",
       "descriptionTH": "ปูเป็นสัตว์ทะเลก้ามใหญ่กระดองแข็งเดินข้างได้ปูมีหลายชนิดอาศัยในทะเลหรือชายฝั่ง",
-      "descriptionEN": "Crabs are sea creatures with large claws have hard shells walk sideways many species live in seas or along coastlines",
+      "descriptionEN": "Crabs are sea creatures with large claws have hard shells walk sideways many species live in seas or along coastlines.",
       "imageKey": "Animals/ปู",
       "examplesTH": [
         "ปูมีก้ามใหญ่",
@@ -429,7 +429,7 @@
       "thai": "ปลาหมึก",
       "english": "octopus",
       "descriptionTH": "ปลาหมึกมีแปดหนวดสมองดีเปลี่ยนสีได้อาศัยในทะเลลึกปลาหมึกมีหลายสี",
-      "descriptionEN": "Octopuses have eight tentacles very intelligent can change colors live in deep seas octopuses have various colors",
+      "descriptionEN": "Octopuses have eight tentacles very intelligent can change colors live in deep seas octopuses have various colors.",
       "imageKey": "Animals/ปลาหมึก",
       "examplesTH": [
         "ปลาหมึกมีแปดหนวด",
@@ -441,6 +441,108 @@
         "Octopuses can change colors",
         "Octopuses are very smart"
       ]
+    },
+    {
+      "thai": "ลิง",
+      "english": "monkey",
+      "descriptionTH": "ลิงเป็นสัตว์ที่ฉลาดมาก ลิงอาศัยในป่า มีหางยาว ลิงชอบปีนป่ายและกินผลไม้",
+      "descriptionEN": "Monkeys are very intelligent animals living in forests with long tails They love climbing and eating fruits",
+      "imageKey": "Animals/ลิง",
+      "examplesTH": [
+        "ลิงลิงอาศัยในป่า",
+        "ฉันเห็นลิง",
+        "ลิงน่ารัก"
+      ],
+      "examplesEN": [
+        "Monkeys are amazing",
+        "I saw a monkey",
+        "Monkeys are beautiful"
+      ]
+    },
+    {
+      "thai": "เสือ",
+      "english": "tiger",
+      "descriptionTH": "เสือเป็นสัตว์กินเนื้อที่อันตราย มีลายสวยงาม เสืออาศัยในป่าและออกล่าเหยื่อในเวลากลางคืน",
+      "descriptionEN": "Tigers are dangerous carnivores with beautiful stripes They live in forests and hunt prey at night",
+      "imageKey": "Animals/เสือ",
+      "examplesTH": [
+        "เสือมีลายสวยงาม",
+        "ฉันเห็นเสือ",
+        "เสือน่ารัก"
+      ],
+      "examplesEN": [
+        "Tigers are amazing",
+        "I saw a tiger",
+        "Tigers are beautiful"
+      ]
+    },
+    {
+      "thai": "หมี",
+      "english": "bear",
+      "descriptionTH": "หมีเป็นสัตว์เลี้ยงลูกด้วยนมที่ใหญ่และแข็งแรง หมีมีขนหนาเพื่อกันหนาว หมีชอบกินน้ำผึ้งและผลไม้",
+      "descriptionEN": "Bears are large strong mammals with thick fur to keep warm They love eating honey and fruits",
+      "imageKey": "Animals/หมี",
+      "examplesTH": [
+        "หมีหมีมีขนหนาเพื่อกันหนาว",
+        "ฉันเห็นหมี",
+        "หมีน่ารัก"
+      ],
+      "examplesEN": [
+        "Bears are amazing",
+        "I saw a bear",
+        "Bears are beautiful"
+      ]
+    },
+    {
+      "thai": "กระต่าย",
+      "english": "rabbit",
+      "descriptionTH": "กระต่ายเป็นสัตว์เล็กน่ารัก มีหูยาว ขากระโดดได้ไกล กระต่ายชอบกินแครอทและผักใบเขียว",
+      "descriptionEN": "Rabbits are cute small animals with long ears and strong jumping legs They love eating carrots and green vegetables",
+      "imageKey": "Animals/กระต่าย",
+      "examplesTH": [
+        "กระต่ายมีหูยาว",
+        "ฉันเห็นกระต่าย",
+        "กระต่ายน่ารัก"
+      ],
+      "examplesEN": [
+        "Rabbits are amazing",
+        "I saw a rabbit",
+        "Rabbits are beautiful"
+      ]
+    },
+    {
+      "thai": "ยีราฟ",
+      "english": "giraffe",
+      "descriptionTH": "ยีราฟเป็นสัตว์ที่คอยาวที่สุดในโลก อาศัยในทุ่งหญ้าแอฟริกา ยีราฟสูงมากและกินใบไม้จากต้นไม้สูง",
+      "descriptionEN": "Giraffes have the longest neck in the world living in African grasslands They are very tall and eat leaves from tall trees",
+      "imageKey": "Animals/ยีราฟ",
+      "examplesTH": [
+        "ยีราฟอาศัยในทุ่งหญ้าแอฟริกา",
+        "ฉันเห็นยีราฟ",
+        "ยีราฟน่ารัก"
+      ],
+      "examplesEN": [
+        "Giraffes are amazing",
+        "I saw a giraffe",
+        "Giraffes are beautiful"
+      ]
+    },
+    {
+      "thai": "สิงโต",
+      "english": "lion",
+      "descriptionTH": "สิงโตเป็นราชาแห่งป่า มีแผงขนรุ งรอบๆ ต้องเลี้ยงด้วยอาหาร สิงโตใช้ในการล่าและปกปิดครอบครัว",
+      "descriptionEN": "Lions are kings of the jungle with proud manes Lions hunt and protect their families in the wild",
+      "imageKey": "Animals/สิงโต",
+      "examplesTH": [
+        "สิงโตมีแผงขนรุ",
+        "ฉันเห็นสิงโต",
+        "สิงโตน่ารัก"
+      ],
+      "examplesEN": [
+        "Lions are amazing",
+        "I saw a lion",
+        "Lions are beautiful"
+      ]
     }
   ],
   "Food": [
@@ -448,7 +550,7 @@
       "thai": "ข้าว",
       "english": "rice",
       "descriptionTH": "ข้าวเป็นอาหารหลักของไทยและชาวเอเชีย ข้าวหุงสุกสีขาวนุ่มกินกับกับข้าวทุกมื้อมีทั้งข้าวเหนียวและข้าวเจ้า คนไทยกินข้าวทุกวัน",
-      "descriptionEN": "Rice is main food for Thai and Asian people Cooked rice is soft white eaten with dishes every meal Thailand has sticky rice and jasmine rice Thais eat rice daily",
+      "descriptionEN": "Rice is main food for Thai and Asian people Cooked rice is soft white eaten with dishes every meal Thailand has sticky rice and jasmine rice Thais eat rice daily.",
       "imageKey": "Food/ข้าว",
       "examplesTH": [
         "คุณกินข้าวแล้วยัง",
@@ -465,7 +567,7 @@
       "thai": "ข้าวผัด",
       "english": "fried rice",
       "descriptionTH": "ข้าวผัดอาหารยอดนิยมของไทยผัดข้าวสุกกับไข่เนื้อและผักได้ข้าวผัดสีเหลืองอร่อย คนไทยกินเป็นอาหารเช้าหรือกลางวัน",
-      "descriptionEN": "Fried rice is popular Thai dish made by stir-frying cooked rice with eggs meat and vegetables becomes delicious yellow fried rice Thais eat for breakfast or lunch",
+      "descriptionEN": "Fried rice is popular Thai dish made by stir-frying cooked rice with eggs meat and vegetables becomes delicious yellow fried rice Thais eat for breakfast or lunch.",
       "imageKey": "Food/ข้าวผัด",
       "examplesTH": [
         "ทำข้าวผัดให้เธอ",
@@ -482,7 +584,7 @@
       "thai": "ผัดไทย",
       "english": "pad thai",
       "descriptionTH": "ผัดไทยอาหารขึ้นชื่อของไทยก๋วยเตี๋ยวผัดกับไข่กุ้งและถั่วงอกได้ผัดไทยรสจัดจ้าน นักท่องเที่ยวชอบกินผัดไทย",
-      "descriptionEN": "Pad Thai is famous Thai dish stir-fried noodles with eggs shrimp and bean sprouts becomes delicious spicy pad Thai Tourists love eating pad Thai",
+      "descriptionEN": "Pad Thai is famous Thai dish stir-fried noodles with eggs shrimp and bean sprouts becomes delicious spicy pad Thai Tourists love eating pad Thai.",
       "imageKey": "Food/ผัดไทย",
       "examplesTH": [
         "กินผัดไทยร้านดัง",
@@ -499,7 +601,7 @@
       "thai": "ส้มตำ",
       "english": "papaya salad",
       "descriptionTH": "ส้มตำอาหารยอดนิยมของไทยสลัดแปปยะผสมมะเขือเทศถั่วและมะนาวรสเผ็ดเปรี้ยวหวาน คนไทยกินกับข้าวเหนียว",
-      "descriptionEN": "Papaya salad is popular Thai dish mixing raw papaya with tomatoes beans and lime has spicy sour sweet taste Thais eat with sticky rice",
+      "descriptionEN": "Papaya salad is popular Thai dish mixing raw papaya with tomatoes beans and lime has spicy sour sweet taste Thais eat with sticky rice.",
       "imageKey": "Food/ส้มตำ",
       "examplesTH": [
         "ส้มตำอร่อย",
@@ -516,7 +618,7 @@
       "thai": "ต้มยำ",
       "english": "tom yum soup",
       "descriptionTH": "ต้มยำอาหารไทยรสเผ็ดเปรี้ยวซุปใสมะขามกุ้งมะเขือเทศหญ้าฝรั่งและพริกแดงกลิ่นหอมมาก คนไทยกินเพื่อขับพิษ",
-      "descriptionEN": "Tom yum is Thai dish with spicy sour taste clear broth with tamarind shrimp tomatoes lemongrass and red chilies very fragrant smell Thais eat to detox",
+      "descriptionEN": "Tom yum is Thai dish with spicy sour taste clear broth with tamarind shrimp tomatoes lemongrass and red chilies very fragrant smell Thais eat to detox.",
       "imageKey": "Food/ต้มยำ",
       "examplesTH": [
         "กินต้มยำหลังฝน",
@@ -533,7 +635,7 @@
       "thai": "ขนมจีน",
       "english": "rice noodles",
       "descriptionTH": "ขนมจีนเส้นทำจากแป้งข้าวเส้นยาวสวยกินกับแกงกะทิเผ็ด คนไทยกินตอนเช้าหรือกลางวัน",
-      "descriptionEN": "Rice noodles made from rice flour long thin noodles eaten with spicy curry Thais eat for breakfast or lunch",
+      "descriptionEN": "Rice noodles made from rice flour long thin noodles eaten with spicy curry Thais eat for breakfast or lunch.",
       "imageKey": "Food/ขนมจีน",
       "examplesTH": [
         "กินกับแกงกะทิ",
@@ -550,7 +652,7 @@
       "thai": "ขนมปัง",
       "english": "bread",
       "descriptionTH": "ขนมปังทำจากแป้งข้าวหรือสาลีอบเสร็จจะนุ่มหอมกินกับไข่เนยผักและเนื้อ คนไทยกินเป็นอาหารเช้า",
-      "descriptionEN": "Bread made from rice or wheat flour baked becomes soft and fragrant eaten with eggs butter vegetables and meat Thais eat for breakfast",
+      "descriptionEN": "Bread made from rice or wheat flour baked becomes soft and fragrant eaten with eggs butter vegetables and meat Thais eat for breakfast.",
       "imageKey": "Food/ขนมปัง",
       "examplesTH": [
         "กินกับเนย",
@@ -567,7 +669,7 @@
       "thai": "ข้าวเหนียว",
       "english": "sticky rice",
       "descriptionTH": "ข้าวเหนียวข้าวพิเศษเหนียวหอมหุงเสร็จติดกันกินง่าย คนไทยเหนือกินเป็นหลักกินกับส้มตำและไก่ย่าง",
-      "descriptionEN": "Sticky rice is special sticky fragrant rice cooked sticks together easy to eat Northern Thais eat as main food with papaya salad and grilled chicken",
+      "descriptionEN": "Sticky rice is special sticky fragrant rice cooked sticks together easy to eat Northern Thais eat as main food with papaya salad and grilled chicken.",
       "imageKey": "Food/ข้าวเหนียว",
       "examplesTH": [
         "กินกับส้มตำ",
@@ -584,7 +686,7 @@
       "thai": "มะม่วง",
       "english": "mango",
       "descriptionTH": "มะม่วงผลไม้ยอดนิยมของไทยรสหวานสีเหลืองทองกินกับข้าวเหนียวมะม่วงกินเมื่อสุกหรือผลอ่อนเป็นอาหารว่าง",
-      "descriptionEN": "Mangos are popular Thai fruits sweet golden yellow color eaten with sticky rice eaten when ripe or unripe as snacks",
+      "descriptionEN": "Mangos are popular Thai fruits sweet golden yellow color eaten with sticky rice eaten when ripe or unripe as snacks.",
       "imageKey": "Food/มะม่วง",
       "examplesTH": [
         "กินกับข้าวเหนียว",
@@ -601,7 +703,7 @@
       "thai": "กล้วย",
       "english": "banana",
       "descriptionTH": "กล้วยผลไม้มีแป้งรสหวานหลายพันธุ์ขนาดเล็กและใหญ่กินเป็นอาหารว่างหรือเช้ากินกับปาท่องโก๋",
-      "descriptionEN": "Bananas are fruits with starch sweet taste many varieties small and large sizes eaten as snacks or breakfast with donuts",
+      "descriptionEN": "Bananas are fruits with starch sweet taste many varieties small and large sizes eaten as snacks or breakfast with donuts.",
       "imageKey": "Food/กล้วย",
       "examplesTH": [
         "กินตอนเช้า",
@@ -618,7 +720,7 @@
       "thai": "ทุเรียน",
       "english": "durian",
       "descriptionTH": "ทุเรียนผลไม้กลิ่นแรงรสหวานขนาดใหญ่มีหนามแหลมคนไทยชอบกินมากทุเรียนเป็นผลไม้ราชา",
-      "descriptionEN": "Durian is fruit with strong smell sweet taste large size with sharp spikes Thais love eating durian is king of fruits",
+      "descriptionEN": "Durian is fruit with strong smell sweet taste large size with sharp spikes Thais love eating durian is king of fruits.",
       "imageKey": "Food/ทุเรียน",
       "examplesTH": [
         "กินทุเรียนสุก",
@@ -635,7 +737,7 @@
       "thai": "ส้ม",
       "english": "orange",
       "descriptionTH": "ส้มผลไม้วิตามินซีสูงสีส้มสดใสรสเปรี้ยวหวานกินเป็นอาหารว่างหรือดื่มน้ำคั้นกินเพื่อสุขภาพ",
-      "descriptionEN": "Oranges are fruits high in vitamin C bright orange color sour sweet taste eaten as snacks or drink juice eaten for health",
+      "descriptionEN": "Oranges are fruits high in vitamin C bright orange color sour sweet taste eaten as snacks or drink juice eaten for health.",
       "imageKey": "Food/ส้ม",
       "examplesTH": [
         "ดื่มน้ำส้มเช้า",
@@ -652,7 +754,7 @@
       "thai": "แตงโม",
       "english": "watermelon",
       "descriptionTH": "แตงโมผลไม้ใหญ่มากสีแดงหรือเหลืองหั่นพบเนื้อหวานฉ่ำกินตอนร้อนผ่อนคลาย ผลไม้โปรดฤดูร้อน",
-      "descriptionEN": "Watermelons are very large fruits red or yellow color sliced reveals sweet juicy flesh eaten when hot to relax favorite summer fruit",
+      "descriptionEN": "Watermelons are very large fruits red or yellow color sliced reveals sweet juicy flesh eaten when hot to relax favorite summer fruit.",
       "imageKey": "Food/แตงโม",
       "examplesTH": [
         "กินหลังกินข้าว",
@@ -669,7 +771,7 @@
       "thai": "น้ำปลา",
       "english": "fish sauce",
       "descriptionTH": "น้ำปลาน้ำเหนียวใสทำจากปลาดิบผสมเกลือน้ำปลาเครื่องปรุงพื้นฐานของไทยหวานและใสใส่น้ำปลาเกือบทุกชนิดอาหาร",
-      "descriptionEN": "Fish sauce is clear viscous liquid made from raw fish mixed with salt fish sauce is basic Thai condiment sweet and clear added to almost all dishes",
+      "descriptionEN": "Fish sauce is clear viscous liquid made from raw fish mixed with salt fish sauce is basic Thai condiment sweet and clear added to almost all dishes.",
       "imageKey": "Food/น้ำปลา",
       "examplesTH": [
         "ใส่น้ำปลาต้มยำ",
@@ -686,7 +788,7 @@
       "thai": "น้ำตาล",
       "english": "sugar",
       "descriptionTH": "น้ำตาลเครื่องหวานทำจากอ้อยน้ำตาลหวานละลายน้ำใช้ปรุงอาหารและทำขนมใส่ในน้ำร้อนหรือกาแฟ",
-      "descriptionEN": "Sugar is sweetener made from sugarcane sugar is sweet and dissolves in water used for cooking and making desserts added to hot drinks or coffee",
+      "descriptionEN": "Sugar is sweetener made from sugarcane sugar is sweet and dissolves in water used for cooking and making desserts added to hot drinks or coffee.",
       "imageKey": "Food/น้ำตาล",
       "examplesTH": [
         "ใส่น้ำตาลกาแฟ",
@@ -703,7 +805,7 @@
       "thai": "เกลือ",
       "english": "salt",
       "descriptionTH": "เกลือเครื่องปรุงรสเค็มทำจากน้ำทะเลหรือทะเลน้ำแข็งใช้ปรุงอาหารเช่นเค็มเปรี้ยวใช้น้ำเกลือแช่อาหาร",
-      "descriptionEN": "Salt is seasoning with salty taste made from sea water or salt mines used for cooking food like soups use salt water for preserving food",
+      "descriptionEN": "Salt is seasoning with salty taste made from sea water or salt mines used for cooking food like soups use salt water for preserving food.",
       "imageKey": "Food/เกลือ",
       "examplesTH": [
         "ใส่เกลือในอาหาร",
@@ -720,7 +822,7 @@
       "thai": "ไข่",
       "english": "egg",
       "descriptionTH": "ไข่อาหารทำจากไข่ไก่หรือเป็ดหุงไข่สีเหลืองอ่อนขาวแดงกินตอนเช้าทำไข่เจียวหรือไข่ต้ม",
-      "descriptionEN": "Eggs are foods made from chicken or duck eggs cooked eggs are light yellow with white and yolk eaten in morning made into omelets or boiled eggs",
+      "descriptionEN": "Eggs are foods made from chicken or duck eggs cooked eggs are light yellow with white and yolk eaten in morning made into omelets or boiled eggs.",
       "imageKey": "Food/ไข่",
       "examplesTH": [
         "กินไข่เจียวเช้า",
@@ -737,7 +839,7 @@
       "thai": "แกงเขียวหวาน",
       "english": "green curry",
       "descriptionTH": "แกงเขียวหวานแกงสีเขียวรสเผ็ดใส่เครื่องเทศเขียวเนื้อและมะเขือเทศแกงเขียวหวานหอมมากกินกับข้าว",
-      "descriptionEN": "Green curry is green colored spicy curry made with green herbs meat and tomatoes green curry is very fragrant eaten with rice",
+      "descriptionEN": "Green curry is green colored spicy curry made with green herbs meat and tomatoes green curry is very fragrant eaten with rice.",
       "imageKey": "Food/แกงเขียวหวาน",
       "examplesTH": [
         "กินแกงเขียวหวานร้อน",
@@ -754,7 +856,7 @@
       "thai": "ไอศกรีม",
       "english": "ice cream",
       "descriptionTH": "ไอศกรีมขนมเย็นทำจากนมผสมน้ำตาลแช่แข็งเนื้อเนียนเย็นกินตอนร้อน มีหลายรสเช่นชาเขียวทุเรียนมะม่วง",
-      "descriptionEN": "Ice cream is cold dessert made from milk mixed with sugar frozen has smooth texture and cold eaten when hot comes in many flavors like green tea durian mango",
+      "descriptionEN": "Ice cream is cold dessert made from milk mixed with sugar frozen has smooth texture and cold eaten when hot comes in many flavors like green tea durian mango.",
       "imageKey": "Food/ไอศกรีม",
       "examplesTH": [
         "กินไอศกรีมตอนร้อน",
@@ -771,7 +873,7 @@
       "thai": "ชาเย็น",
       "english": "iced tea",
       "descriptionTH": "ชาเย็นเครื่องดื่มทำจากชาผสมน้ำตาลและน้ำแข็งผสมแล้วหวานเย็นกินตอนร้อนผ่อนคลาย",
-      "descriptionEN": "Iced tea is drink made from tea mixed with sugar and ice when mixed becomes sweet and cold drunk when hot to relax",
+      "descriptionEN": "Iced tea is drink made from tea mixed with sugar and ice when mixed becomes sweet and cold drunk when hot to relax.",
       "imageKey": "Food/ชาเย็น",
       "examplesTH": [
         "ดื่มชาเย็นตอนร้อน",
@@ -788,7 +890,7 @@
       "thai": "ข้าวต้ม",
       "english": "rice porridge",
       "descriptionTH": "ข้าวต้มเป็นอาหารเช้าของไทย ใช้น้ำข้าวหุงร้อนกับไข่หรือเนื้อ",
-      "descriptionEN": "Rice porridge is Thai breakfast made with hot rice and eggs or meat",
+      "descriptionEN": "Rice porridge is Thai breakfast made with hot rice and eggs or meat.",
       "imageKey": "Food/ข้าวต้ม",
       "examplesTH": [
         "กินข้าวต้มเช้า",
@@ -807,7 +909,7 @@
       "thai": "แดง",
       "english": "red",
       "descriptionTH": "สีแดงเป็นสีหลักที่มีพลังความร้อน คนไทยใช้สีแดงในธงชาติวันหยุดและงานมงคล",
-      "descriptionEN": "Red is a primary color with power heat intensity Thais use red in national flags holidays and auspicious occasions",
+      "descriptionEN": "Red is a primary color with power heat intensity Thais use red in national flags holidays and auspicious occasions.",
       "imageKey": "Colors/แดง",
       "examplesTH": [
         "แดงเป็นสีสวย",
@@ -822,7 +924,7 @@
       "thai": "เหลือง",
       "english": "yellow",
       "descriptionTH": "สีเหลืองสว่างอบอุ่นสดใส คนไทยใช้สีเหลืองประจำพระมหากษัตริย์",
-      "descriptionEN": "Yellow is bright warm cheerful Thais use yellow as royal color",
+      "descriptionEN": "Yellow is bright warm cheerful Thais use yellow as royal color.",
       "imageKey": "Colors/เหลือง",
       "examplesTH": [
         "เหลืองสดใส",
@@ -837,7 +939,7 @@
       "thai": "น้ำเงิน",
       "english": "blue",
       "descriptionTH": "สีน้ำเงินเย็นสงบน่าเชื่อถือ คนไทยใช้สีน้ำเงินในเครื่องแบบ",
-      "descriptionEN": "Blue is cool calm trustworthy Thais use blue in uniforms",
+      "descriptionEN": "Blue is cool calm trustworthy Thais use blue in uniforms.",
       "imageKey": "Colors/น้ำเงิน",
       "examplesTH": [
         "น้ำเงินสงบ",
@@ -852,7 +954,7 @@
       "thai": "เขียว",
       "english": "green",
       "descriptionTH": "สีเขียวธรรมชาติต้นไม้และหญ้าให้รู้สึกผ่อนคลายและสดชื่น",
-      "descriptionEN": "Green is natural color of trees and grass makes you feel relaxed and fresh",
+      "descriptionEN": "Green is natural color of trees and grass makes you feel relaxed and fresh.",
       "imageKey": "Colors/เขียว",
       "examplesTH": [
         "เขียวธรรมชาติ",
@@ -867,7 +969,7 @@
       "thai": "ชมพู",
       "english": "pink",
       "descriptionTH": "สีชมพูอ่อนหวานน่ารัก คนไทยใช้สีชมพูวันดีๆและของเล่น",
-      "descriptionEN": "Pink is soft sweet cute Thais use pink on good days and toys",
+      "descriptionEN": "Pink is soft sweet cute Thais use pink on good days and toys.",
       "imageKey": "Colors/ชมพู",
       "examplesTH": [
         "ชมพูน่ารัก",
@@ -882,7 +984,7 @@
       "thai": "ส้ม",
       "english": "orange",
       "descriptionTH": "สีส้มวอร์มและมีชีวิตชีวา สีส้มผลส้มและพระอาทิตย์",
-      "descriptionEN": "Orange is warm and vibrant color Orange is the color of oranges and sun",
+      "descriptionEN": "Orange is warm and vibrant color Orange is the color of oranges and sun.",
       "imageKey": "Colors/ส้ม",
       "examplesTH": [
         "ส้มวอร์ม",
@@ -897,7 +999,7 @@
       "thai": "ม่วง",
       "english": "purple",
       "descriptionTH": "สีม่วงลึกลับและสง่างาม คนไทยใช้สีม่วงเสื้อผ้าดีๆและดอกไม้",
-      "descriptionEN": "Purple is mysterious and elegant Thais use purple in nice clothes and flowers",
+      "descriptionEN": "Purple is mysterious and elegant Thais use purple in nice clothes and flowers.",
       "imageKey": "Colors/ม่วง",
       "examplesTH": [
         "ม่วงสวย",
@@ -912,7 +1014,7 @@
       "thai": "น้ำตาล",
       "english": "brown",
       "descriptionTH": "สีน้ำตาลของดินและไม้เป็นสีธรรมชาติที่อบอุ่น",
-      "descriptionEN": "Brown is the color of soil and wood a natural warm color",
+      "descriptionEN": "Brown is the color of soil and wood a natural warm color.",
       "imageKey": "Colors/น้ำตาล",
       "examplesTH": [
         "น้ำตาลธรรมชาติ",
@@ -927,7 +1029,7 @@
       "thai": "ดำ",
       "english": "black",
       "descriptionTH": "สีดำมืดและเป็นทางการ ใช้ในเครื่องแบบและเสื้อผ้าดีๆ",
-      "descriptionEN": "Black is dark and formal used in uniforms and nice clothes",
+      "descriptionEN": "Black is dark and formal used in uniforms and nice clothes.",
       "imageKey": "Colors/ดำ",
       "examplesTH": [
         "ดำเป็นทางการ",
@@ -942,7 +1044,7 @@
       "thai": "ขาว",
       "english": "white",
       "descriptionTH": "สีขาวบริสุทธิ์และเป็นทางการ ใช้ในเสื้อผ้าและเครื่องแต่งกาย",
-      "descriptionEN": "White is pure and formal used in clothes and decorations",
+      "descriptionEN": "White is pure and formal used in clothes and decorations.",
       "imageKey": "Colors/ขาว",
       "examplesTH": [
         "ขาวบริสุทธิ์",
@@ -957,7 +1059,7 @@
       "thai": "เทา",
       "english": "gray",
       "descriptionTH": "สีเทาเป็นสีกลางไม่เข้มไม่จาง ใช้ในเสื้อผ้าและอาคาร",
-      "descriptionEN": "Gray is neutral not too dark not too light used in clothes and buildings",
+      "descriptionEN": "Gray is neutral not too dark not too light used in clothes and buildings.",
       "imageKey": "Colors/เทา",
       "examplesTH": [
         "เทาเป็นกลาง",
@@ -972,7 +1074,7 @@
       "thai": "ฟ้า",
       "english": "sky blue",
       "descriptionTH": "สีฟ้าของท้องฟ้าสวยและเย็นสบาย",
-      "descriptionEN": "Sky blue is the color of sky bright and cool",
+      "descriptionEN": "Sky blue is the color of sky bright and cool.",
       "imageKey": "Colors/ฟ้า",
       "examplesTH": [
         "ฟ้าสวย",
@@ -987,7 +1089,7 @@
       "thai": "ทอง",
       "english": "gold",
       "descriptionTH": "สีทองโลหะมีค่าสำหรับวันพิเศษและอัญมณี",
-      "descriptionEN": "Gold is precious metal color used for special occasions and jewelry",
+      "descriptionEN": "Gold is precious metal color used for special occasions and jewelry.",
       "imageKey": "Colors/ทอง",
       "examplesTH": [
         "ทองมีค่า",
@@ -1002,7 +1104,7 @@
       "thai": "เงิน",
       "english": "silver",
       "descriptionTH": "สีเงินโลหะเงาใช้ทำเครื่องประดับและของมีค่า",
-      "descriptionEN": "Silver is shiny metal color used for making jewelry and valuable items",
+      "descriptionEN": "Silver is shiny metal color used for making jewelry and valuable items.",
       "imageKey": "Colors/เงิน",
       "examplesTH": [
         "เงินเงา",
@@ -1019,7 +1121,7 @@
       "thai": "เช้า",
       "english": "morning",
       "descriptionTH": "เช้าเป็นช่วงเวลาแรกของวันตั้งแต่พระอาทิตย์ขึ้นถึงเที่ยง เช้าเป็นเวลาทำงานและเรียน",
-      "descriptionEN": "Morning is the first part of day from sunrise to noon Morning is time for work and studying",
+      "descriptionEN": "Morning is the first part of day from sunrise to noon Morning is time for work and studying.",
       "imageKey": "Time/เช้า",
       "examplesTH": [
         "เช้าที่ดี",
@@ -1036,7 +1138,7 @@
       "thai": "เที่ยง",
       "english": "noon",
       "descriptionTH": "เที่ยงเป็นช่วงเวลากลางวันเวลากินอาหารกลางวัน",
-      "descriptionEN": "Noon is midday time for eating lunch",
+      "descriptionEN": "Noon is midday time for eating lunch.",
       "imageKey": "Time/เที่ยง",
       "examplesTH": [
         "กินข้าวเที่ยง",
@@ -1053,7 +1155,7 @@
       "thai": "บ่าย",
       "english": "afternoon",
       "descriptionTH": "บ่ายเป็นช่วงเวลาหลังเที่ยงถึงเย็น บ่ายเป็นเวลาทำงานต่อ",
-      "descriptionEN": "Afternoon is time after noon until evening Afternoon is time to continue working",
+      "descriptionEN": "Afternoon is time after noon until evening Afternoon is time to continue working.",
       "imageKey": "Time/บ่าย",
       "examplesTH": [
         "ตอนบ่าย",
@@ -1070,7 +1172,7 @@
       "thai": "เย็น",
       "english": "evening",
       "descriptionTH": "เย็นเป็นช่วงเวลาสิ้นสุดวัน ก่อนมืด ใช้หยุดพักผ่อน",
-      "descriptionEN": "Evening is end of day before dark time to rest",
+      "descriptionEN": "Evening is end of day before dark time to rest.",
       "imageKey": "Time/เย็น",
       "examplesTH": [
         "ตอนเย็น",
@@ -1087,7 +1189,7 @@
       "thai": "กลางคืน",
       "english": "night",
       "descriptionTH": "กลางคืนเป็นเวลามืด เป็นเวลานอน สภาพมืดและเงียบสงบ",
-      "descriptionEN": "Night is dark time is time to sleep dark and quiet",
+      "descriptionEN": "Night is dark time is time to sleep dark and quiet.",
       "imageKey": "Time/กลางคืน",
       "examplesTH": [
         "กลางคืนมืด",
@@ -1104,7 +1206,7 @@
       "thai": "วันนี้",
       "english": "today",
       "descriptionTH": "วันนี้หมายถึงวันที่เรากำลังอยู่ในปัจจุบัน",
-      "descriptionEN": "Today means the current day we are in",
+      "descriptionEN": "Today means the current day we are in.",
       "imageKey": "Time/วันนี้",
       "examplesTH": [
         "วันนี้ดี",
@@ -1121,7 +1223,7 @@
       "thai": "พรุ่งนี้",
       "english": "tomorrow",
       "descriptionTH": "พรุ่งนี้หมายถึงวันถัดไปจากวันนี้",
-      "descriptionEN": "Tomorrow means the next day from today",
+      "descriptionEN": "Tomorrow means the next day from today.",
       "imageKey": "Time/พรุ่งนี้",
       "examplesTH": [
         "พรุ่งนี้ไป",
@@ -1138,7 +1240,7 @@
       "thai": "เมื่อวาน",
       "english": "yesterday",
       "descriptionTH": "เมื่อวานหมายถึงวันที่ผ่านมาแล้ว",
-      "descriptionEN": "Yesterday means the day that has passed",
+      "descriptionEN": "Yesterday means the day that has passed.",
       "imageKey": "Time/เมื่อวาน",
       "examplesTH": [
         "เมื่อวานไป",
@@ -1155,7 +1257,7 @@
       "thai": "ตอนนี้",
       "english": "now",
       "descriptionTH": "ตอนนี้หมายถึงปัจจุบันขณะนี้",
-      "descriptionEN": "Now means the present moment",
+      "descriptionEN": "Now means the present moment.",
       "imageKey": "Time/ตอนนี้",
       "examplesTH": [
         "ตอนนี้ดี",
@@ -1172,7 +1274,7 @@
       "thai": "ชั่วโมง",
       "english": "hour",
       "descriptionTH": "ชั่วโมงเป็นหน่วยเวลาทั่วไป 1 วันมี 24 ชั่วโมง",
-      "descriptionEN": "Hour is a common time unit 1 day has 24 hours",
+      "descriptionEN": "Hour is a common time unit 1 day has 24 hours.",
       "imageKey": "Time/ชั่วโมง",
       "examplesTH": [
         "1 ชั่วโมง",
@@ -1189,7 +1291,7 @@
       "thai": "นาที",
       "english": "minute",
       "descriptionTH": "นาทีเป็นหน่วยเวลาสั้น 1 ชั่วโมงมี 60 นาที",
-      "descriptionEN": "Minute is a short time unit 1 hour has 60 minutes",
+      "descriptionEN": "Minute is a short time unit 1 hour has 60 minutes.",
       "imageKey": "Time/นาที",
       "examplesTH": [
         "1 นาที",
@@ -1206,7 +1308,7 @@
       "thai": "วินาที",
       "english": "second",
       "descriptionTH": "วินาทีเป็นหน่วยเวลาสั้นมาก 1 นาทีมี 60 วินาที",
-      "descriptionEN": "Second is a very short time unit 1 minute has 60 seconds",
+      "descriptionEN": "Second is a very short time unit 1 minute has 60 seconds.",
       "imageKey": "Time/วินาที",
       "examplesTH": [
         "1 วินาที",
@@ -1223,7 +1325,7 @@
       "thai": "วัน",
       "english": "day",
       "descriptionTH": "วันเป็นหน่วยเวลา 1 วันมี 24 ชั่วโมง",
-      "descriptionEN": "Day is a time unit 1 day has 24 hours",
+      "descriptionEN": "Day is a time unit 1 day has 24 hours.",
       "imageKey": "Time/วัน",
       "examplesTH": [
         "วันหนึ่ง",
@@ -1240,7 +1342,7 @@
       "thai": "เดือน",
       "english": "month",
       "descriptionTH": "เดือนเป็นหน่วยเวลา 1 ปีมี 12 เดือน",
-      "descriptionEN": "Month is a time unit 1 year has 12 months",
+      "descriptionEN": "Month is a time unit 1 year has 12 months.",
       "imageKey": "Time/เดือน",
       "examplesTH": [
         "เดือนนี้",
@@ -1257,7 +1359,7 @@
       "thai": "ปี",
       "english": "year",
       "descriptionTH": "ปีเป็นหน่วยเวลายาว 1 ปีมี 12 เดือน",
-      "descriptionEN": "Year is a long time unit 1 year has 12 months",
+      "descriptionEN": "Year is a long time unit 1 year has 12 months.",
       "imageKey": "Time/ปี",
       "examplesTH": [
         "ปีนี้",
@@ -1274,7 +1376,7 @@
       "thai": "ฤดูร้อน",
       "english": "summer",
       "descriptionTH": "ฤดูร้อนอากาศร้อนและแห้ง เป็นช่วงหน้าร้อน",
-      "descriptionEN": "Summer is hot and dry season hot summer period",
+      "descriptionEN": "Summer is hot and dry season hot summer period.",
       "imageKey": "Time/ฤดูร้อน",
       "examplesTH": [
         "ฤดูร้อนร้อน",
@@ -1293,7 +1395,7 @@
       "thai": "บ้าน",
       "english": "house",
       "descriptionTH": "บ้านเป็นที่อาศัยของครอบครัว มีห้องนอนห้องครัว ห้องน้ำ",
-      "descriptionEN": "House is where family lives has bedrooms kitchen bathroom",
+      "descriptionEN": "House is where family lives has bedrooms kitchen bathroom.",
       "imageKey": "Places/บ้าน",
       "examplesTH": [
         "บ้านของเรา",
@@ -1310,7 +1412,7 @@
       "thai": "โรงเรียน",
       "english": "school",
       "descriptionTH": "โรงเรียนเป็นที่เรียนหนังสือ มีห้องเรียนและครู",
-      "descriptionEN": "School is place to study has classrooms and teachers",
+      "descriptionEN": "School is place to study has classrooms and teachers.",
       "imageKey": "Places/โรงเรียน",
       "examplesTH": [
         "ไปโรงเรียน",
@@ -1327,7 +1429,7 @@
       "thai": "โรงพยาบาล",
       "english": "hospital",
       "descriptionTH": "โรงพยาบาลเป็นที่รักษาโรค มีหมอและพยาบาล",
-      "descriptionEN": "Hospital is place to cure diseases has doctors and nurses",
+      "descriptionEN": "Hospital is place to cure diseases has doctors and nurses.",
       "imageKey": "Places/โรงพยาบาล",
       "examplesTH": [
         "ไปโรงพยาบาล",
@@ -1344,7 +1446,7 @@
       "thai": "วัด",
       "english": "temple",
       "descriptionTH": "วัดเป็นที่ทำบุญและสวดมนต์ มีพระและผู้มาเยือน",
-      "descriptionEN": "Temple is place to make merit and pray has monks and visitors",
+      "descriptionEN": "Temple is place to make merit and pray has monks and visitors.",
       "imageKey": "Places/วัด",
       "examplesTH": [
         "ไปวัด",
@@ -1361,7 +1463,7 @@
       "thai": "ตลาด",
       "english": "market",
       "descriptionTH": "ตลาดเป็นที่ขายอาหารและสินค้า มีผู้ขายและลูกค้าหลากหลาย",
-      "descriptionEN": "Market is place to sell food and goods has various vendors and customers",
+      "descriptionEN": "Market is place to sell food and goods has various vendors and customers.",
       "imageKey": "Places/ตลาด",
       "examplesTH": [
         "ไปตลาด",
@@ -1378,7 +1480,7 @@
       "thai": "ร้านอาหาร",
       "english": "restaurant",
       "descriptionTH": "ร้านอาหารเป็นที่กินอาหาร มีอาหารหลากหลาย รับประทานได้",
-      "descriptionEN": "Restaurant is place to eat food has various food can be consumed",
+      "descriptionEN": "Restaurant is place to eat food has various food can be consumed.",
       "imageKey": "Places/ร้านอาหาร",
       "examplesTH": [
         "ไปร้านอาหาร",
@@ -1395,7 +1497,7 @@
       "thai": "สวนสาธารณะ",
       "english": "park",
       "descriptionTH": "สวนสาธารณะเป็นที่พักผ่อน มีต้นไม้และสนามเด็กเล่น",
-      "descriptionEN": "Park is place to relax has trees and playgrounds",
+      "descriptionEN": "Park is place to relax has trees and playgrounds.",
       "imageKey": "Places/สวนสาธารณะ",
       "examplesTH": [
         "ไปสวนสาธารณะ",
@@ -1412,7 +1514,7 @@
       "thai": "ทะเล",
       "english": "sea",
       "descriptionTH": "ทะเลเป็นน้ำเค็มใหญ่ มีคลื่นและเกาะสวยงาม",
-      "descriptionEN": "Sea is large salty water has waves and beautiful islands",
+      "descriptionEN": "Sea is large salty water has waves and beautiful islands.",
       "imageKey": "Places/ทะเล",
       "examplesTH": [
         "ไปทะเล",
@@ -1429,7 +1531,7 @@
       "thai": "ภูเขา",
       "english": "mountain",
       "descriptionTH": "ภูเขาเป็นดินสูงใหญ่ มีต้นไม้และสัตว์ป่า",
-      "descriptionEN": "Mountain is large high land has trees and wildlife",
+      "descriptionEN": "Mountain is large high land has trees and wildlife.",
       "imageKey": "Places/ภูเขา",
       "examplesTH": [
         "ปีนภูเขา",
@@ -1446,7 +1548,7 @@
       "thai": "สนามบิน",
       "english": "airport",
       "descriptionTH": "สนามบินเป็นที่เครื่องบินขึ้นลง มีผู้โดยสารและเครื่องบิน",
-      "descriptionEN": "Airport is place where planes take off and land has passengers and airplanes",
+      "descriptionEN": "Airport is place where planes take off and land has passengers and airplanes.",
       "imageKey": "Places/สนามบิน",
       "examplesTH": [
         "ไปสนามบิน",
@@ -1463,7 +1565,7 @@
       "thai": "ห้องน้ำ",
       "english": "bathroom",
       "descriptionTH": "ห้องน้ำเป็นที่อาบน้ำและทำความสะอาด มีสุขภัณฑ์",
-      "descriptionEN": "Bathroom is place to shower and clean has sanitary facilities",
+      "descriptionEN": "Bathroom is place to shower and clean has sanitary facilities.",
       "imageKey": "Places/ห้องน้ำ",
       "examplesTH": [
         "ไปห้องน้ำ",
@@ -1480,7 +1582,7 @@
       "thai": "ห้องเรียน",
       "english": "classroom",
       "descriptionTH": "ห้องเรียนเป็นที่เรียน มีโต๊ะเก้าอี้และกระดาน",
-      "descriptionEN": "Classroom is place to study has desks chairs and blackboard",
+      "descriptionEN": "Classroom is place to study has desks chairs and blackboard.",
       "imageKey": "Places/ห้องเรียน",
       "examplesTH": [
         "ไปห้องเรียน",
@@ -1497,7 +1599,7 @@
       "thai": "ห้องครัว",
       "english": "kitchen",
       "descriptionTH": "ห้องครัวเป็นที่ทำอาหาร มีเตาและอ่างล้างจาน",
-      "descriptionEN": "Kitchen is place to cook has stove and sink",
+      "descriptionEN": "Kitchen is place to cook has stove and sink.",
       "imageKey": "Places/ห้องครัว",
       "examplesTH": [
         "ทำอาหารในห้องครัว",
@@ -1514,7 +1616,7 @@
       "thai": "ร้านกาแฟ",
       "english": "coffee shop",
       "descriptionTH": "ร้านกาแฟเป็นที่ดื่มกาแฟและพักผ่อน มีกาแฟและอาหาร",
-      "descriptionEN": "Coffee shop is place to drink coffee and relax has coffee and food",
+      "descriptionEN": "Coffee shop is place to drink coffee and relax has coffee and food.",
       "imageKey": "Places/ร้านกาแฟ",
       "examplesTH": [
         "ดื่มกาแฟที่ร้าน",
@@ -1533,7 +1635,7 @@
       "thai": "รถยนต์",
       "english": "car",
       "descriptionTH": "รถยนต์เป็นยานพาหนะขับด้วยตัวเอง มีล้อ 4 ล้อ และเครื่องยนต์",
-      "descriptionEN": "Car is a self-driving vehicle has 4 wheels and engine",
+      "descriptionEN": "Car is a self-driving vehicle has 4 wheels and engine.",
       "imageKey": "Transportation/รถยนต์",
       "examplesTH": [
         "ขับรถยนต์",
@@ -1550,7 +1652,7 @@
       "thai": "รถไฟ",
       "english": "train",
       "descriptionTH": "รถไฟเป็นยานพาหนะวิ่งบนราง มีตู้รถหลายตู้",
-      "descriptionEN": "Train is vehicle running on tracks has many carriages",
+      "descriptionEN": "Train is vehicle running on tracks has many carriages.",
       "imageKey": "Transportation/รถไฟ",
       "examplesTH": [
         "นั่งรถไฟ",
@@ -1567,7 +1669,7 @@
       "thai": "เครื่องบิน",
       "english": "airplane",
       "descriptionTH": "เครื่องบินเป็นยานพาหนะบินได้ มีปีกและเครื่องยนต์",
-      "descriptionEN": "Airplane is a flying vehicle has wings and engines",
+      "descriptionEN": "Airplane is a flying vehicle has wings and engines.",
       "imageKey": "Transportation/เครื่องบิน",
       "examplesTH": [
         "นั่งเครื่องบิน",
@@ -1584,7 +1686,7 @@
       "thai": "เรือ",
       "english": "boat",
       "descriptionTH": "เรือเป็นยานพาหนะลอยน้ำ มีใบเรือหรือเครื่องยนต์",
-      "descriptionEN": "Boat is a water vehicle has sails or engine",
+      "descriptionEN": "Boat is a water vehicle has sails or engine.",
       "imageKey": "Transportation/เรือ",
       "examplesTH": [
         "นั่งเรือ",
@@ -1601,7 +1703,7 @@
       "thai": "จักรยาน",
       "english": "bicycle",
       "descriptionTH": "จักรยานเป็นยานพาหนะสองล้อ ใช้ปั่นด้วยตนเอง",
-      "descriptionEN": "Bicycle is a two-wheel vehicle pedaled by oneself",
+      "descriptionEN": "Bicycle is a two-wheel vehicle pedaled by oneself.",
       "imageKey": "Transportation/จักรยาน",
       "examplesTH": [
         "ปั่นจักรยาน",
@@ -1618,7 +1720,7 @@
       "thai": "มอเตอร์ไซค์",
       "english": "motorcycle",
       "descriptionTH": "มอเตอร์ไซค์เป็นยานพาหนะสองล้อ มีเครื่องยนต์",
-      "descriptionEN": "Motorcycle is a two-wheel vehicle has engine",
+      "descriptionEN": "Motorcycle is a two-wheel vehicle has engine.",
       "imageKey": "Transportation/มอเตอร์ไซค์",
       "examplesTH": [
         "ขับมอเตอร์ไซค์",
@@ -1635,7 +1737,7 @@
       "thai": "รถบัส",
       "english": "bus",
       "descriptionTH": "รถบัสเป็นยานพาหนะใหญ่นำหลายคน มีที่นั่งหลายที่นั่ง",
-      "descriptionEN": "Bus is large vehicle carries many people has many seats",
+      "descriptionEN": "Bus is large vehicle carries many people has many seats.",
       "imageKey": "Transportation/รถบัส",
       "examplesTH": [
         "นั่งรถบัส",
@@ -1652,7 +1754,7 @@
       "thai": "รถแท็กซี่",
       "english": "taxi",
       "descriptionTH": "รถแท็กซี่เป็นรถยนต์ใช้จ้างพาไป ใช้ชำระเงิน",
-      "descriptionEN": "Taxi is a car for hire to take people requires payment",
+      "descriptionEN": "Taxi is a car for hire to take people requires payment.",
       "imageKey": "Transportation/รถแท็กซี่",
       "examplesTH": [
         "นั่งรถแท็กซี่",
@@ -1669,7 +1771,7 @@
       "thai": "รถไฟฟ้า",
       "english": "skytrain",
       "descriptionTH": "รถไฟฟ้าเป็นรถไฟวิ่งบนรางสูง มีสถานีหลายสถานี",
-      "descriptionEN": "Skytrain is a train running on elevated tracks has many stations",
+      "descriptionEN": "Skytrain is a train running on elevated tracks has many stations.",
       "imageKey": "Transportation/รถไฟฟ้า",
       "examplesTH": [
         "นั่งรถไฟฟ้า",
@@ -1686,7 +1788,7 @@
       "thai": "ทางม้าลาย",
       "english": "crosswalk",
       "descriptionTH": "ทางม้าลายเป็นทางข้ามถนนสำหรับคนเดิน",
-      "descriptionEN": "Crosswalk is a road crossing for pedestrians",
+      "descriptionEN": "Crosswalk is a road crossing for pedestrians.",
       "imageKey": "Transportation/ทางม้าลาย",
       "examplesTH": [
         "ข้ามทางม้าลาย",
@@ -1703,7 +1805,7 @@
       "thai": "ป้ายรถเมล์",
       "english": "bus stop",
       "descriptionTH": "ป้ายรถเมล์เป็นที่หยุดรถบัส มีคนรอ",
-      "descriptionEN": "Bus stop is place where buses stop has people waiting",
+      "descriptionEN": "Bus stop is place where buses stop has people waiting.",
       "imageKey": "Transportation/ป้ายรถเมล์",
       "examplesTH": [
         "รอที่ป้ายรถเมล์",
@@ -1720,7 +1822,7 @@
       "thai": "ถนน",
       "english": "road",
       "descriptionTH": "ถนนเป็นเส้นทางรถยนต์และคนเดิน ใช้เดินทาง",
-      "descriptionEN": "Road is pathway for cars and pedestrians used for travel",
+      "descriptionEN": "Road is pathway for cars and pedestrians used for travel.",
       "imageKey": "Transportation/ถนน",
       "examplesTH": [
         "ข้ามถนน",
@@ -1737,7 +1839,7 @@
       "thai": "แยก",
       "english": "intersection",
       "descriptionTH": "แยกเป็นที่ถนนตัดกัน มีสัญญาณไฟ",
-      "descriptionEN": "Intersection is where roads cross has traffic lights",
+      "descriptionEN": "Intersection is where roads cross has traffic lights.",
       "imageKey": "Transportation/แยก",
       "examplesTH": [
         "รถไฟแยก",
@@ -1754,7 +1856,7 @@
       "thai": "สะพาน",
       "english": "bridge",
       "descriptionTH": "สะพานเป็นทางข้ามน้ำหรือถนน เชื่อมสองฝั่ง",
-      "descriptionEN": "Bridge is a crossing over water or roads connects two sides",
+      "descriptionEN": "Bridge is a crossing over water or roads connects two sides.",
       "imageKey": "Transportation/สะพาน",
       "examplesTH": [
         "ข้ามสะพาน",
@@ -1771,7 +1873,7 @@
       "thai": "สัญญาณไฟ",
       "english": "traffic light",
       "descriptionTH": "สัญญาณไฟบอกให้หยุดหรือไป มีสีแดงเหลืองเขียว",
-      "descriptionEN": "Traffic light tells to stop or go has red yellow green colors",
+      "descriptionEN": "Traffic light tells to stop or go has red yellow green colors.",
       "imageKey": "Transportation/สัญญาณไฟ",
       "examplesTH": [
         "รอสัญญาณไฟ",
@@ -1790,7 +1892,7 @@
       "thai": "แดด",
       "english": "sun",
       "descriptionTH": "แดดเป็นแสงจากดวงอาทิตย์ อากาศร้อนและสว่าง",
-      "descriptionEN": "Sun is light from sun hot and bright weather",
+      "descriptionEN": "Sun is light from sun hot and bright weather.",
       "imageKey": "Weather/แดด",
       "examplesTH": [
         "แดดร้อน",
@@ -1807,7 +1909,7 @@
       "thai": "ฝน",
       "english": "rain",
       "descriptionTH": "ฝนเป็นน้ำตกลงมาจากฟ้า ทำให้อากาศเย็น",
-      "descriptionEN": "Rain is water falling from sky makes air cool",
+      "descriptionEN": "Rain is water falling from sky makes air cool.",
       "imageKey": "Weather/ฝน",
       "examplesTH": [
         "ฝนตก",
@@ -1824,7 +1926,7 @@
       "thai": "ลม",
       "english": "wind",
       "descriptionTH": "ลมเป็นการเคลื่อนไหวของอากาศ ทำให้รู้สึกเย็น",
-      "descriptionEN": "Wind is air movement makes you feel cool",
+      "descriptionEN": "Wind is air movement makes you feel cool.",
       "imageKey": "Weather/ลม",
       "examplesTH": [
         "ลมแรง",
@@ -1841,7 +1943,7 @@
       "thai": "ฟ้า",
       "english": "sky",
       "descriptionTH": "ฟ้าเป็นบริเวณท้องฟ้า มีดวงอาทิตย์และเมฆ",
-      "descriptionEN": "Sky is the sky area has sun and clouds",
+      "descriptionEN": "Sky is the sky area has sun and clouds.",
       "imageKey": "Weather/ฟ้า",
       "examplesTH": [
         "ฟ้าสีฟ้า",
@@ -1858,7 +1960,7 @@
       "thai": "เมฆ",
       "english": "cloud",
       "descriptionTH": "เมฆเป็นก้อนน้ำในอากาศ มีหลายรูปแบบ",
-      "descriptionEN": "Cloud is water mass in air has many shapes",
+      "descriptionEN": "Cloud is water mass in air has many shapes.",
       "imageKey": "Weather/เมฆ",
       "examplesTH": [
         "เมฆมาก",
@@ -1875,7 +1977,7 @@
       "thai": "ฟ้าผ่า",
       "english": "lightning",
       "descriptionTH": "ฟ้าผ่าเป็นแสงสว่างจากฟ้า มีเสียงดัง",
-      "descriptionEN": "Lightning is bright light from sky has loud sound",
+      "descriptionEN": "Lightning is bright light from sky has loud sound.",
       "imageKey": "Weather/ฟ้าผ่า",
       "examplesTH": [
         "ฟ้าผ่าแล้ว",
@@ -1892,7 +1994,7 @@
       "thai": "หิมะ",
       "english": "snow",
       "descriptionTH": "หิมะเป็นน้ำแข็งที่ตกลงมา มีสีขาว",
-      "descriptionEN": "Snow is falling ice has white color",
+      "descriptionEN": "Snow is falling ice has white color.",
       "imageKey": "Weather/หิมะ",
       "examplesTH": [
         "หิมะตก",
@@ -1909,7 +2011,7 @@
       "thai": "พายุ",
       "english": "storm",
       "descriptionTH": "พายุเป็นอากาศรุนแรง มีลมแรงและฝน",
-      "descriptionEN": "Storm is severe weather has strong wind and rain",
+      "descriptionEN": "Storm is severe weather has strong wind and rain.",
       "imageKey": "Weather/พายุ",
       "examplesTH": [
         "พายุแรง",
@@ -1926,7 +2028,7 @@
       "thai": "หมอก",
       "english": "fog",
       "descriptionTH": "หมอกเป็นไอน้ำในอากาศ ทำให้มองไม่เห็น",
-      "descriptionEN": "Fog is water vapor in air makes vision poor",
+      "descriptionEN": "Fog is water vapor in air makes vision poor.",
       "imageKey": "Weather/หมอก",
       "examplesTH": [
         "มีหมอก",
@@ -1943,7 +2045,7 @@
       "thai": "อุณหภูมิ",
       "english": "temperature",
       "descriptionTH": "อุณหภูมิคือระดับความร้อนของอากาศ",
-      "descriptionEN": "Temperature is the heat level of air",
+      "descriptionEN": "Temperature is the heat level of air.",
       "imageKey": "Weather/อุณหภูมิ",
       "examplesTH": [
         "อุณหภูมิสูง",
@@ -1960,7 +2062,7 @@
       "thai": "ร้อน",
       "english": "hot",
       "descriptionTH": "ร้อนคืออากาศมีอุณหภูมิสูง ทำให้เหงื่อออก",
-      "descriptionEN": "Hot means air has high temperature makes you sweat",
+      "descriptionEN": "Hot means air has high temperature makes you sweat.",
       "imageKey": "Weather/ร้อน",
       "examplesTH": [
         "อากาศร้อน",
@@ -1977,7 +2079,7 @@
       "thai": "หนาว",
       "english": "cold",
       "descriptionTH": "หนาวคืออากาศมีอุณหภูมิต่ำ ทำให้สั่น",
-      "descriptionEN": "Cold means air has low temperature makes you shiver",
+      "descriptionEN": "Cold means air has low temperature makes you shiver.",
       "imageKey": "Weather/หนาว",
       "examplesTH": [
         "อากาศหนาว",
@@ -1996,7 +2098,7 @@
       "thai": "โต๊ะ",
       "english": "table",
       "descriptionTH": "โต๊ะเป็นเฟอร์นิเจอร์สำหรับวางสิ่งของและกินอาหาร",
-      "descriptionEN": "Table is furniture for placing things and eating food",
+      "descriptionEN": "Table is furniture for placing things and eating food.",
       "imageKey": "Objects/โต๊ะ",
       "examplesTH": [
         "โต๊ะไม้",
@@ -2013,7 +2115,7 @@
       "thai": "เก้าอี้",
       "english": "chair",
       "descriptionTH": "เก้าอี้เป็นเฟอร์นิเจอร์สำหรับนั่ง",
-      "descriptionEN": "Chair is furniture for sitting",
+      "descriptionEN": "Chair is furniture for sitting.",
       "imageKey": "Objects/เก้าอี้",
       "examplesTH": [
         "นั่งเก้าอี้",
@@ -2030,7 +2132,7 @@
       "thai": "หนังสือ",
       "english": "book",
       "descriptionTH": "หนังสือเป็นเครื่องมือการเรียน มีหน้าและข้อความ",
-      "descriptionEN": "Book is a learning tool has pages and text",
+      "descriptionEN": "Book is a learning tool has pages and text.",
       "imageKey": "Objects/หนังสือ",
       "examplesTH": [
         "อ่านหนังสือ",
@@ -2047,7 +2149,7 @@
       "thai": "ปากกา",
       "english": "pen",
       "descriptionTH": "ปากกาเป็นเครื่องมือเขียน ใช้วาดและเขียน",
-      "descriptionEN": "Pen is writing tool used to draw and write",
+      "descriptionEN": "Pen is writing tool used to draw and write.",
       "imageKey": "Objects/ปากกา",
       "examplesTH": [
         "เขียนด้วยปากกา",
@@ -2064,7 +2166,7 @@
       "thai": "ดินสอ",
       "english": "pencil",
       "descriptionTH": "ดินสอเป็นเครื่องมือเขียน ใช้ดินสอเขียนและลบได้",
-      "descriptionEN": "Pencil is writing tool pencil can write and erase",
+      "descriptionEN": "Pencil is writing tool pencil can write and erase.",
       "imageKey": "Objects/ดินสอ",
       "examplesTH": [
         "เขียนด้วยดินสอ",
@@ -2081,7 +2183,7 @@
       "thai": "สมุด",
       "english": "notebook",
       "descriptionTH": "สมุดเป็นที่เขียนข้อความและวาด",
-      "descriptionEN": "Notebook is place to write text and draw",
+      "descriptionEN": "Notebook is place to write text and draw.",
       "imageKey": "Objects/สมุด",
       "examplesTH": [
         "เขียนในสมุด",
@@ -2098,7 +2200,7 @@
       "thai": "กระเป๋า",
       "english": "bag",
       "descriptionTH": "กระเป๋าเป็นสิ่งของใส่อุปกรณ์ต่างๆ",
-      "descriptionEN": "Bag is item to store various equipment",
+      "descriptionEN": "Bag is item to store various equipment.",
       "imageKey": "Objects/กระเป๋า",
       "examplesTH": [
         "ถือกระเป๋า",
@@ -2115,7 +2217,7 @@
       "thai": "โทรศัพท์",
       "english": "phone",
       "descriptionTH": "โทรศัพท์เป็นเครื่องมือสื่อสาร",
-      "descriptionEN": "Phone is a communication tool",
+      "descriptionEN": "Phone is a communication tool.",
       "imageKey": "Objects/โทรศัพท์",
       "examplesTH": [
         "ใช้โทรศัพท์",
@@ -2132,7 +2234,7 @@
       "thai": "คอมพิวเตอร์",
       "english": "computer",
       "descriptionTH": "คอมพิวเตอร์เป็นเครื่องมือทำงานและเรียน",
-      "descriptionEN": "Computer is a tool for work and study",
+      "descriptionEN": "Computer is a tool for work and study.",
       "imageKey": "Objects/คอมพิวเตอร์",
       "examplesTH": [
         "ใช้คอมพิวเตอร์",
@@ -2149,7 +2251,7 @@
       "thai": "ทีวี",
       "english": "TV",
       "descriptionTH": "ทีวีเป็นเครื่องดูภาพ มีภาพและเสียง",
-      "descriptionEN": "TV is device to watch has images and sound",
+      "descriptionEN": "TV is device to watch has images and sound.",
       "imageKey": "Objects/ทีวี",
       "examplesTH": [
         "ดูทีวี",
@@ -2166,7 +2268,7 @@
       "thai": "พัดลม",
       "english": "fan",
       "descriptionTH": "พัดลมเป็นเครื่องทำลมเย็น",
-      "descriptionEN": "Fan is device to make cool air",
+      "descriptionEN": "Fan is device to make cool air.",
       "imageKey": "Objects/พัดลม",
       "examplesTH": [
         "เปิดพัดลม",
@@ -2183,7 +2285,7 @@
       "thai": "ตู้เย็น",
       "english": "refrigerator",
       "descriptionTH": "ตู้เย็นเป็นเครื่องเก็บอาหารเย็น",
-      "descriptionEN": "Refrigerator is device to store food cold",
+      "descriptionEN": "Refrigerator is device to store food cold.",
       "imageKey": "Objects/ตู้เย็น",
       "examplesTH": [
         "ตู้เย็นเย็น",
@@ -2200,7 +2302,7 @@
       "thai": "หมอน",
       "english": "pillow",
       "descriptionTH": "หมอนเป็นของสำหรับหนุนนอน",
-      "descriptionEN": "Pillow is item to support head while sleeping",
+      "descriptionEN": "Pillow is item to support head while sleeping.",
       "imageKey": "Objects/หมอน",
       "examplesTH": [
         "นอนหนุนหมอน",
@@ -2217,7 +2319,7 @@
       "thai": "ผ้าห่ม",
       "english": "blanket",
       "descriptionTH": "ผ้าห่มเป็นของสำหรับคลุมร่างกาย",
-      "descriptionEN": "Blanket is item to cover body",
+      "descriptionEN": "Blanket is item to cover body.",
       "imageKey": "Objects/ผ้าห่ม",
       "examplesTH": [
         "นอนห่มผ้าห่ม",
@@ -2234,7 +2336,7 @@
       "thai": "ประตู",
       "english": "door",
       "descriptionTH": "ประตูเป็นทางเข้าและออก",
-      "descriptionEN": "Door is entrance and exit",
+      "descriptionEN": "Door is entrance and exit.",
       "imageKey": "Objects/ประตู",
       "examplesTH": [
         "เปิดประตู",
@@ -2251,7 +2353,7 @@
       "thai": "หน้าต่าง",
       "english": "window",
       "descriptionTH": "หน้าต่างเป็นที่มองเห็นภายนอก",
-      "descriptionEN": "Window is place to see outside",
+      "descriptionEN": "Window is place to see outside.",
       "imageKey": "Objects/หน้าต่าง",
       "examplesTH": [
         "เปิดหน้าต่าง",
@@ -2268,7 +2370,7 @@
       "thai": "รองเท้า",
       "english": "shoes",
       "descriptionTH": "รองเท้าเป็นของสวมเท้า ใช้เดิน",
-      "descriptionEN": "Shoes are items worn on feet used for walking",
+      "descriptionEN": "Shoes are items worn on feet used for walking.",
       "imageKey": "Objects/รองเท้า",
       "examplesTH": [
         "สวมรองเท้า",
@@ -2285,7 +2387,7 @@
       "thai": "เสื้อ",
       "english": "shirt",
       "descriptionTH": "เสื้อเป็นของสวมลำตัว",
-      "descriptionEN": "Shirt is item worn on torso",
+      "descriptionEN": "Shirt is item worn on torso.",
       "imageKey": "Objects/เสื้อ",
       "examplesTH": [
         "สวมเสื้อ",
@@ -2302,7 +2404,7 @@
       "thai": "หมวก",
       "english": "hat",
       "descriptionTH": "หมวกเป็นของสวมศีรษะ",
-      "descriptionEN": "Hat is item worn on head",
+      "descriptionEN": "Hat is item worn on head.",
       "imageKey": "Objects/หมวก",
       "examplesTH": [
         "สวมหมวก",
@@ -2319,7 +2421,7 @@
       "thai": "กุญแจ",
       "english": "key",
       "descriptionTH": "กุญแจเป็นของสำหรับไขประตู",
-      "descriptionEN": "Key is item to unlock door",
+      "descriptionEN": "Key is item to unlock door.",
       "imageKey": "Objects/กุญแจ",
       "examplesTH": [
         "ใช้กุญแจ",
@@ -2336,7 +2438,7 @@
       "thai": "นาฬิกา",
       "english": "clock",
       "descriptionTH": "นาฬิกาเป็นเครื่องบอกเวลา มีเข็มบอกเวลา",
-      "descriptionEN": "Clock is device to tell time has hands to tell time",
+      "descriptionEN": "Clock is device to tell time has hands to tell time.",
       "imageKey": "Objects/นาฬิกา",
       "examplesTH": [
         "ดูนาฬิกา",
@@ -2353,7 +2455,7 @@
       "thai": "กาว",
       "english": "glue",
       "descriptionTH": "กาวเป็นของเชื่อมติด",
-      "descriptionEN": "Glue is item to stick together",
+      "descriptionEN": "Glue is item to stick together.",
       "imageKey": "Objects/กาว",
       "examplesTH": [
         "ใช้กาว",
@@ -2370,7 +2472,7 @@
       "thai": "เหรียญ",
       "english": "coin",
       "descriptionTH": "เหรียญเป็นเงินเล็ก",
-      "descriptionEN": "Coin is small money",
+      "descriptionEN": "Coin is small money.",
       "imageKey": "Objects/เหรียญ",
       "examplesTH": [
         "เหรียญดี",
@@ -2387,7 +2489,7 @@
       "thai": "สมาร์ทโฟน",
       "english": "smartphone",
       "descriptionTH": "สมาร์ทโฟนเป็นโทรศัพท์สมาร์ท",
-      "descriptionEN": "Smartphone is smart phone",
+      "descriptionEN": "Smartphone is smart phone.",
       "imageKey": "Objects/สมาร์ทโฟน",
       "examplesTH": [
         "ใช้สมาร์ทโฟน",
@@ -2399,6 +2501,51 @@
         "Smartphone is good",
         "New smartphone"
       ]
+    },
+    {
+      "thai": "นาฬิกา",
+      "english": "clock",
+      "descriptionTH": "นาฬิกาใช้บอกเวลา มีหน้าปัดและเข็มนาฬิกา มีทั้งแบบแขวนผนังและแบบตั้งโต๊ะ",
+      "descriptionEN": "Clock is used to tell time has a dial and hands Available in wall hanging and desk styles",
+      "imageKey": "Objects/นาฬิกา",
+      "examplesTH": [
+        "ฉันใช้นาฬิกา",
+        "นาฬิกาเป็นประโยชน์"
+      ],
+      "examplesEN": [
+        "I use clock",
+        "Clock is useful"
+      ]
+    },
+    {
+      "thai": "กาว",
+      "english": "glue",
+      "descriptionTH": "กาวใช้ติดของเข้าด้วยกัน มีหลายสีและประเภท กาวมีกลิ่นเฉพาะตัว",
+      "descriptionEN": "Glue is used to stick things together Available in many colors and types Glue has a distinctive smell",
+      "imageKey": "Objects/กาว",
+      "examplesTH": [
+        "ฉันใช้กาว",
+        "กาวเป็นประโยชน์"
+      ],
+      "examplesEN": [
+        "I use glue",
+        "Glue is useful"
+      ]
+    },
+    {
+      "thai": "เหรียญ",
+      "english": "coin",
+      "descriptionTH": "เหรียญเป็นเงินโลหะมีค่าเล็กๆ ใช้ซื้อของ ประเทศไทยมีเหรียญบาท 5 บาท 10 บาท",
+      "descriptionEN": "Coins are small valuable metal currency used for buying things Thailand has 1 baht 5 baht 10 baht coins",
+      "imageKey": "Objects/เหรียญ",
+      "examplesTH": [
+        "ฉันใช้เหรียญ",
+        "เหรียญเป็นประโยชน์"
+      ],
+      "examplesEN": [
+        "I use coin",
+        "Coin is useful"
+      ]
     }
   ],
   "Greetings & Common Phrases": [
@@ -2406,7 +2553,7 @@
       "thai": "สวัสดี",
       "english": "hello",
       "descriptionTH": "สวัสดีเป็นการทักทาย ใช้เมื่อพบกัน",
-      "descriptionEN": "Hello is greeting used when meeting",
+      "descriptionEN": "Hello is greeting used when meeting.",
       "imageKey": "Greetings & Common Phrases/สวัสดี",
       "examplesTH": [
         "สวัสดีครับ",
@@ -2423,7 +2570,7 @@
       "thai": "ขอบคุณ",
       "english": "thank you",
       "descriptionTH": "ขอบคุณเป็นการแสดงความขอบคุณ",
-      "descriptionEN": "Thank you is expressing gratitude",
+      "descriptionEN": "Thank you is expressing gratitude.",
       "imageKey": "Greetings & Common Phrases/ขอบคุณ",
       "examplesTH": [
         "ขอบคุณมาก",
@@ -2440,7 +2587,7 @@
       "thai": "ขอโทษ",
       "english": "sorry",
       "descriptionTH": "ขอโทษเป็นการขออภัย",
-      "descriptionEN": "Sorry is expressing apology",
+      "descriptionEN": "Sorry is expressing apology.",
       "imageKey": "Greetings & Common Phrases/ขอโทษ",
       "examplesTH": [
         "ขอโทษครับ",
@@ -2457,7 +2604,7 @@
       "thai": "ลาก่อน",
       "english": "goodbye",
       "descriptionTH": "ลาก่อนเป็นการลาก่อน ใช้เมื่อจากกัน",
-      "descriptionEN": "Goodbye is farewell used when leaving",
+      "descriptionEN": "Goodbye is farewell used when leaving.",
       "imageKey": "Greetings & Common Phrases/ลาก่อน",
       "examplesTH": [
         "ลาก่อนครับ",
@@ -2474,7 +2621,7 @@
       "thai": "ยินดี",
       "english": "pleased",
       "descriptionTH": "ยินดีเป็นการแสดงความยินดี",
-      "descriptionEN": "Pleased is expressing pleasure",
+      "descriptionEN": "Pleased is expressing pleasure.",
       "imageKey": "Greetings & Common Phrases/ยินดี",
       "examplesTH": [
         "ยินดีครับ",
@@ -2491,7 +2638,7 @@
       "thai": "สบายดีไหม",
       "english": "how are you",
       "descriptionTH": "สบายดีไหมเป็นการถามสารทุกข์สุขดิบ",
-      "descriptionEN": "How are you is asking about wellbeing",
+      "descriptionEN": "How are you is asking about wellbeing.",
       "imageKey": "Greetings & Common Phrases/สบายดีไหม",
       "examplesTH": [
         "สบายดีครับ",
@@ -2508,7 +2655,7 @@
       "thai": "ไม่เป็นไร",
       "english": "never mind",
       "descriptionTH": "ไม่เป็นไรเป็นการทำให้สบายใจ",
-      "descriptionEN": "Never mind is making feel comfortable",
+      "descriptionEN": "Never mind is making feel comfortable.",
       "imageKey": "Greetings & Common Phrases/ไม่เป็นไร",
       "examplesTH": [
         "ไม่เป็นไรครับ",
@@ -2525,7 +2672,7 @@
       "thai": "เจอกันใหม่",
       "english": "see you again",
       "descriptionTH": "เจอกันใหม่เป็นการบอกลาที่จะพบอีก",
-      "descriptionEN": "See you again is farewell with promise to meet again",
+      "descriptionEN": "See you again is farewell with promise to meet again.",
       "imageKey": "Greetings & Common Phrases/เจอกันใหม่",
       "examplesTH": [
         "เจอกันใหม่ครับ",
@@ -2542,7 +2689,7 @@
       "thai": "ยินดีต้อนรับ",
       "english": "welcome",
       "descriptionTH": "ยินดีต้อนรับเป็นการต้อนรับ",
-      "descriptionEN": "Welcome is greeting",
+      "descriptionEN": "Welcome is greeting.",
       "imageKey": "Greetings & Common Phrases/ยินดีต้อนรับ",
       "examplesTH": [
         "ยินดีต้อนรับครับ",
@@ -2559,7 +2706,7 @@
       "thai": "ขออนุญาต",
       "english": "excuse me",
       "descriptionTH": "ขออนุญาตเป็นการขออนุญาต",
-      "descriptionEN": "Excuse me is asking permission",
+      "descriptionEN": "Excuse me is asking permission.",
       "imageKey": "Greetings & Common Phrases/ขออนุญาต",
       "examplesTH": [
         "ขออนุญาตครับ",
@@ -2576,7 +2723,7 @@
       "thai": "ชื่ออะไร",
       "english": "what's your name",
       "descriptionTH": "ชื่ออะไรเป็นการถามชื่อ",
-      "descriptionEN": "What's your name is asking name",
+      "descriptionEN": "What's your name is asking name.",
       "imageKey": "Greetings & Common Phrases/ชื่ออะไร",
       "examplesTH": [
         "ชื่อของผม",
@@ -2593,7 +2740,7 @@
       "thai": "เท่าไหร่",
       "english": "how much",
       "descriptionTH": "เท่าไหร่เป็นการถามราคา",
-      "descriptionEN": "How much is asking price",
+      "descriptionEN": "How much is asking price.",
       "imageKey": "Greetings & Common Phrases/เท่าไหร่",
       "examplesTH": [
         "เท่าไหร่ครับ",
@@ -2610,7 +2757,7 @@
       "thai": "ใช่",
       "english": "yes",
       "descriptionTH": "ใช่เป็นการตอบยืนยัน",
-      "descriptionEN": "Yes is affirmative answer",
+      "descriptionEN": "Yes is affirmative answer.",
       "imageKey": "Greetings & Common Phrases/ใช่",
       "examplesTH": [
         "ใช่ครับ",
@@ -2627,7 +2774,7 @@
       "thai": "ไม่ใช่",
       "english": "no",
       "descriptionTH": "ไม่ใช่เป็นการปฏิเสธ",
-      "descriptionEN": "No is negative answer",
+      "descriptionEN": "No is negative answer.",
       "imageKey": "Greetings & Common Phrases/ไม่ใช่",
       "examplesTH": [
         "ไม่ใช่ครับ",
@@ -2644,7 +2791,7 @@
       "thai": "ได้",
       "english": "can",
       "descriptionTH": "ได้เป็นการแสดงความสามารถ",
-      "descriptionEN": "Can is expressing ability",
+      "descriptionEN": "Can is expressing ability.",
       "imageKey": "Greetings & Common Phrases/ได้",
       "examplesTH": [
         "ได้ครับ",
@@ -2661,7 +2808,7 @@
       "thai": "ไม่ได้",
       "english": "cannot",
       "descriptionTH": "ไม่ได้เป็นการปฏิเสธความสามารถ",
-      "descriptionEN": "Cannot is negative of ability",
+      "descriptionEN": "Cannot is negative of ability.",
       "imageKey": "Greetings & Common Phrases/ไม่ได้",
       "examplesTH": [
         "ไม่ได้ครับ",
@@ -2678,7 +2825,7 @@
       "thai": "ดีมาก",
       "english": "very good",
       "descriptionTH": "ดีมากเป็นการแสดงความพอใจ",
-      "descriptionEN": "Very good is expressing satisfaction",
+      "descriptionEN": "Very good is expressing satisfaction.",
       "imageKey": "Greetings & Common Phrases/ดีมาก",
       "examplesTH": [
         "ดีมากครับ",
@@ -2695,7 +2842,7 @@
       "thai": "เยี่ยมเลย",
       "english": "excellent",
       "descriptionTH": "เยี่ยมเลยเป็นการแสดงความประทับใจ",
-      "descriptionEN": "Excellent is expressing admiration",
+      "descriptionEN": "Excellent is expressing admiration.",
       "imageKey": "Greetings & Common Phrases/เยี่ยมเลย",
       "examplesTH": [
         "เยี่ยมเลยครับ",
@@ -2712,7 +2859,7 @@
       "thai": "สนุก",
       "english": "fun",
       "descriptionTH": "สนุกเป็นการแสดงความสนุกสนาน",
-      "descriptionEN": "Fun is expressing enjoyment",
+      "descriptionEN": "Fun is expressing enjoyment.",
       "imageKey": "Greetings & Common Phrases/สนุก",
       "examplesTH": [
         "สนุกมาก",
@@ -2729,7 +2876,7 @@
       "thai": "รัก",
       "english": "love",
       "descriptionTH": "รักเป็นการแสดงความรัก",
-      "descriptionEN": "Love is expressing love",
+      "descriptionEN": "Love is expressing love.",
       "imageKey": "Greetings & Common Phrases/รัก",
       "examplesTH": [
         "รักมาก",
@@ -2748,7 +2895,7 @@
       "thai": "กิน",
       "english": "eat",
       "descriptionTH": "กินเป็นกิจกรรมเพื่อรับประทานอาหาร",
-      "descriptionEN": "Eat is activity to consume food",
+      "descriptionEN": "Eat is activity to consume food.",
       "imageKey": "Activities/กิน",
       "examplesTH": [
         "กินข้าว",
@@ -2765,7 +2912,7 @@
       "thai": "นอน",
       "english": "sleep",
       "descriptionTH": "นอนเป็นกิจกรรมเพื่อพักผ่อน",
-      "descriptionEN": "Sleep is activity to rest",
+      "descriptionEN": "Sleep is activity to rest.",
       "imageKey": "Activities/นอน",
       "examplesTH": [
         "นอนหลับ",
@@ -2782,7 +2929,7 @@
       "thai": "วิ่ง",
       "english": "run",
       "descriptionTH": "วิ่งเป็นกิจกรรมการเคลื่อนไหวเร็ว",
-      "descriptionEN": "Run is fast movement activity",
+      "descriptionEN": "Run is fast movement activity.",
       "imageKey": "Activities/วิ่ง",
       "examplesTH": [
         "วิ่งเร็ว",
@@ -2799,7 +2946,7 @@
       "thai": "เดิน",
       "english": "walk",
       "descriptionTH": "เดินเป็นกิจกรรมการเคลื่อนไหวช้าๆ",
-      "descriptionEN": "Walk is slow movement activity",
+      "descriptionEN": "Walk is slow movement activity.",
       "imageKey": "Activities/เดิน",
       "examplesTH": [
         "เดินไป",
@@ -2816,7 +2963,7 @@
       "thai": "อ่าน",
       "english": "read",
       "descriptionTH": "อ่านเป็นกิจกรรมเพื่อรับรู้ข้อมูลจากหนังสือ",
-      "descriptionEN": "Read is activity to get information from books",
+      "descriptionEN": "Read is activity to get information from books.",
       "imageKey": "Activities/อ่าน",
       "examplesTH": [
         "อ่านหนังสือ",
@@ -2833,7 +2980,7 @@
       "thai": "เขียน",
       "english": "write",
       "descriptionTH": "เขียนเป็นกิจกรรมเพื่อบันทึกข้อมูล",
-      "descriptionEN": "Write is activity to record information",
+      "descriptionEN": "Write is activity to record information.",
       "imageKey": "Activities/เขียน",
       "examplesTH": [
         "เขียนหนังสือ",
@@ -2850,7 +2997,7 @@
       "thai": "พูด",
       "english": "speak",
       "descriptionTH": "พูดเป็นกิจกรรมเพื่อสื่อสาร",
-      "descriptionEN": "Speak is activity to communicate",
+      "descriptionEN": "Speak is activity to communicate.",
       "imageKey": "Activities/พูด",
       "examplesTH": [
         "พูดไทย",
@@ -2867,7 +3014,7 @@
       "thai": "ฟัง",
       "english": "listen",
       "descriptionTH": "ฟังเป็นกิจกรรมเพื่อรับรู้เสียง",
-      "descriptionEN": "Listen is activity to receive sound",
+      "descriptionEN": "Listen is activity to receive sound.",
       "imageKey": "Activities/ฟัง",
       "examplesTH": [
         "ฟังเพลง",
@@ -2884,7 +3031,7 @@
       "thai": "เล่น",
       "english": "play",
       "descriptionTH": "เล่นเป็นกิจกรรมเพื่อความสนุกสนาน",
-      "descriptionEN": "Play is activity for fun",
+      "descriptionEN": "Play is activity for fun.",
       "imageKey": "Activities/เล่น",
       "examplesTH": [
         "เล่นเกม",
@@ -2901,7 +3048,7 @@
       "thai": "เต้น",
       "english": "dance",
       "descriptionTH": "เต้นเป็นกิจกรรมเพื่อแสดงท่าทาง",
-      "descriptionEN": "Dance is activity to express movement",
+      "descriptionEN": "Dance is activity to express movement.",
       "imageKey": "Activities/เต้น",
       "examplesTH": [
         "เต้นเก่ง",
@@ -2918,7 +3065,7 @@
       "thai": "ว่ายน้ำ",
       "english": "swim",
       "descriptionTH": "ว่ายน้ำเป็นกิจกรรมในน้ำ",
-      "descriptionEN": "Swim is activity in water",
+      "descriptionEN": "Swim is activity in water.",
       "imageKey": "Activities/ว่ายน้ำ",
       "examplesTH": [
         "ว่ายน้ำเก่ง",
@@ -2935,7 +3082,7 @@
       "thai": "ทำอาหาร",
       "english": "cook",
       "descriptionTH": "ทำอาหารเป็นกิจกรรมเพื่อเตรียมอาหาร",
-      "descriptionEN": "Cook is activity to prepare food",
+      "descriptionEN": "Cook is activity to prepare food.",
       "imageKey": "Activities/ทำอาหาร",
       "examplesTH": [
         "ทำอาหารอร่อย",
@@ -2952,7 +3099,7 @@
       "thai": "ทำงาน",
       "english": "work",
       "descriptionTH": "ทำงานเป็นกิจกรรมเพื่อทำงาน",
-      "descriptionEN": "Work is activity to do job",
+      "descriptionEN": "Work is activity to do job.",
       "imageKey": "Activities/ทำงาน",
       "examplesTH": [
         "ทำงานหนัก",
@@ -2969,7 +3116,7 @@
       "thai": "เรียน",
       "english": "study",
       "descriptionTH": "เรียนเป็นกิจกรรมเพื่อเรียนรู้",
-      "descriptionEN": "Study is activity to learn",
+      "descriptionEN": "Study is activity to learn.",
       "imageKey": "Activities/เรียน",
       "examplesTH": [
         "เรียนหนังสือ",
@@ -2986,7 +3133,7 @@
       "thai": "ขับรถ",
       "english": "drive",
       "descriptionTH": "ขับรถเป็นกิจกรรมเพื่อขับยานพาหนะ",
-      "descriptionEN": "Drive is activity to operate vehicle",
+      "descriptionEN": "Drive is activity to operate vehicle.",
       "imageKey": "Activities/ขับรถ",
       "examplesTH": [
         "ขับรถเก่ง",
@@ -3003,7 +3150,7 @@
       "thai": "เดินทาง",
       "english": "travel",
       "descriptionTH": "เดินทางเป็นกิจกรรมเพื่อไปยังสถานที่ต่างๆ",
-      "descriptionEN": "Travel is activity to go to various places",
+      "descriptionEN": "Travel is activity to go to various places.",
       "imageKey": "Activities/เดินทาง",
       "examplesTH": [
         "เดินทางไป",
@@ -3020,7 +3167,7 @@
       "thai": "ถ่ายรูป",
       "english": "take photo",
       "descriptionTH": "ถ่ายรูปเป็นกิจกรรมเพื่อจับภาพ",
-      "descriptionEN": "Take photo is activity to capture image",
+      "descriptionEN": "Take photo is activity to capture image.",
       "imageKey": "Activities/ถ่ายรูป",
       "examplesTH": [
         "ถ่ายรูปสวย",
@@ -3037,7 +3184,7 @@
       "thai": "ดูหนัง",
       "english": "watch movie",
       "descriptionTH": "ดูหนังเป็นกิจกรรมเพื่อดูภาพยนตร์",
-      "descriptionEN": "Watch movie is activity to view films",
+      "descriptionEN": "Watch movie is activity to view films.",
       "imageKey": "Activities/ดูหนัง",
       "examplesTH": [
         "ดูหนังดี",
@@ -3054,7 +3201,7 @@
       "thai": "เล่นเกม",
       "english": "play game",
       "descriptionTH": "เล่นเกมเป็นกิจกรรมเพื่อเล่นเกม",
-      "descriptionEN": "Play game is activity to play games",
+      "descriptionEN": "Play game is activity to play games.",
       "imageKey": "Activities/เล่นเกม",
       "examplesTH": [
         "เล่นเกมดี",
@@ -3071,7 +3218,7 @@
       "thai": "ออกกำลังกาย",
       "english": "exercise",
       "descriptionTH": "ออกกำลังกายเป็นกิจกรรมเพื่อสุขภาพ",
-      "descriptionEN": "Exercise is activity for health",
+      "descriptionEN": "Exercise is activity for health.",
       "imageKey": "Activities/ออกกำลังกาย",
       "examplesTH": [
         "ออกกำลังกายดี",
@@ -3088,7 +3235,7 @@
       "thai": "สอน",
       "english": "teach",
       "descriptionTH": "สอนเป็นกิจกรรมเพื่อให้ความรู้",
-      "descriptionEN": "Teach is activity to give knowledge",
+      "descriptionEN": "Teach is activity to give knowledge.",
       "imageKey": "Activities/สอน",
       "examplesTH": [
         "สอนดี",
@@ -3105,7 +3252,7 @@
       "thai": "เรียนภาษา",
       "english": "learn language",
       "descriptionTH": "เรียนภาษาเป็นกิจกรรมเรียนรู้ภาษา",
-      "descriptionEN": "Learn language is activity to learn languages",
+      "descriptionEN": "Learn language is activity to learn languages.",
       "imageKey": "Activities/เรียนภาษา",
       "examplesTH": [
         "เรียนภาษาไทย",
@@ -3122,7 +3269,7 @@
       "thai": "ปั่นจักรยาน",
       "english": "ride bike",
       "descriptionTH": "ปั่นจักรยานเป็นการปั่นจักรยาน",
-      "descriptionEN": "Ride bike is riding bicycle",
+      "descriptionEN": "Ride bike is riding bicycle.",
       "imageKey": "Activities/ปั่นจักรยาน",
       "examplesTH": [
         "ปั่นจักรยานได้",
@@ -3139,7 +3286,7 @@
       "thai": "เช็ดถู",
       "english": "clean",
       "descriptionTH": "เช็ดถูเป็นการทำความสะอาด",
-      "descriptionEN": "Clean is cleaning activity",
+      "descriptionEN": "Clean is cleaning activity.",
       "imageKey": "Activities/เช็ดถู",
       "examplesTH": [
         "เช็ดถูดี",
@@ -3156,7 +3303,7 @@
       "thai": "ช้อปปิ้ง",
       "english": "shopping",
       "descriptionTH": "ช้อปปิ้งเป็นการซื้อของ",
-      "descriptionEN": "Shopping is buying things",
+      "descriptionEN": "Shopping is buying things.",
       "imageKey": "Activities/ช้อปปิ้ง",
       "examplesTH": [
         "ไปช้อปปิ้ง",
@@ -3175,7 +3322,7 @@
       "thai": "ดีใจ",
       "english": "happy",
       "descriptionTH": "ดีใจเป็นการแสดงความสุข",
-      "descriptionEN": "Happy is expressing joy",
+      "descriptionEN": "Happy is expressing joy.",
       "imageKey": "Emotions/ดีใจ",
       "examplesTH": [
         "ดีใจมาก",
@@ -3192,7 +3339,7 @@
       "thai": "เสียใจ",
       "english": "sad",
       "descriptionTH": "เสียใจเป็นการแสดงความเศร้า",
-      "descriptionEN": "Sad is expressing sorrow",
+      "descriptionEN": "Sad is expressing sorrow.",
       "imageKey": "Emotions/เสียใจ",
       "examplesTH": [
         "เสียใจมาก",
@@ -3209,7 +3356,7 @@
       "thai": "โกรธ",
       "english": "angry",
       "descriptionTH": "โกรธเป็นการแสดงความโกรธ",
-      "descriptionEN": "Angry is expressing anger",
+      "descriptionEN": "Angry is expressing anger.",
       "imageKey": "Emotions/โกรธ",
       "examplesTH": [
         "โกรธมาก",
@@ -3226,7 +3373,7 @@
       "thai": "กลัว",
       "english": "afraid",
       "descriptionTH": "กลัวเป็นการแสดงความกลัว",
-      "descriptionEN": "Afraid is expressing fear",
+      "descriptionEN": "Afraid is expressing fear.",
       "imageKey": "Emotions/กลัว",
       "examplesTH": [
         "กลัวมาก",
@@ -3243,7 +3390,7 @@
       "thai": "เบื่อ",
       "english": "bored",
       "descriptionTH": "เบื่อเป็นการแสดงความเบื่อ",
-      "descriptionEN": "Bored is expressing boredom",
+      "descriptionEN": "Bored is expressing boredom.",
       "imageKey": "Emotions/เบื่อ",
       "examplesTH": [
         "เบื่อมาก",
@@ -3260,7 +3407,7 @@
       "thai": "เหงา",
       "english": "lonely",
       "descriptionTH": "เหงาเป็นการแสดงความเหงา",
-      "descriptionEN": "Lonely is expressing loneliness",
+      "descriptionEN": "Lonely is expressing loneliness.",
       "imageKey": "Emotions/เหงา",
       "examplesTH": [
         "เหงามาก",
@@ -3277,7 +3424,7 @@
       "thai": "ตกใจ",
       "english": "surprised",
       "descriptionTH": "ตกใจเป็นการแสดงความประหลาดใจ",
-      "descriptionEN": "Surprised is expressing surprise",
+      "descriptionEN": "Surprised is expressing surprise.",
       "imageKey": "Emotions/ตกใจ",
       "examplesTH": [
         "ตกใจมาก",
@@ -3294,7 +3441,7 @@
       "thai": "มีความสุข",
       "english": "pleased",
       "descriptionTH": "มีความสุขเป็นการแสดงความสุข",
-      "descriptionEN": "Pleased is expressing happiness",
+      "descriptionEN": "Pleased is expressing happiness.",
       "imageKey": "Emotions/มีความสุข",
       "examplesTH": [
         "มีความสุขมาก",
@@ -3311,7 +3458,7 @@
       "thai": "ภูมิใจ",
       "english": "proud",
       "descriptionTH": "ภูมิใจเป็นการแสดงความภูมิใจ",
-      "descriptionEN": "Proud is expressing pride",
+      "descriptionEN": "Proud is expressing pride.",
       "imageKey": "Emotions/ภูมิใจ",
       "examplesTH": [
         "ภูมิใจมาก",
@@ -3328,7 +3475,7 @@
       "thai": "กังวล",
       "english": "worried",
       "descriptionTH": "กังวลเป็นการแสดงความกังวล",
-      "descriptionEN": "Worried is expressing worry",
+      "descriptionEN": "Worried is expressing worry.",
       "imageKey": "Emotions/กังวล",
       "examplesTH": [
         "กังวลมาก",
@@ -3345,7 +3492,7 @@
       "thai": "รัก",
       "english": "love",
       "descriptionTH": "รักเป็นการแสดงความรัก",
-      "descriptionEN": "Love is expressing love",
+      "descriptionEN": "Love is expressing love.",
       "imageKey": "Emotions/รัก",
       "examplesTH": [
         "รักมาก",
@@ -3362,7 +3509,7 @@
       "thai": "เกลียด",
       "english": "hate",
       "descriptionTH": "เกลียดเป็นการแสดงความเกลียด",
-      "descriptionEN": "Hate is expressing hate",
+      "descriptionEN": "Hate is expressing hate.",
       "imageKey": "Emotions/เกลียด",
       "examplesTH": [
         "เกลียดมาก",
@@ -3379,7 +3526,7 @@
       "thai": "สงสัย",
       "english": "curious",
       "descriptionTH": "สงสัยเป็นการแสดงความสงสัย",
-      "descriptionEN": "Curious is expressing curiosity",
+      "descriptionEN": "Curious is expressing curiosity.",
       "imageKey": "Emotions/สงสัย",
       "examplesTH": [
         "สงสัยมาก",
@@ -3396,7 +3543,7 @@
       "thai": "หิว",
       "english": "hungry",
       "descriptionTH": "หิวเป็นการแสดงความหิว",
-      "descriptionEN": "Hungry is expressing hunger",
+      "descriptionEN": "Hungry is expressing hunger.",
       "imageKey": "Emotions/หิว",
       "examplesTH": [
         "หิวมาก",
@@ -3413,7 +3560,7 @@
       "thai": "ง่วง",
       "english": "sleepy",
       "descriptionTH": "ง่วงเป็นการแสดงความง่วง",
-      "descriptionEN": "Sleepy is expressing sleepiness",
+      "descriptionEN": "Sleepy is expressing sleepiness.",
       "imageKey": "Emotions/ง่วง",
       "examplesTH": [
         "ง่วงมาก",
@@ -3430,7 +3577,7 @@
       "thai": "สนุก",
       "english": "fun",
       "descriptionTH": "สนุกเป็นการแสดงความสนุก",
-      "descriptionEN": "Fun is expressing fun",
+      "descriptionEN": "Fun is expressing fun.",
       "imageKey": "Emotions/สนุก",
       "examplesTH": [
         "สนุกมาก",
@@ -3447,7 +3594,7 @@
       "thai": "ผ่อนคลาย",
       "english": "relaxed",
       "descriptionTH": "ผ่อนคลายเป็นการแสดงความผ่อนคลาย",
-      "descriptionEN": "Relaxed is expressing relaxation",
+      "descriptionEN": "Relaxed is expressing relaxation.",
       "imageKey": "Emotions/ผ่อนคลาย",
       "examplesTH": [
         "ผ่อนคลายมาก",
@@ -3464,7 +3611,7 @@
       "thai": "ประหลาดใจ",
       "english": "amazed",
       "descriptionTH": "ประหลาดใจเป็นความประหลาดใจ",
-      "descriptionEN": "Amazed is feeling of amazement",
+      "descriptionEN": "Amazed is feeling of amazement.",
       "imageKey": "Emotions/ประหลาดใจ",
       "examplesTH": [
         "ประหลาดใจมาก",
@@ -3481,7 +3628,7 @@
       "thai": "เลื่อมใส",
       "english": "inspired",
       "descriptionTH": "เลื่อมใสเป็นความเลื่อมใส",
-      "descriptionEN": "Inspired is feeling inspiration",
+      "descriptionEN": "Inspired is feeling inspiration.",
       "imageKey": "Emotions/เลื่อมใส",
       "examplesTH": [
         "เลื่อมใสมาก",
@@ -3493,6 +3640,21 @@
         "Feeling inspired",
         "Really inspired"
       ]
+    },
+    {
+      "thai": "ตกใจ",
+      "english": "surprised",
+      "descriptionTH": "ตกใจหมายถึงความรู้สึกเมื่อเจอสิ่งที่ไม่คาดคิด ทำให้ใจกระตุกและอยากรู้ว่าเกิดอะไรขึ้น",
+      "descriptionEN": "Surprised means feeling when encountering unexpected things causing a startle and wanting to know what happened",
+      "imageKey": "Emotions/ตกใจ",
+      "examplesTH": [
+        "ฉันใช้ตกใจ",
+        "ตกใจเป็นประโยชน์"
+      ],
+      "examplesEN": [
+        "I use surprised",
+        "Surprised is useful"
+      ]
     }
   ],
   "Technology": [
@@ -3500,7 +3662,7 @@
       "thai": "มือถือ",
       "english": "mobile phone",
       "descriptionTH": "มือถือเป็นอุปกรณ์สื่อสารที่พกพาได้",
-      "descriptionEN": "Mobile phone is portable communication device",
+      "descriptionEN": "Mobile phone is portable communication device.",
       "imageKey": "Technology/มือถือ",
       "examplesTH": [
         "มือถือใหม่",
@@ -3517,7 +3679,7 @@
       "thai": "คอมพิวเตอร์",
       "english": "computer",
       "descriptionTH": "คอมพิวเตอร์เป็นอุปกรณ์ประมวลผล",
-      "descriptionEN": "Computer is processing device",
+      "descriptionEN": "Computer is processing device.",
       "imageKey": "Technology/คอมพิวเตอร์",
       "examplesTH": [
         "คอมพิวเตอร์ดี",
@@ -3534,7 +3696,7 @@
       "thai": "โน้ตบุ๊ก",
       "english": "laptop",
       "descriptionTH": "โน้ตบุ๊กเป็นคอมพิวเตอร์พกพาได้",
-      "descriptionEN": "Laptop is portable computer",
+      "descriptionEN": "Laptop is portable computer.",
       "imageKey": "Technology/โน๊คบุ๊ก",
       "examplesTH": [
         "โน้ตบุ๊กใหม่",
@@ -3551,7 +3713,7 @@
       "thai": "อินเทอร์เน็ต",
       "english": "internet",
       "descriptionTH": "อินเทอร์เน็ตเป็นเครือข่ายข้อมูล",
-      "descriptionEN": "Internet is data network",
+      "descriptionEN": "Internet is data network.",
       "imageKey": "Technology/อินเทอร์เน็ต",
       "examplesTH": [
         "ใช้อินเทอร์เน็ต",
@@ -3568,7 +3730,7 @@
       "thai": "โปรแกรม",
       "english": "program",
       "descriptionTH": "โปรแกรมเป็นซอฟต์แวร์ใช้คอมพิวเตอร์",
-      "descriptionEN": "Program is software for computers",
+      "descriptionEN": "Program is software for computers.",
       "imageKey": "Technology/โปรเเกรม",
       "examplesTH": [
         "ใช้โปรแกรม",
@@ -3585,7 +3747,7 @@
       "thai": "เกม",
       "english": "game",
       "descriptionTH": "เกมเป็นซอฟต์แวร์เล่นเกม",
-      "descriptionEN": "Game is software to play games",
+      "descriptionEN": "Game is software to play games.",
       "imageKey": "Technology/เกม",
       "examplesTH": [
         "เล่นเกม",
@@ -3602,7 +3764,7 @@
       "thai": "หูฟัง",
       "english": "headphones",
       "descriptionTH": "หูฟังเป็นอุปกรณ์ฟังเสียง",
-      "descriptionEN": "Headphones is audio device",
+      "descriptionEN": "Headphones is audio device.",
       "imageKey": "Technology/หูฟัง",
       "examplesTH": [
         "หูฟังดี",
@@ -3619,7 +3781,7 @@
       "thai": "กล้อง",
       "english": "camera",
       "descriptionTH": "กล้องเป็นอุปกรณ์ถ่ายรูป",
-      "descriptionEN": "Camera is photo device",
+      "descriptionEN": "Camera is photo device.",
       "imageKey": "Technology/กล้อง",
       "examplesTH": [
         "ใช้กล้อง",
@@ -3636,7 +3798,7 @@
       "thai": "ไมโครโฟน",
       "english": "microphone",
       "descriptionTH": "ไมโครโฟนเป็นอุปกรณ์บันทึกเสียง",
-      "descriptionEN": "Microphone is sound recording device",
+      "descriptionEN": "Microphone is sound recording device.",
       "imageKey": "Technology/ไมโครโฟน",
       "examplesTH": [
         "ใช้ไมโครโฟน",
@@ -3653,7 +3815,7 @@
       "thai": "เมาส์",
       "english": "mouse",
       "descriptionTH": "เมาส์เป็นอุปกรณ์ควบคุมคอมพิวเตอร์",
-      "descriptionEN": "Mouse is computer control device",
+      "descriptionEN": "Mouse is computer control device.",
       "imageKey": "Technology/เมาส์",
       "examplesTH": [
         "ใช้เมาส์",
@@ -3670,7 +3832,7 @@
       "thai": "คีย์บอร์ด",
       "english": "keyboard",
       "descriptionTH": "คีย์บอร์ดเป็นอุปกรณ์พิมพ์",
-      "descriptionEN": "Keyboard is typing device",
+      "descriptionEN": "Keyboard is typing device.",
       "imageKey": "Technology/คีย์บอร์ด",
       "examplesTH": [
         "ใช้คีย์บอร์ด",
@@ -3687,7 +3849,7 @@
       "thai": "Wi-Fi",
       "english": "Wi-Fi",
       "descriptionTH": "Wi-Fiเป็นเครือข่ายไร้สาย",
-      "descriptionEN": "Wi-Fi is wireless network",
+      "descriptionEN": "Wi-Fi is wireless network.",
       "imageKey": "Technology/Wi-Fi",
       "examplesTH": [
         "ใช้Wi-Fi",
@@ -3704,7 +3866,7 @@
       "thai": "เว็บไซต์",
       "english": "website",
       "descriptionTH": "เว็บไซต์เป็นหน้าเว็บ",
-      "descriptionEN": "Website is web page",
+      "descriptionEN": "Website is web page.",
       "imageKey": "Technology/เว็บไซต์",
       "examplesTH": [
         "ดูเว็บไซต์",
@@ -3721,7 +3883,7 @@
       "thai": "รหัสผ่าน",
       "english": "password",
       "descriptionTH": "รหัสผ่านเป็นรหัสความปลอดภัย",
-      "descriptionEN": "Password is security code",
+      "descriptionEN": "Password is security code.",
       "imageKey": "Technology/รหัสผ่าน",
       "examplesTH": [
         "ใส่รหัสผ่าน",
@@ -3738,7 +3900,7 @@
       "thai": "แอป",
       "english": "app",
       "descriptionTH": "แอปเป็นโปรแกรมในมือถือ",
-      "descriptionEN": "App is program in mobile phone",
+      "descriptionEN": "App is program in mobile phone.",
       "imageKey": "Technology/แอป",
       "examplesTH": [
         "ใช้แอป",
@@ -3755,7 +3917,7 @@
       "thai": "อีเมล",
       "english": "email",
       "descriptionTH": "อีเมลเป็นข้อความทางอินเทอร์เน็ต",
-      "descriptionEN": "Email is message via internet",
+      "descriptionEN": "Email is message via internet.",
       "imageKey": "Technology/อีเมล",
       "examplesTH": [
         "ส่งอีเมล",
@@ -3772,7 +3934,7 @@
       "thai": "ปุ่ม",
       "english": "button",
       "descriptionTH": "ปุ่มเป็นปุ่มกด",
-      "descriptionEN": "Button is clickable button",
+      "descriptionEN": "Button is clickable button.",
       "imageKey": "Technology/ปุ่ม",
       "examplesTH": [
         "กดปุ่ม",

@@ -13,6 +13,7 @@ import { FontAwesome, FontAwesome6 } from '@expo/vector-icons';
 import LottieView from 'lottie-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useProgress } from '../contexts/ProgressContext';
+import { useUnifiedStats } from '../contexts/UnifiedStatsContext';
 import { getLevelRewards, getXpProgress } from '../utils/leveling';
 import FireStreakAlert from '../components/FireStreakAlert';
 
@@ -45,6 +46,8 @@ const LessonCompleteScreen = ({ navigation, route }) => {
   } = route.params || {};
   
   const { userProgress } = useProgress();
+  const { xp, diamonds, hearts, updateStats } = useUnifiedStats();
+  const statsUpdatedRef = useRef(false);
   
   const [showRewards, setShowRewards] = useState(false);
   const [rewards, setRewards] = useState({
@@ -194,7 +197,6 @@ const LessonCompleteScreen = ({ navigation, route }) => {
     setNextRewards(getLevelRewards(afterProgress.level + 1));
 
     setNewLevel(afterProgress.level > beforeProgress.level ? afterProgress.level : null);
-
   }, [
     calculatedRewards,
     derivedAchievements,
@@ -203,6 +205,38 @@ const LessonCompleteScreen = ({ navigation, route }) => {
     userProgress?.xp,
     userProgress?.level
   ]);
+
+  // อัพเดท UnifiedStats เมื่อได้รางวัล
+  useEffect(() => {
+    // Prevent duplicate/rapid API calls from repeatedly mounting this screen
+    if (!updateStats || (rewards.xp === 0 && rewards.diamonds === 0)) return;
+    if (statsUpdatedRef.current) {
+      // Already attempted update for this screen lifecycle
+      return;
+    }
+
+    const updateUnifiedStats = async () => {
+      try {
+        statsUpdatedRef.current = true; // mark early to avoid duplicates
+
+        // Add rewards to existing values
+        const newXp = (Number.isFinite(xp) ? xp : 0) + rewards.xp;
+        const newDiamonds = (Number.isFinite(diamonds) ? diamonds : 0) + rewards.diamonds;
+
+        await updateStats({
+          xp: Math.max(0, newXp),
+          diamonds: Math.max(0, newDiamonds),
+        });
+
+        console.log('✅ Updated UnifiedStats:', { newXp, newDiamonds });
+      } catch (error) {
+        // Don't keep retrying in a tight loop from this screen; log and bail
+        console.warn('❌ Failed to update UnifiedStats:', error?.message);
+      }
+    };
+
+    updateUnifiedStats();
+  }, [rewards.xp, rewards.diamonds, updateStats, xp, diamonds]);
 
   function calculateRewards() {
     const xpReward = Number.isFinite(xpGained) ? Math.max(0, Math.round(xpGained)) : 0;

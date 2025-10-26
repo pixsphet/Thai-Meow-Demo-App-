@@ -182,11 +182,6 @@ export default function IntermediatePlacesGame({ navigation, route }) {
     }
   };
 
-  const resumeGame = () => {
-    setGameStarted(true);
-    setGameFinished(false);
-    startTimeRef.current = Date.now();
-  };
 
   const handleCheckAnswer = () => {
     if (currentAnswer === null && directionSteps.length === 0) return;
@@ -389,12 +384,6 @@ export default function IntermediatePlacesGame({ navigation, route }) {
           </View>
 
           {/* Player Stats Display removed per request */}
-          
-          {resumeData && (
-            <TouchableOpacity style={styles.resumeButton} onPress={resumeGame} activeOpacity={0.9}>
-              <Text style={styles.resumeButtonText}>เล่นต่อจากข้อที่ {resumeData.currentIndex + 1}</Text>
-            </TouchableOpacity>
-          )}
           
           <TouchableOpacity style={styles.startButton} onPress={handleStartGame} activeOpacity={0.9}>
             <LinearGradient

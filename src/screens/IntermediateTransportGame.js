@@ -30,7 +30,7 @@ import { useUserData } from '../contexts/UserDataContext';
 
 // Data & Generators
 import transportationVocab from '../data/transportation_vocab.json';
-import { generateTransportQuestions, TRANSPORT_QUESTION_TYPES } from '../utils/transportQuestionGenerator';
+import { generateTransportQuestions, TRANSPORT_QUESTION_TYPES, transportationImages } from '../utils/transportQuestionGenerator';
 
 const { width, height } = Dimensions.get('window');
 
@@ -141,7 +141,7 @@ const IntermediateTransportGame = ({ navigation, route }) => {
           en: item.en,
           emoji: item.emoji,
           audioText: item.audioText,
-          imageSource: item.image,
+          imageSource: transportationImages[item.thai] || null,
         }));
         setTransportItems(normalizedItems);
         

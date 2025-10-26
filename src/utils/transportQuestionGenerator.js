@@ -34,7 +34,7 @@ const normalizeTransportItem = (doc) => ({
   en: doc.en || '',
   emoji: doc.emoji || '🚗',
   audioText: doc.audioText || doc.thai || '',
-  imageSource: doc.image ? transportationImages[doc.thai] : null,
+  imageSource: transportationImages[doc.thai] || null,
   type: doc.type || 'vehicle',
 });
 
@@ -130,38 +130,67 @@ const makeTranslateMatch = (item, pool, usedWords = new Set()) => {
 };
 
 const makeFillBlankDialog = (item, pool) => {
-  const dialogs = [
+  // สร้าง dialog templates ที่ชัดเจน แต่ละ template มีคำตอบที่ถูกต้องเฉพาะ
+  const dialogTemplates = [
     {
       context: 'ฉันจะไป... (by car)',
-      correct: item.thai,
-      options: [item.thai, 'รถบัส', 'รถไฟ', 'เครื่องบิน']
+      correct: 'รถยนต์',
+      wrongOptions: ['รถบัส', 'รถไฟ', 'เครื่องบิน']
     },
     {
-      context: 'คุณใช้... ไปทำงาน?',
-      correct: item.thai,
-      options: [item.thai, 'จักรยาน', 'มอเตอร์ไซค์', 'รถแท็กซี่']
+      context: 'ฉันเดินทางด้วย... (by train)',
+      correct: 'รถไฟ',
+      wrongOptions: ['รถบัส', 'เครื่องบิน', 'จักรยาน']
     },
     {
-      context: 'ฉันชอบเดินทางด้วย...',
-      correct: item.thai,
-      options: [item.thai, 'เรือ', 'รถบัส', 'รถไฟ']
+      context: 'ฉันบินไปเที่ยว... (by airplane)',
+      correct: 'เครื่องบิน',
+      wrongOptions: ['รถยนต์', 'รถไฟ', 'เรือ']
+    },
+    {
+      context: 'ฉันขี่... ไปตลาด (by bicycle)',
+      correct: 'จักรยาน',
+      wrongOptions: ['มอเตอร์ไซค์', 'รถยนต์', 'รถบัส']
+    },
+    {
+      context: 'คุณใช้... ขับขี่ไปทำงาน? (by motorbike)',
+      correct: 'มอเตอร์ไซค์',
+      wrongOptions: ['จักรยาน', 'รถยนต์', 'รถแท็กซี่']
+    },
+    {
+      context: 'ฉันนั่ง... ข้ามแม่น้ำ (by boat)',
+      correct: 'เรือ',
+      wrongOptions: ['เครื่องบิน', 'รถยนต์', 'จักรยาน']
     }
   ];
   
-  const dialog = pick(dialogs);
-  const wrongOptions = pool.filter(w => w.thai !== item.thai).slice(0, 3);
-  const allOptions = shuffle([item, ...wrongOptions]);
+  // หา template ที่มี correct === item.thai
+  let dialog = dialogTemplates.find(t => t.correct === item.thai);
+  
+  // ถ้าไม่มี ให้ใช้ template แรกที่มี correct = item.thai แต่อาจจะไม่เหมาะสม
+  if (!dialog) {
+    // สร้าง dialog อื่นๆ ที่ใช้ item.thai เป็นคำตอบที่ถูกต้อง
+    dialog = {
+      context: `ฉันชอบเดินทางด้วย${item.thai}`,
+      correct: item.thai,
+      wrongOptions: pool.filter(w => w.thai !== item.thai).slice(0, 3).map(w => w.thai)
+    };
+  }
+  
+  // สร้าง choices จาก pool โดยเลือก item.thai และ wrongOptions
+  const choices = [item.thai, ...dialog.wrongOptions].slice(0, 4);
+  const selectedItems = pool.filter(w => choices.includes(w.thai));
   
   return {
     id: `fb_transport_${item.id}_${uid()}`,
     type: TRANSPORT_QUESTION_TYPES.FILL_BLANK_DIALOG,
-    instruction: 'เลือกคำที่เหมาะสมกับบทสนทนา',
+    instruction: 'เลือกยานพาหนะให้ตรงกับบทสนทนา',
     questionText: dialog.context,
     correctText: dialog.correct,
     rewardXP: 15,
     rewardDiamond: 1,
     penaltyHeart: 1,
-    choices: allOptions.map((c, i) => ({
+    choices: shuffle(selectedItems).map((c, i) => ({
       id: i + 1,
       thai: c.thai,
       english: c.en,

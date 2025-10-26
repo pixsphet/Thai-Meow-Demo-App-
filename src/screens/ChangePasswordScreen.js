@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import {
     View,
     Text,
@@ -29,6 +29,7 @@ const ChangePasswordScreen = () => {
     const { theme, darkTheme } = useTheme();
     const { user } = useUser();
 
+    // Use useCallback for stable setState functions
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -39,6 +40,36 @@ const ChangePasswordScreen = () => {
     const [successModalVisible, setSuccessModalVisible] = useState(false);
 
     const fadeAnim = useRef(new Animated.Value(0)).current;
+
+    // Stable setState functions
+    const handleCurrentPasswordChange = useCallback((text) => {
+        setCurrentPassword(text);
+    }, []);
+
+    const handleNewPasswordChange = useCallback((text) => {
+        setNewPassword(text);
+    }, []);
+
+    const handleConfirmPasswordChange = useCallback((text) => {
+        setConfirmPassword(text);
+    }, []);
+
+    const handleShowCurrentPassword = useCallback(() => {
+        setShowCurrentPassword(prev => !prev);
+    }, []);
+
+    const handleShowNewPassword = useCallback(() => {
+        setShowNewPassword(prev => !prev);
+    }, []);
+
+    const handleShowConfirmPassword = useCallback(() => {
+        setShowConfirmPassword(prev => !prev);
+    }, []);
+
+    // Add keys for TextInput to prevent cursor reset
+    const currentPasswordKey = `current-${showCurrentPassword}`;
+    const newPasswordKey = `new-${showNewPassword}`;
+    const confirmPasswordKey = `confirm-${showConfirmPassword}`;
 
     React.useEffect(() => {
         Animated.timing(fadeAnim, {
@@ -101,10 +132,10 @@ const ChangePasswordScreen = () => {
 
             if (result.success) {
                 setSuccessModalVisible(true);
-                // Clear form
-                setCurrentPassword('');
-                setNewPassword('');
-                setConfirmPassword('');
+                // Clear form using stable functions
+                handleCurrentPasswordChange('');
+                handleNewPasswordChange('');
+                handleConfirmPasswordChange('');
             } else {
                 Alert.alert('ข้อผิดพลาด', result.message || 'ไม่สามารถเปลี่ยนรหัสผ่านได้');
             }
@@ -147,17 +178,35 @@ const ChangePasswordScreen = () => {
                         editable={!loading}
                         autoCapitalize="none"
                         autoCorrect={false}
+                        autoComplete="password"
                         spellCheck={false}
-                        autoFocus={false}
+                        keyboardType="default"
+                        returnKeyType="next"
                         blurOnSubmit={false}
-                        returnKeyType="done"
-                        enablesReturnKeyAutomatically={false}
+                        clearButtonMode="while-editing"
+                        selectTextOnFocus={true}
+                        contextMenuHidden={false}
                         selectionColor={theme.primary}
+                        cursorColor={theme.primary}
+                        underlineColorAndroid="transparent"
+                        textContentType="password"
+                        importantForAutofill="yes"
+                        autoFocus={false}
+                        maxLength={50}
+                        multiline={false}
+                        numberOfLines={1}
+                        scrollEnabled={false}
+                        disableFullscreenUI={true}
+                        keyboardAppearance={darkTheme ? 'dark' : 'light'}
+                        dataDetectorTypes="none"
+                        allowFontScaling={true}
+                        adjustsFontSizeToFit={false}
                     />
                     <TouchableOpacity
                         style={styles.eyeButton}
                         onPress={onToggleShow}
                         activeOpacity={0.7}
+                        disabled={loading}
                     >
                         <Icon
                             name={showPassword ? "visibility" : "visibility-off"}
@@ -222,28 +271,28 @@ const ChangePasswordScreen = () => {
                         <View style={styles.formContainer}>
                             <PasswordInput
                                 value={currentPassword}
-                                onChangeText={setCurrentPassword}
+                                onChangeText={handleCurrentPasswordChange}
                                 placeholder="กรอกรหัสผ่านปัจจุบัน"
                                 showPassword={showCurrentPassword}
-                                onToggleShow={() => setShowCurrentPassword(!showCurrentPassword)}
+                                onToggleShow={handleShowCurrentPassword}
                                 label="รหัสผ่านปัจจุบัน"
                             />
 
                             <PasswordInput
                                 value={newPassword}
-                                onChangeText={setNewPassword}
+                                onChangeText={handleNewPasswordChange}
                                 placeholder="กรอกรหัสผ่านใหม่"
                                 showPassword={showNewPassword}
-                                onToggleShow={() => setShowNewPassword(!showNewPassword)}
+                                onToggleShow={handleShowNewPassword}
                                 label="รหัสผ่านใหม่"
                             />
 
                             <PasswordInput
                                 value={confirmPassword}
-                                onChangeText={setConfirmPassword}
+                                onChangeText={handleConfirmPasswordChange}
                                 placeholder="ยืนยันรหัสผ่านใหม่"
                                 showPassword={showConfirmPassword}
-                                onToggleShow={() => setShowConfirmPassword(!showConfirmPassword)}
+                                onToggleShow={handleShowConfirmPassword}
                                 label="ยืนยันรหัสผ่าน"
                             />
 

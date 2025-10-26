@@ -1105,6 +1105,13 @@ const styles = StyleSheet.create({
   backButton: {
     marginRight: 12,
     padding: 8,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.18)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
   },
   progressContainer: {
     flex: 1,
@@ -1335,7 +1342,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginBottom: 0,
     borderWidth: 3,
-    borderColor: '#FFE8CC',
+    borderColor: '#FFD8A8',
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 100,
@@ -1387,11 +1394,15 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   checkContainerEnhanced: {
-    padding: 18,
+    paddingVertical: 18,
+    paddingHorizontal: 20,
     backgroundColor: COLORS.white,
     borderTopWidth: 1,
     borderTopColor: '#E8E8E8',
     alignItems: 'center',
+    justifyContent: 'center',
+    // keep a consistent bottom padding so button doesn't sit flush on small devices
+    paddingBottom: Math.max(18, 12),
   },
   feedbackBadgeEnhanced: {
     flexDirection: 'row',
@@ -1432,10 +1443,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 12,
     elevation: 8,
-    minWidth: 200,
+    width: 220,
+    alignSelf: 'center',
   },
   checkGradientEnhanced: {
     width: '100%',
+    maxWidth: 220,
     paddingVertical: 18,
     borderRadius: 28,
     alignItems: 'center',

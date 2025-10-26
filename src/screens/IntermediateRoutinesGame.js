@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView,
   Dimensions, Animated, Alert, Platform, Image,
@@ -69,10 +69,12 @@ const checkAnswer = (question, answer) => {
 };
 
 export default function IntermediateRoutinesGame({ navigation, route }) {
+  const { hearts: unifiedHearts, updateStats } = useUnifiedStats();
+  
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentAnswer, setCurrentAnswer] = useState(null);
-  const [hearts, setHearts] = useState(5);
+  const [hearts, setHearts] = useState(unifiedHearts || 5);
   const [streak, setStreak] = useState(0);
   const [maxStreak, setMaxStreak] = useState(0);
   const [score, setScore] = useState(0);
@@ -106,7 +108,8 @@ export default function IntermediateRoutinesGame({ navigation, route }) {
         const savedProgress = await restoreProgress(LESSON_ID);
         if (savedProgress?.questionsSnapshot) {
           setCurrentIndex(savedProgress.currentIndex || 0);
-          setHearts(savedProgress.hearts || 5);
+          // ใช้ hearts จาก UnifiedStats ไม่ใช่ savedProgress
+          setHearts(unifiedHearts || 5);
           setStreak(savedProgress.streak || 0);
           setMaxStreak(savedProgress.maxStreak || 0);
           setScore(savedProgress.score || 0);
@@ -124,33 +127,82 @@ export default function IntermediateRoutinesGame({ navigation, route }) {
     loadQuestions();
   }, []);
 
+  // Sync hearts from UnifiedStats - เป็น source of truth หลัก
   useEffect(() => {
-    const userId = progressUser?.id || userData?.id || stats?.userId || stats?.id;
-    if (!userId || serviceInitRef.current) return;
+    if (Number.isFinite(unifiedHearts)) {
+      // ใช้ UnifiedStats เป็นหลัก อัพเดท local state ถ้าไม่ตรง
+      if (hearts !== unifiedHearts) {
+        console.log('🔄 Syncing hearts from UnifiedStats:', unifiedHearts);
+        setHearts(unifiedHearts);
+      }
+    }
+  }, [unifiedHearts]);
+
+  // Update hearts back to UnifiedStats ทันทีเมื่อเปลี่ยนแปลง
+  useEffect(() => {
+    if (hearts !== unifiedHearts) {
+      console.log('📤 Updating hearts to UnifiedStats:', hearts);
+      updateStats({ hearts });
+    }
+  }, [hearts]);
+
+  // ใช้ useMemo สำหรับ userId ที่ stable
+  const stableUserId = useMemo(() => {
+    return progressUser?.id || userData?.id || stats?.userId || stats?._id || stats?.id;
+  }, [progressUser?.id, userData?.id, stats?.userId, stats?._id, stats?.id]);
+
+  useEffect(() => {
+    if (!stableUserId || serviceInitRef.current) return;
     serviceInitRef.current = true;
+    console.log('🔧 Initializing services for user:', stableUserId);
     (async () => {
       try {
-        await gameProgressService.initialize(userId);
-        await levelUnlockService.initialize(userId);
-        await userStatsService.initialize(userId);
-        if (typeof dailyStreakService.setUser === 'function') dailyStreakService.setUser(userId);
+        await gameProgressService.initialize(stableUserId);
+        await levelUnlockService.initialize(stableUserId);
+        await userStatsService.initialize(stableUserId);
+        if (typeof dailyStreakService.setUser === 'function') dailyStreakService.setUser(stableUserId);
+        console.log('✅ Services initialized successfully');
       } catch (error) {
         console.warn('Service initialization error:', error?.message || error);
       }
     })();
-  }, [progressUser?.id, userData?.id, stats?.userId, stats?.id]);
+  }, [stableUserId]); // dependency ลดลงเหลือแค่ stableUserId
 
   const autosave = useCallback(async () => {
-    if (questions.length === 0) return;
+    if (questions.length === 0 || !gameStarted || gameFinished) return;
     const snapshot = {
-      questionsSnapshot: questions, currentIndex, hearts, score, xpEarned, diamondsEarned,
-      streak, maxStreak, answers: answersRef.current, accuracy, totalAnswered,
-      gameProgress: { generator: 'activities', lessonId: LESSON_ID, timestamp: Date.now() },
+      questionsSnapshot: questions,
+      currentIndex,
+      hearts,
+      score,
+      xpEarned,
+      diamondsEarned,
+      streak,
+      maxStreak,
+      answers: answersRef.current,
+      gameProgress: {
+        generator: 'activities',
+        lessonId: LESSON_ID,
+        timestamp: Date.now()
+      },
     };
-    try { await saveProgress(LESSON_ID, snapshot); } catch (error) { console.error('Error autosaving:', error); }
-  }, [questions, currentIndex, hearts, score, xpEarned, diamondsEarned, streak, maxStreak, accuracy, totalAnswered]);
+    try {
+      await saveProgress(LESSON_ID, snapshot);
+    } catch (error) {
+      console.error('Error autosaving:', error);
+    }
+  }, [questions, currentIndex, hearts, score, xpEarned, diamondsEarned, streak, maxStreak, gameStarted, gameFinished]);
 
-  useEffect(() => { if (gameStarted && !gameFinished) autosave(); }, [currentIndex, hearts, score, streak, gameStarted, gameFinished, autosave]);
+  // Auto-save progress when game state changes (debounced)
+  useEffect(() => {
+    if (!gameStarted || gameFinished) return;
+
+    const timer = setTimeout(() => {
+      autosave();
+    }, 1000); // Debounce 1 second
+
+    return () => clearTimeout(timer);
+  }, [currentIndex, hearts, score, streak, gameStarted, gameFinished, autosave]);
 
   const playTTS = useCallback(async (text) => {
     try { await vaja9TtsService.playThai(text); } catch (error) { console.error('TTS Error:', error); }
@@ -534,12 +586,17 @@ export default function IntermediateRoutinesGame({ navigation, route }) {
                   {currentQuestion.choices.map((choice) => (
                     <TouchableOpacity 
                       key={choice.id} 
-                      style={[styles.choiceButton, currentAnswer === choice.text && styles.choiceSelected]} 
-                      onPress={() => handleAnswerSelect(choice.text, choice.speakText)}
+                      style={[styles.choiceButton, currentAnswer === choice.thai && styles.choiceSelected]} 
+                      onPress={() => handleAnswerSelect(choice.thai, choice.speakText)}
                     >
                       <Text style={styles.choiceText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
                         {choice.text}
                       </Text>
+                      {choice.subtitle ? (
+                        <Text style={styles.choiceSubtitle} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
+                          {choice.subtitle}
+                        </Text>
+                      ) : null}
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -559,10 +616,13 @@ export default function IntermediateRoutinesGame({ navigation, route }) {
                   {currentQuestion.choices.map((choice) => (
                     <TouchableOpacity 
                       key={choice.id} 
-                      style={[styles.choiceButton, currentAnswer === choice.text && styles.choiceSelected]} 
-                      onPress={() => handleAnswerSelect(choice.text, choice.speakText)}
+                      style={[styles.choiceButton, currentAnswer === choice.thai && styles.choiceSelected]} 
+                      onPress={() => handleAnswerSelect(choice.thai, choice.speakText)}
                     >
                       <Text style={styles.choiceText}>{choice.text}</Text>
+                      {choice.subtitle ? (
+                        <Text style={styles.choiceSubtitle}>{choice.subtitle}</Text>
+                      ) : null}
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -580,6 +640,9 @@ export default function IntermediateRoutinesGame({ navigation, route }) {
                           const filtered = dmPairs.filter(p => p.leftId !== item.id);
                           setDmPairs(filtered);
                           setCurrentAnswer(filtered);
+                          if (item.speakText) {
+                            vaja9TtsService.playThai(item.speakText);
+                          }
                           return;
                         }
                         const next = { leftId: item.id, rightId: dmSelected.rightId };
@@ -591,6 +654,9 @@ export default function IntermediateRoutinesGame({ navigation, route }) {
                           setDmSelected({ leftId: null, rightId: null });
                         } else {
                           setDmSelected(next);
+                        }
+                        if (item.speakText) {
+                          vaja9TtsService.playThai(item.speakText);
                         }
                       }}>
                         <Text style={styles.dragItemText}>{item.text}</Text>
@@ -605,6 +671,9 @@ export default function IntermediateRoutinesGame({ navigation, route }) {
                           const filtered = dmPairs.filter(p => p.rightId !== item.id);
                           setDmPairs(filtered);
                           setCurrentAnswer(filtered);
+                          if (item.speakText) {
+                            vaja9TtsService.playThai(item.speakText);
+                          }
                           return;
                         }
                         const next = { leftId: dmSelected.leftId, rightId: item.id };
@@ -616,6 +685,9 @@ export default function IntermediateRoutinesGame({ navigation, route }) {
                           setDmSelected({ leftId: null, rightId: null });
                         } else {
                           setDmSelected(next);
+                        }
+                        if (item.speakText) {
+                          vaja9TtsService.playThai(item.speakText);
                         }
                       }}>
                         <Text style={styles.dragItemText}>{item.text}</Text>
@@ -633,10 +705,13 @@ export default function IntermediateRoutinesGame({ navigation, route }) {
                   {currentQuestion.choices.map((choice) => (
                     <TouchableOpacity 
                       key={choice.id} 
-                      style={[styles.choiceButton, currentAnswer === choice.text && styles.choiceSelected]} 
-                      onPress={() => handleAnswerSelect(choice.text, choice.speakText)}
+                      style={[styles.choiceButton, currentAnswer === choice.thai && styles.choiceSelected]} 
+                      onPress={() => handleAnswerSelect(choice.thai, choice.speakText)}
                     >
                       <Text style={styles.choiceText} numberOfLines={2}>{choice.text}</Text>
+                      {choice.subtitle ? (
+                        <Text style={styles.choiceSubtitle}>{choice.subtitle}</Text>
+                      ) : null}
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -974,6 +1049,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 26,
   },
+  choiceSubtitle: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: COLORS.gray,
+    marginTop: 6,
+    textAlign: 'center',
+  },
   dragMatchContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -1029,6 +1111,20 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: COLORS.dark,
     flex: 1,
+    textAlign: 'center',
+  },
+  dragItemSubtitle: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: COLORS.gray,
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  dragItemSubtitle: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: COLORS.gray,
+    marginTop: 4,
     textAlign: 'center',
   },
   startTitle: {

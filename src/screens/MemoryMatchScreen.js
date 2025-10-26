@@ -547,7 +547,7 @@ const MemoryMatchScreen = ({ route }) => {
                       });
                     } catch (_) {}
                   }
-                  navigation.navigate('Miniggame');
+                  navigation.navigate('Minigame');
                 }}
               >
                 <FontAwesome name="home" size={18} color="#fff" />
