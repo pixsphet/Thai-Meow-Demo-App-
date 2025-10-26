@@ -60,45 +60,62 @@ const MinigameScreen = () => {
     },
   ];
 
-  const GameCard = ({ game }) => (
-    <TouchableOpacity
-      style={styles.gameCard}
-      onPress={() => {
-        if (game.screen === 'Game1' || game.screen === 'Game2' || game.screen === 'MemoryMatch') {
-          navigation.navigate(game.screen, { category: game.category });
-        } else {
-          navigation.navigate(game.screen);
-        }
-      }}
-      activeOpacity={0.8}
-    >
-      <LinearGradient colors={game.color} style={styles.cardGradient}>
-        <View style={styles.cardHeader}>
-          <LottieView
-            source={require('../assets/animations/GameCat.json')}
-            autoPlay
-            loop
-            style={styles.cardAnimation}
-          />
-          <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>{game.title}</Text>
-            <Text style={styles.cardSubtitle}>{game.subtitle}</Text>
-            <Text style={styles.cardDescription}>{game.description}</Text>
-            
-            {/* Difficulty Badge */}
-            <View style={[styles.difficultyBadge, { backgroundColor: game.difficulty === 'Easy' ? '#10b981' : game.difficulty === 'Medium' ? '#f59e0b' : '#ef4444' }]}>
-              <MaterialIcons 
-                name={game.difficulty === 'Easy' ? 'sentiment-very-satisfied' : game.difficulty === 'Medium' ? 'sentiment-satisfied' : 'mood-bad'} 
-                size={16} 
-                color="#fff" 
-              />
-              <Text style={styles.difficultyText}>{game.difficulty === 'Easy' ? 'ง่าย' : game.difficulty === 'Medium' ? 'ปานกลาง' : 'ยาก'}</Text>
+  const GameCard = ({ game }) => {
+    const getGameIcon = () => {
+      switch (game.id) {
+        case 'word-finder':
+          return require('../assets/animations/WordFinding.json');
+        case 'word-scramble':
+          return require('../assets/animations/WordScramble.json');
+        case 'memory-match':
+          return require('../assets/animations/MemoryMatch.json');
+        case 'speed-typing':
+          return require('../assets/animations/SpeedTyping.json');
+        default:
+          return require('../assets/animations/GameCat.json');
+      }
+    };
+
+    return (
+      <TouchableOpacity
+        style={styles.gameCard}
+        onPress={() => {
+          if (game.screen === 'Game1' || game.screen === 'Game2' || game.screen === 'MemoryMatch') {
+            navigation.navigate(game.screen, { category: game.category });
+          } else {
+            navigation.navigate(game.screen);
+          }
+        }}
+        activeOpacity={0.8}
+      >
+        <LinearGradient colors={game.color} style={styles.cardGradient}>
+          <View style={styles.cardHeader}>
+            <LottieView
+              source={getGameIcon()}
+              autoPlay
+              loop
+              style={styles.cardAnimation}
+            />
+            <View style={styles.cardContent}>
+              <Text style={styles.cardTitle}>{game.title}</Text>
+              <Text style={styles.cardSubtitle}>{game.subtitle}</Text>
+              <Text style={styles.cardDescription}>{game.description}</Text>
+              
+              {/* Difficulty Badge */}
+              <View style={[styles.difficultyBadge, { backgroundColor: game.difficulty === 'Easy' ? '#10b981' : game.difficulty === 'Medium' ? '#f59e0b' : '#ef4444' }]}>
+                <MaterialIcons 
+                  name={game.difficulty === 'Easy' ? 'sentiment-very-satisfied' : game.difficulty === 'Medium' ? 'sentiment-satisfied' : 'mood-bad'} 
+                  size={16} 
+                  color="#fff" 
+                />
+                <Text style={styles.difficultyText}>{game.difficulty === 'Easy' ? 'ง่าย' : game.difficulty === 'Medium' ? 'ปานกลาง' : 'ยาก'}</Text>
+              </View>
             </View>
           </View>
-        </View>
-      </LinearGradient>
-    </TouchableOpacity>
-  );
+        </LinearGradient>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
