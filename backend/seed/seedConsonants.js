@@ -1,5 +1,9 @@
+const path = require('path');
 const mongoose = require('mongoose');
+const dotenv = require('dotenv');
 const Vocab = require('../models/Vocab');
+
+dotenv.config({ path: path.join(__dirname, '..', 'config.env') });
 
 // ข้อมูลพยัญชนะไทย 44 ตัว
 const consonantsData = [
@@ -49,14 +53,26 @@ const consonantsData = [
   { thai: 'ฮ', nameTH: 'ฮอ-นกฮูก', en: 'owl', roman: 'hor', imagePath: '/src/assets/letters/ho_nokhuk.png' }
 ];
 
-const seedConsonants = async () => {
+const seedConsonants = async (options = {}) => {
+  const { mongoUri = process.env.MONGODB_URI, skipConnect = false } = options;
+  if (!mongoUri) {
+    throw new Error('MONGODB_URI is not defined');
+  }
+
   try {
     console.log('🌱 Starting to seed consonants...');
-    
+
+    if (!skipConnect) {
+      await mongoose.connect(mongoUri, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      });
+    }
+
     // Clear existing consonants
     await Vocab.deleteMany({ category: 'thai-consonants' });
     console.log('🗑️ Cleared existing consonants');
-    
+
     // Insert new consonants
     const consonantsToInsert = consonantsData.map(consonant => ({
       ...consonant,
@@ -66,27 +82,28 @@ const seedConsonants = async () => {
       isActive: true,
       difficulty: 1
     }));
-    
+
     const result = await Vocab.insertMany(consonantsToInsert);
     console.log(`✅ Successfully seeded ${result.length} consonants`);
-    
+
     // Verify the data
     const count = await Vocab.countDocuments({ category: 'thai-consonants' });
     console.log(`📊 Total consonants in database: ${count}`);
-    
+
     return result;
   } catch (error) {
     console.error('❌ Error seeding consonants:', error);
     throw error;
+  } finally {
+    if (!skipConnect) {
+      await mongoose.disconnect();
+    }
   }
 };
 
 // Run if called directly
 if (require.main === module) {
-  const connectDB = require('../config/database');
-  
-  connectDB()
-    .then(() => seedConsonants())
+  seedConsonants()
     .then(() => {
       console.log('🎉 Consonants seeding completed successfully!');
       process.exit(0);

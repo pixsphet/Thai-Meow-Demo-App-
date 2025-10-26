@@ -1,20 +1,26 @@
 /* eslint-disable no-console */
-require('dotenv').config({ path: require('path').join(__dirname, '..', 'config.env') });
+const path = require('path');
 const mongoose = require('mongoose');
+const dotenv = require('dotenv');
 const GameVocab = require('../models/GameVocab');
 
-const connect = async () => {
-  const uri = process.env.MONGODB_URI;
-  if (!uri) throw new Error('MONGODB_URI is not set');
-  await mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-};
+dotenv.config({ path: path.join(__dirname, '..', 'config.env') });
 
 const parse = (s) => s.split(',').map(v => v.trim()).filter(Boolean);
 
-async function seed() {
-  await connect();
+async function seedGameVocab(options = {}) {
+  const { mongoUri = process.env.MONGODB_URI, skipConnect = false } = options;
 
-  const data = {
+  if (!mongoUri) {
+    throw new Error('MONGODB_URI is not set');
+  }
+
+  if (!skipConnect) {
+    await mongoose.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true });
+  }
+
+  try {
+    const data = {
     'Animals': parse('ช้าง, ม้า, วัว, ควาย, หมา, แมว, ปลา, นก, ไก่, หมู, ลิง, เสือ, หมี, กระต่าย, ยีราฟ, สิงโต, จระเข้, งู, เต่า, กบ, ผีเสื้อ, ยุง, มด, แมลงวัน, ปู, ปลาหมึก'),
     'Food': parse('ข้าว, ข้าวผัด, ผัดไทย, ส้มตำ, ต้มยำ, ขนมจีน, ขนมปัง, ข้าวเหนียว, มะม่วง, กล้วย, ทุเรียน, ส้ม, แตงโม, น้ำปลา, น้ำตาล, เกลือ, ไข่, แกงเขียวหวาน, ไอศกรีม, ชาเย็น'),
     'People & Family': parse('พ่อ, แม่, ลูก, พี่, น้อง, ลุง, ป้า, ตา, ยาย, เพื่อน, ครู, นักเรียน, หมอ, ตำรวจ, คนขับรถ, พนักงาน, ชาวนา, คนขายของ, ผู้หญิง, ผู้ชาย'),
@@ -31,32 +37,45 @@ async function seed() {
     'Level Advanced': parse('ประชาธิปไตย, วัฒนธรรม, เทคโนโลยี, สิ่งแวดล้อม, พลังงาน, การศึกษา, สุขภาพ, การจราจร, เศรษฐกิจ, สังคม, วิทยาศาสตร์, ดาราศาสตร์, ภูมิศาสตร์, ประวัติศาสตร์, ศิลปะ, ดนตรี, การเมือง, อุตสาหกรรม, นวัตกรรม, ปัญญาประดิษฐ์'),
   };
 
-  let upserted = 0;
-  for (const [category, words] of Object.entries(data)) {
-    for (const thai of words) {
-      await GameVocab.updateOne(
-        { category, thai },
-        {
-          $set: {
-            category,
-            thai,
-            imageKey: '',
-            isActive: true,
+    let upserted = 0;
+    for (const [category, words] of Object.entries(data)) {
+      for (const thai of words) {
+        await GameVocab.updateOne(
+          { category, thai },
+          {
+            $set: {
+              category,
+              thai,
+              imageKey: '',
+              isActive: true,
+            },
           },
-        },
-        { upsert: true }
-      );
-      upserted += 1;
+          { upsert: true }
+        );
+        upserted += 1;
+      }
+    }
+    console.log(`✅ Seeded/updated ${upserted} game vocab items.`);
+  } finally {
+    if (!skipConnect) {
+      await mongoose.disconnect();
     }
   }
-  console.log(`✅ Seeded/updated ${upserted} game vocab items.`);
-  await mongoose.disconnect();
 }
 
-seed().catch(async (e) => {
-  console.error('❌ Seed error:', e);
-  try { await mongoose.disconnect(); } catch (_) {}
-  process.exit(1);
-});
+if (require.main === module) {
+  seedGameVocab()
+    .then(() => {
+      return mongoose.disconnect();
+    })
+    .then(() => {
+      process.exit(0);
+    })
+    .catch(async (e) => {
+      console.error('❌ Seed error:', e);
+      try { await mongoose.disconnect(); } catch (_) {}
+      process.exit(1);
+    });
+}
 
-
+module.exports = seedGameVocab;

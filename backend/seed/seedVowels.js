@@ -1,7 +1,6 @@
 const path = require('path');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-
 const Vocab = require('../models/Vocab');
 
 dotenv.config({ path: path.join(__dirname, '..', 'config.env') });
@@ -58,17 +57,20 @@ const upsertVowel = async (vowel) => {
   );
 };
 
-const seed = async () => {
+const seedVowels = async (options = {}) => {
+  const { mongoUri = process.env.MONGODB_URI, skipConnect = false } = options;
+
   try {
-    const mongoUri = process.env.MONGODB_URI;
     if (!mongoUri) {
       throw new Error('MONGODB_URI not set in config.env');
     }
 
-    await mongoose.connect(mongoUri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    if (!skipConnect) {
+      await mongoose.connect(mongoUri, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      });
+    }
 
     console.log('🌱 Connected to MongoDB – seeding Thai vowels');
 
@@ -78,13 +80,24 @@ const seed = async () => {
     }
 
     console.log(`🎉 Seeded ${vowels.length} Thai vowels successfully`);
-    await mongoose.disconnect();
-    process.exit(0);
   } catch (error) {
     console.error('❌ Failed to seed Thai vowels:', error);
-    await mongoose.disconnect();
-    process.exit(1);
+    throw error;
+  } finally {
+    if (!skipConnect) {
+      await mongoose.disconnect();
+    }
   }
 };
 
-seed();
+if (require.main === module) {
+  seedVowels()
+    .then(() => {
+      process.exit(0);
+    })
+    .catch(() => {
+      process.exit(1);
+    });
+}
+
+module.exports = seedVowels;
