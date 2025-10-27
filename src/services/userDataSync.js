@@ -133,24 +133,13 @@ const UserDataSync = {
    */
   async updateUserStats(delta) {
     const local = await this.getLocal();
-    const baseMaxHearts = local.maxHearts ?? 5;
-    const targetMaxHearts = clamp(
-      delta.maxHearts !== undefined ? delta.maxHearts : baseMaxHearts,
-      1,
-      10
-    );
-    const nextHearts = clamp(
-      (local.hearts ?? targetMaxHearts) + (delta.hearts || 0),
-      0,
-      targetMaxHearts
-    );
+    const nextHearts = Math.max(0, (local.hearts || 5) + (delta.hearts || 0));
 
     const merged = {
       ...local,
       xp: (local.xp || 0) + (delta.xp || 0),
       diamonds: (local.diamonds || 0) + (delta.diamonds || 0),
       hearts: nextHearts,
-      maxHearts: targetMaxHearts,
       level: delta.level ? delta.level : (local.level || 1),
       accuracy: delta.accuracy ?? local.accuracy,
       streak: delta.streak ?? local.streak,

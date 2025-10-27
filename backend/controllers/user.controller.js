@@ -232,9 +232,6 @@ exports.updateCurrentUserStats = async (req, res, next) => {
       const oldHearts = safeNumber(user.hearts, 0);
       const nextHearts = safeNumber(payload.hearts, user.hearts || 0);
       user.hearts = Math.max(0, nextHearts);
-      if (payload.maxHearts !== undefined) {
-        user.maxHearts = Math.max(0, safeNumber(payload.maxHearts, user.maxHearts || 0));
-      }
       const deltaHearts = Math.max(0, safeNumber(user.hearts, 0) - oldHearts);
       if (deltaHearts > 0) {
         user.totalHeartsEarned = safeNumber(user.totalHeartsEarned, 0) + deltaHearts;
@@ -243,10 +240,6 @@ exports.updateCurrentUserStats = async (req, res, next) => {
           ? [...user.rewardHistory, { type: 'reward', xp: 0, diamonds: 0, hearts: deltaHearts, reason: 'update', source: 'client', levelBefore: user.level, levelAfter: user.level, createdAt: new Date() }]
           : [{ type: 'reward', xp: 0, diamonds: 0, hearts: deltaHearts, reason: 'update', source: 'client', levelBefore: user.level, levelAfter: user.level, createdAt: new Date() }];
       }
-    }
-
-    if (payload.maxHearts !== undefined) {
-      user.maxHearts = Math.max(0, safeNumber(payload.maxHearts, user.maxHearts || 0));
     }
 
     if (payload.diamonds !== undefined) {

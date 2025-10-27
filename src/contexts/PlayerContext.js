@@ -18,7 +18,6 @@ interface Player {
   wallet: {
     diamonds: number;
     hearts: number;
-    maxHearts: number;
   };
   totals: {
     lessonsCompleted: number;

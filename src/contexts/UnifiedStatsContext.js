@@ -232,7 +232,6 @@ export const UnifiedStatsProvider = ({ children }) => {
     xp: stats?.xp || 0,
     diamonds: stats?.diamonds || 0,
     hearts: Number.isFinite(stats?.hearts) ? stats.hearts : 0,
-    maxHearts: Number.isFinite(stats?.maxHearts) ? stats.maxHearts : (Number.isFinite(stats?.hearts) ? stats.hearts : 0),
     level: xpProgress.level,
     streak: stats?.streak || 0,
     maxStreak: stats?.maxStreak || 0,

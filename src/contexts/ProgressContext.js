@@ -285,11 +285,6 @@ export const ProgressProvider = ({ children }) => {
       xp: totalXP,
       diamonds: Number.isFinite(diamonds) ? diamonds : 0,
       hearts: Number.isFinite(hearts) ? hearts : 5,
-      maxHearts: Number.isFinite(stats?.maxHearts)
-        ? stats.maxHearts
-        : Number.isFinite(hearts)
-        ? Math.max(hearts, 5)
-        : 5,
       level: xpSnapshot.level,
       streak: getCurrentStreak(),
       maxStreak: Number.isFinite(maxStreak) ? maxStreak : 0,
@@ -311,7 +306,6 @@ export const ProgressProvider = ({ children }) => {
     lessonProgress,
     maxStreak,
     stats?.lessonsCompleted,
-    stats?.maxHearts,
     totalCorrectAnswers,
     totalSessions,
     totalTimeSpent,
@@ -326,7 +320,6 @@ export const ProgressProvider = ({ children }) => {
     userProgress,
     progress: lessonProgress,
     hearts: userProgress.hearts,
-    maxHearts: userProgress.maxHearts,
     streak: userProgress.streak,
     xp: userProgress.xp,
     diamonds: userProgress.diamonds,

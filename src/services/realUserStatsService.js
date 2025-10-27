@@ -171,13 +171,9 @@ class RealUserStatsService {
       const nextHearts = Number.isFinite(mergedStats.hearts)
         ? mergedStats.hearts
         : (Number.isFinite(currentStats.hearts) ? currentStats.hearts : 0);
-      const currentMaxHearts = Number.isFinite(mergedStats.maxHearts)
-        ? mergedStats.maxHearts
-        : (Number.isFinite(currentStats.maxHearts) ? currentStats.maxHearts : nextHearts);
 
       mergedStats = {
         ...mergedStats,
-        maxHearts: currentMaxHearts,
         hearts: Math.max(0, nextHearts)
       };
 

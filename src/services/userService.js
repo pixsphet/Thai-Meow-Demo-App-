@@ -203,11 +203,7 @@ const userService = {
 
       const current = statsResult.data || {};
       const currentHearts = Number.isFinite(current.hearts) ? current.hearts : 5;
-      const maxHearts = Number.isFinite(current.maxHearts) ? current.maxHearts : (Number.isFinite(current.hearts) ? current.hearts : 0);
-      const nextHearts = clamp(currentHearts + Number(amount || 0), {
-        min: 0,
-        max: maxHearts
-      });
+      const nextHearts = Math.max(0, currentHearts + Number(amount || 0));
 
       return this.updateUserStats({ hearts: nextHearts });
     } catch (error) {

@@ -2,7 +2,6 @@ export const XP_CONFIG = {
   baseRequirement: 100,
   growthRate: 1.15,
   roundingStep: 5,
-  maxHearts: 10,
 };
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));

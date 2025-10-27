@@ -13,7 +13,6 @@ const UserSchema = new mongoose.Schema(
     longestStreak: { type: Number, default: 0 },
     lastActiveAt: { type: Date, default: null },
     hearts: { type: Number, default: 5 },
-    maxHearts: { type: Number, default: 5 },
     diamonds: { type: Number, default: 0 },
     lessonsCompleted: { type: Number, default: 0 },
     maxStreak: { type: Number, default: 0 },
