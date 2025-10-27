@@ -1053,8 +1053,16 @@ const Lesson4ObjectsGame = ({ navigation, route }) => {
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => navigation.goBack()}
+            activeOpacity={0.7}
           >
-            <FontAwesome name="times" size={26} color={COLORS.white} />
+            <LinearGradient
+              colors={['rgba(255,255,255,0.3)', 'rgba(255,255,255,0.2)']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.backButtonGradient}
+            >
+              <FontAwesome name="arrow-left" size={22} color={COLORS.white} />
+            </LinearGradient>
           </TouchableOpacity>
           
           <View style={styles.progressContainer}>
@@ -1138,9 +1146,9 @@ const Lesson4ObjectsGame = ({ navigation, route }) => {
           ]}>
             <FontAwesome 
               name={lastCorrect ? 'check-circle' : 'times-circle'} 
-              size={24} 
+              size={28} 
               color={lastCorrect ? '#58cc02' : '#ff4b4b'}
-              style={{ marginRight: 8 }}
+              style={{ marginRight: 10 }}
             />
             <Text style={styles.feedbackTextEnhanced}>
               {lastCorrect ? 'ถูกต้อง! ยอดเยี่ยม' : 'พยายามอีกครั้ง'}
@@ -1151,6 +1159,7 @@ const Lesson4ObjectsGame = ({ navigation, route }) => {
           style={[
             styles.checkButtonEnhanced,
             currentAnswer === null && styles.checkButtonDisabledEnhanced,
+            checked && styles.checkButtonNextEnhanced,
           ]}
           onPress={() => {
             if (checked) {
@@ -1170,19 +1179,25 @@ const Lesson4ObjectsGame = ({ navigation, route }) => {
           activeOpacity={0.85}
         >
           <LinearGradient
-            colors={currentAnswer === null ? ['#ddd', '#ccc'] : [COLORS.primary, '#FFA24D']}
+            colors={
+              currentAnswer === null 
+                ? ['#ddd', '#ccc'] 
+                : checked 
+                  ? ['#4CAF50', '#66BB6A']
+                  : [COLORS.primary, '#FFA24D']
+            }
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.checkGradientEnhanced}
           >
             <FontAwesome 
-              name={checked ? 'arrow-right' : 'check'} 
-              size={20} 
+              name={checked ? 'arrow-right' : 'check-circle'} 
+              size={24} 
               color={COLORS.white}
-              style={{ marginRight: 8 }}
+              style={{ marginRight: 10 }}
             />
             <Text style={styles.checkButtonTextEnhanced}>
-              {checked ? (hearts === 0 ? 'จบเกม' : 'ต่อไป') : 'CHECK'}
+              {checked ? (hearts === 0 ? 'จบเกม' : 'NEXT') : 'CHECK'}
             </Text>
           </LinearGradient>
         </TouchableOpacity>
@@ -1307,7 +1322,24 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   backButton: {
-    marginRight: 15,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    overflow: 'hidden',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    marginRight: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  backButtonGradient: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   progressContainer: {
     flex: 1,
@@ -1884,6 +1916,12 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 8,
     minWidth: 200,
+    width: '90%',
+    maxWidth: 320,
+  },
+  checkButtonNextEnhanced: {
+    shadowColor: '#4CAF50',
+    shadowOpacity: 0.5,
   },
   checkGradientEnhanced: {
     width: '100%',
