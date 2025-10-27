@@ -6,6 +6,7 @@ const UserSchema = new mongoose.Schema(
     email: { type: String, unique: true, required: true },
     passwordHash: { type: String, required: true },
     petName: { type: String, default: 'น้องแมว' },
+    avatar: { type: String, default: null },
     level: { type: Number, default: 1 },
     xp: { type: Number, default: 0 },
     streak: { type: Number, default: 0 },
