@@ -175,7 +175,10 @@ const VocabLearnCard = ({ item, onSpeak, seen }) => {
         )}
       </View>
 
-      <Text style={styles.name}>{item.english}</Text>
+      {/* English translation - always visible */}
+      <View style={styles.englishContainer}>
+        <Text style={styles.englishText}>{item.english || ''}</Text>
+      </View>
 
       <View style={styles.footerRow}>
         <Text style={styles.meta}>{item.english}</Text>
@@ -951,6 +954,24 @@ const styles = StyleSheet.create({
     color: '#7f8c8d',
     textAlign: 'center',
     lineHeight: 16,
+  },
+  
+  // English translation container
+  englishContainer: {
+    backgroundColor: '#FFF5E5',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginTop: 8,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#FFD700',
+  },
+  englishText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FF8000',
+    textAlign: 'center',
   },
   
   // Flip Card styles

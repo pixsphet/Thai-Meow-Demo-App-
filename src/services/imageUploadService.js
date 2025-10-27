@@ -38,20 +38,20 @@ class ImageUploadService {
       if (!hasPermission) return null;
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ['images'],
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
       });
 
-      if (!result.canceled) {
+      if (!result.canceled && result.assets && result.assets.length > 0) {
         return result.assets[0];
       }
 
       return null;
     } catch (error) {
       console.error('Error picking image:', error);
-      Alert.alert('ข้อผิดพลาด', 'ไม่สามารถเลือกรูปภาพได้');
+      Alert.alert('ข้อผิดพลาด', error.message || 'ไม่สามารถเลือกรูปภาพได้');
       return null;
     }
   }
@@ -68,7 +68,7 @@ class ImageUploadService {
         quality: 0.8,
       });
 
-      if (!result.canceled) {
+      if (!result.canceled && result.assets && result.assets.length > 0) {
         return result.assets[0];
       }
 
