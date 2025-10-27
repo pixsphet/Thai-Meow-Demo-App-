@@ -20,7 +20,6 @@ import { useUserData } from "../contexts/UserDataContext";
 import { useUnifiedStats } from "../contexts/UnifiedStatsContext";
 import userService from "../services/userService";
 import { getLevelRewards, getXpProgress } from "../utils/leveling";
-import ThemeToggleButton from "../components/ThemeToggleButton";
 
 const tabItems = [
   { name: 'Home', label: 'หน้าแรก', icon: 'home', screen: 'HomeMain' },
@@ -377,10 +376,6 @@ const ProfileScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
-      <View style={styles.headerTopBar}>
-        <View style={{ flex: 1 }} />
-        <ThemeToggleButton size="small" />
-      </View>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}

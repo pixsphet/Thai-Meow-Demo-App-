@@ -25,7 +25,6 @@ import { resetAllLessonProgress, resetLessonProgress, resetEverything } from '..
 import gameProgressService from '../services/gameProgressService';
 
 import { useTheme } from '../contexts/ThemeContext';
-import ThemeToggleButton from '../components/ThemeToggleButton';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -344,7 +343,6 @@ const SettingsScreen = () => {
             <Text style={styles.heroTitle}>ตั้งค่า</Text>
             <Text style={styles.heroSubtitle}>จัดการประสบการณ์การเรียนรู้ของคุณ</Text>
           </View>
-          <ThemeToggleButton size="small" style={{ marginRight: 10 }} />
         </LinearGradient>
       </View>
 

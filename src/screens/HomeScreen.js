@@ -8,9 +8,7 @@ import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import LottieView from 'lottie-react-native';
 import StreakLevelDisplay from '../components/StreakLevelDisplay';
-import UserSwitcher from '../components/UserSwitcher';
 import DataSyncIndicator from '../components/DataSyncIndicator';
-import ThemeToggleButton from '../components/ThemeToggleButton';
 import dataSyncService from '../services/dataSyncService';
 import { XP_CONFIG, getLevelRewards } from '../utils/leveling';
 
@@ -301,10 +299,6 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
-      <View style={styles.headerTopBar}>
-        <View style={{ flex: 1 }} />
-        <ThemeToggleButton size="small" />
-      </View>
       <ScrollView 
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }} // Add padding for tab bar
@@ -319,10 +313,8 @@ const HomeScreen = ({ navigation }) => {
               พร้อมเรียนภาษาไทยกันไหม?
             </Text>
           </View>
-          {/* Right: User Switcher & Status badges */}
+          {/* Right: Status badges */}
           <View style={styles.headerStatusRight}>
-            <UserSwitcher navigation={navigation} />
-
             {/* Hearts */}
             <View style={styles.statusBadge}>
               <View style={styles.badgeIconWrap}>
@@ -978,14 +970,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     lineHeight: 16,
-  },
-  headerTopBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    backgroundColor: 'transparent', // Ensure it's transparent
   },
 });
 
