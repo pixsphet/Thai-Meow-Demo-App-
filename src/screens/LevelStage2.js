@@ -361,14 +361,12 @@ const LevelStage2 = ({ navigation }) => {
           };
         }
 
-        // Check if level is already unlocked from database
-        const isUnlocked = await levelUnlockService.isLevelUnlocked(levelId);
-        
-        // Only unlock this specific level if:
-        // 1. Previous stage passed (>= 70%)
-        // 2. Current level not yet unlocked
-        // 3. Previous stage exists
-        if (prevPassed && !isUnlocked && user?.id && prevStage) {
+        const wasLockedBefore =
+          !levelProgress.status ||
+          levelProgress.status === 'locked' ||
+          levelProgress.status === 'unlocked';
+
+        if (wasLockedBefore && user?.id && prevStage) {
           const previousLevelId = `level_intermediate_${prevStage.lesson_id}`;
           try {
             await levelUnlockService.unlockLevel({
@@ -381,7 +379,6 @@ const LevelStage2 = ({ navigation }) => {
               attempts: levelProgress.attempts ?? 0,
               bestScore: levelProgress.bestScore ?? 0,
             });
-            console.log(`🔓 Unlocked: ${levelId}`);
           } catch (unlockError) {
             console.warn(
               '⚠️ Unable to persist intermediate unlock for',
@@ -392,14 +389,11 @@ const LevelStage2 = ({ navigation }) => {
         }
 
         let statusFromProgress = levelProgress.status;
-        
-        // Determine status based on unlock state and completion
+        if (!statusFromProgress || statusFromProgress === 'locked') {
+          statusFromProgress = 'current';
+        }
         if (levelProgress.completed) {
           statusFromProgress = 'done';
-        } else if (isUnlocked || prevPassed) {
-          statusFromProgress = 'current';
-        } else {
-          statusFromProgress = 'locked';
         }
 
         const accuracyPercent =

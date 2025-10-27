@@ -81,6 +81,9 @@ const ChangePasswordScreen = () => {
 
     const validatePassword = (password) => {
         if (password.length < 6) return false;
+        if (!/[a-z]/.test(password)) return false;
+        if (!/[A-Z]/.test(password)) return false;
+        if (!/[0-9]/.test(password)) return false;
         return true;
     };
 
@@ -104,7 +107,7 @@ const ChangePasswordScreen = () => {
         if (!validatePassword(newPassword)) {
             Alert.alert(
                 'รหัสผ่านไม่ถูกต้อง',
-                'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'
+                'รหัสผ่านต้องมี:\n• ตัวอักษรตัวเล็ก (a-z)\n• ตัวอักษรตัวใหญ่ (A-Z)\n• ตัวเลข (0-9)\n• อย่างน้อย 6 ตัวอักษร'
             );
             return;
         }
@@ -299,6 +302,9 @@ const ChangePasswordScreen = () => {
                                     ✓ ต้องการเงื่อนไขรหัสผ่าน:
                                 </Text>
                                 <Text style={[styles.validationText, { color: theme.textSecondary }]}>
+                                    • ตัวอักษรตัวเล็ก (a-z){'\n'}
+                                    • ตัวอักษรตัวใหญ่ (A-Z){'\n'}
+                                    • ตัวเลข (0-9){'\n'}
                                     • อย่างน้อย 6 ตัวอักษร
                                 </Text>
                             </View>

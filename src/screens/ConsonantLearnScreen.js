@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator, Image, ScrollView as RNScrollView } from 'react-native';
+import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator, Image, ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import ThemedBackButton from '../components/ThemedBackButton';
 import FlipCard from '../components/FlipCard';
@@ -8,7 +8,6 @@ import vaja9TtsService from '../services/vaja9TtsService';
 import { charToImage } from '../assets/letters/map';
 import { vowelToImage } from '../assets/vowels/map';
 import vocabFullData from '../data/vocab_full.json';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 // --- CONFIG ---
 const USER_ID = 'demo';
@@ -201,49 +200,19 @@ const VocabLearnCard = ({ item, onSpeak, seen }) => {
         </TouchableOpacity>
       </View>
 
-      <RNScrollView 
-        style={styles.backContentContainer}
-        contentContainerStyle={styles.backContentScroll}
-        showsVerticalScrollIndicator={false}
-      >
+      <View style={styles.backContentContainer}>
         {/* Thai Description */}
         <View style={styles.backSection}>
           <Text style={styles.backLabel}>🇹🇭 คำอธิบาย</Text>
-          <Text style={styles.backTextThai}>
-            {item.descriptionTH || `${item.english} is a ${item.english} in Thai.`}
-          </Text>
+          <Text style={styles.backTextThai}>{item.descriptionTH}</Text>
         </View>
         
         {/* English Description */}
         <View style={styles.backSection}>
           <Text style={styles.backLabel}>🇬🇧 Description</Text>
-          <Text style={styles.backTextEnglish}>
-            {item.descriptionEN || `${item.english} - ${item.thai} means ${item.english} in Thai language.`}
-          </Text>
+          <Text style={styles.backTextEnglish}>{item.descriptionEN}</Text>
         </View>
-
-        {/* Show examples if available */}
-        {item.examplesTH && item.examplesTH.length > 0 && (
-          <View style={styles.examplesSection}>
-            <Text style={styles.examplesLabel}>📝 ตัวอย่างประโยค</Text>
-            {item.examplesTH.slice(0, 2).map((example, idx) => (
-              <Text key={idx} style={styles.exampleTextThai}>
-                {idx + 1}. {example}
-              </Text>
-            ))}
-            {item.examplesEN && item.examplesEN.length > 0 && (
-              <>
-                <Text style={styles.examplesLabelEn}>Examples</Text>
-                {item.examplesEN.slice(0, 2).map((example, idx) => (
-                  <Text key={idx} style={styles.exampleTextEnglish}>
-                    {idx + 1}. {example}
-                  </Text>
-                ))}
-              </>
-            )}
-          </View>
-        )}
-      </RNScrollView>
+      </View>
     </View>
   );
 
@@ -258,7 +227,6 @@ const VocabLearnCard = ({ item, onSpeak, seen }) => {
 
 const LearnCard = ({ item, onSpeak, seen, category }) => {
   const mastered = seen?.mastered;
-  
   const getCardStyle = () => {
     switch (category) {
       case 'thai-consonants':
@@ -285,61 +253,11 @@ const LearnCard = ({ item, onSpeak, seen, category }) => {
     }
   };
 
-  // คำอธิบาย
-  const getDescription = () => {
-    const char = item.char;
-    const descriptions = {
-      'ก': 'พยัญชนะที่เกิดจากเสียง กอ (ko) ใช้ท้ายคำได้ เช่น ก๊อแก๊ส (ko-gear)',
-      'ข': 'พยัญชนะที่เกิดจากเสียง ขอ (kho) เช่น ขา (kha) หมายถึง ขา',
-      'ค': 'พยัญชนะที่เกิดจากเสียง คอ (kho khwai) ควาย',
-      'ง': 'พยัญชนะที่เกิดจากเสียง งอ (ngo) งู',
-      'จ': 'พยัญชนะที่เกิดจากเสียง จอ (cho chan) จาน',
-      'ฉ': 'พยัญชนะที่เกิดจากเสียง ฉอ (cho ching) ฉิ่ง',
-      'ช': 'พยัญชนะที่เกิดจากเสียง ชอ (cho chang) ช้าง',
-      'ซ': 'พยัญชนะที่เกิดจากเสียง ซอ (so so) โซ่',
-      'ฌ': 'พยัญชนะที่เกิดจากเสียง ฌอ (cho cher) เฌอ',
-      'ญ': 'พยัญชนะที่เกิดจากเสียง ญอ (yo ying) หญิง',
-      'ฎ': 'พยัญชนะที่เกิดจากเสียง ฎอ (do chada) ชฎา',
-      'ฏ': 'พยัญชนะที่เกิดจากเสียง ฏอ (to patak) ปฏัก',
-      'ฐ': 'พยัญชนะที่เกิดจากเสียง ฐอ (tho than) ฐาน',
-      'ฑ': 'พยัญชนะที่เกิดจากเสียง ฑอ (tho montho) มณโฑ',
-      'ฒ': 'พยัญชนะที่เกิดจากเสียง ฒอ (tho phu thao) ผู้เฒ่า',
-      'ณ': 'พยัญชนะที่เกิดจากเสียง ณอ (no nen) เณร',
-      'ด': 'พยัญชนะที่เกิดจากเสียง ดอ (do dek) เด็ก',
-      'ต': 'พยัญชนะที่เกิดจากเสียง ตอ (to tao) เต่า',
-      'ถ': 'พยัญชนะที่เกิดจากเสียง ถอ (tho thung) ถุง',
-      'ท': 'พยัญชนะที่เกิดจากเสียง ทอ (tho thahan) ทหาร',
-      'ธ': 'พยัญชนะที่เกิดจากเสียง ธอ (tho thong) ธง',
-      'น': 'พยัญชนะที่เกิดจากเสียง นอ (no nu) หนู',
-      'บ': 'พยัญชนะที่เกิดจากเสียง บอ (bo baimai) ใบไม้',
-      'ป': 'พยัญชนะที่เกิดจากเสียง ปอ (po pla) ปลา',
-      'ผ': 'พยัญชนะที่เกิดจากเสียง ผอ (pho phueng) ผึ้ง',
-      'ฝ': 'พยัญชนะที่เกิดจากเสียง ฝอ (fo fa) ฝา',
-      'พ': 'พยัญชนะที่เกิดจากเสียง พอ (pho phan) พาน',
-      'ฟ': 'พยัญชนะที่เกิดจากเสียง ฟอ (fo fan) ฟัน',
-      'ภ': 'พยัญชนะที่เกิดจากเสียง ภอ (pho samphao) สำเภา',
-      'ม': 'พยัญชนะที่เกิดจากเสียง มอ (mo ma) ม้า',
-      'ย': 'พยัญชนะที่เกิดจากเสียง ยอ (yo yak) ยักษ์',
-      'ร': 'พยัญชนะที่เกิดจากเสียง รอ (ro ruea) เรือ',
-      'ล': 'พยัญชนะที่เกิดจากเสียง ลอ (lo ling) ลิง',
-      'ว': 'พยัญชนะที่เกิดจากเสียง วอ (wo waen) แหวน',
-      'ศ': 'พยัญชนะที่เกิดจากเสียง ศอ (so sala) ศาลา',
-      'ษ': 'พยัญชนะที่เกิดจากเสียง ษอ (so ruesi) ฤาษี',
-      'ส': 'พยัญชนะที่เกิดจากเสียง สอ (so suea) เสือ',
-      'ห': 'พยัญชนะที่เกิดจากเสียง หอ (ho hip) หีบ',
-      'ฬ': 'พยัญชนะที่เกิดจากเสียง ฬอ (lo chula) จุฬา',
-      'อ': 'พยัญชนะที่เกิดจากเสียง ออ (o ang) อ่าง',
-      'ฮ': 'พยัญชนะที่เกิดจากเสียง ฮอ (ho nok huk) นกฮูก',
-    };
-    return descriptions[char] || `พยัญชนะ ${item.name} ${item.meaning}`;
-  };
-
-  // Front of card
-  const front = (
+  return (
     <View style={getCardStyle()}>
       <View style={styles.cardHeader}>
         <Text style={getCharStyle()}>{item.char}</Text>
-        <TouchableOpacity style={styles.sound} onPress={(e) => { e.stopPropagation(); onSpeak(item); }}>
+        <TouchableOpacity style={styles.sound} onPress={() => onSpeak(item)}>
           <Image source={require('../assets/icons/speaker.png')} style={styles.speakerIcon} />
         </TouchableOpacity>
       </View>
@@ -365,57 +283,7 @@ const LearnCard = ({ item, onSpeak, seen, category }) => {
           <Text style={styles.meta}>New</Text>
         )}
       </View>
-      
-      <View style={styles.flipHint}>
-        <MaterialCommunityIcons name="gesture-tap" size={16} color="#FF8000" />
-        <Text style={styles.flipHintText}>แตะเพื่อพลิก</Text>
-      </View>
     </View>
-  );
-
-  // Back of card
-  const back = (
-    <View style={[styles.card, styles.cardBack, mastered && styles.cardMastered]}>
-      <View style={styles.cardHeader}>
-        <Text style={getCharStyle()}>{item.char}</Text>
-        <TouchableOpacity style={styles.sound} onPress={(e) => { e.stopPropagation(); onSpeak(item); }}>
-          <Image source={require('../assets/icons/speaker.png')} style={styles.speakerIcon} />
-        </TouchableOpacity>
-      </View>
-
-      <RNScrollView 
-        style={styles.backContentContainer}
-        contentContainerStyle={styles.backContentScroll}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.backSection}>
-          <Text style={styles.backLabel}>🇹🇭 คำอธิบาย</Text>
-          <Text style={styles.backTextThai}>
-            {getDescription()}
-          </Text>
-        </View>
-        
-        <View style={styles.backSection}>
-          <Text style={styles.backLabel}>🇬🇧 Description</Text>
-          <Text style={styles.backTextEnglish}>
-            {item.roman}: {item.meaning} - {item.name}
-          </Text>
-        </View>
-      </RNScrollView>
-      
-      <View style={styles.flipHint}>
-        <MaterialCommunityIcons name="gesture-tap" size={16} color="#FF8000" />
-        <Text style={styles.flipHintText}>แตะเพื่อพลิก</Text>
-      </View>
-    </View>
-  );
-
-  return (
-    <FlipCard 
-      front={front} 
-      back={back} 
-      style={styles.flipCardWrapperLearn}
-    />
   );
 };
 
@@ -657,7 +525,7 @@ const ConsonantLearnScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      <RNScrollView
+      <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -669,7 +537,7 @@ const ConsonantLearnScreen = ({ navigation }) => {
         {activeTab === 'vocab' && (
           <View style={styles.vocabContainer}>
             {/* Category Tabs */}
-            <RNScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryTabsContainer}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryTabsContainer}>
               {Object.keys(vocabCategories).map(cat => (
                 <TouchableOpacity
                   key={cat}
@@ -681,7 +549,7 @@ const ConsonantLearnScreen = ({ navigation }) => {
                   </Text>
                 </TouchableOpacity>
               ))}
-            </RNScrollView>
+            </ScrollView>
 
             {/* Render active category */}
             {activeVocabCategory && vocabCategories[activeVocabCategory] && (
@@ -715,7 +583,7 @@ const ConsonantLearnScreen = ({ navigation }) => {
             )}
           </View>
         )}
-      </RNScrollView>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -1088,12 +956,7 @@ const styles = StyleSheet.create({
   // Flip Card styles
   flipCardWrapper: {
     width: '100%',
-    height: 320,
-    marginBottom: 16,
-  },
-  flipCardWrapperLearn: {
-    width: '100%',
-    height: 280,
+    height: 240,
     marginBottom: 16,
   },
   vocabCardBack: {
@@ -1101,29 +964,10 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
     borderLeftColor: '#FF6B6B',
   },
-  cardBack: {
-    backgroundColor: '#FFF8F0',
-    borderLeftWidth: 4,
-    borderLeftColor: '#FF6B6B',
-  },
-  flipHint: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8,
-    gap: 4,
-  },
-  flipHintText: {
-    fontSize: 12,
-    color: '#FF8000',
-    fontWeight: '600',
-  },
   backContentContainer: {
     flex: 1,
-  },
-  backContentScroll: {
+    justifyContent: 'center',
     paddingVertical: 8,
-    paddingHorizontal: 4,
   },
   backSection: {
     marginBottom: 16,
@@ -1145,42 +989,6 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     color: '#495057',
     lineHeight: 20,
-    fontStyle: 'italic',
-  },
-  
-  // Examples section
-  examplesSection: {
-    marginTop: 8,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#e9ecef',
-  },
-  examplesLabel: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#FF8000',
-    marginBottom: 8,
-  },
-  examplesLabelEn: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#6c757d',
-    marginTop: 8,
-    marginBottom: 6,
-  },
-  exampleTextThai: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#495057',
-    lineHeight: 18,
-    marginBottom: 4,
-  },
-  exampleTextEnglish: {
-    fontSize: 12,
-    fontWeight: '400',
-    color: '#6c757d',
-    lineHeight: 16,
-    marginBottom: 4,
     fontStyle: 'italic',
   },
 

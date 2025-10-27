@@ -263,10 +263,6 @@ const SignInScreen = () => {
               </TouchableOpacity>
               <Text style={[styles.privacyPolicyText, { color: theme.colors.textSecondary }]}>Remember me</Text>
             </View>
-
-                <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
-                  <Text style={[styles.forgotpasswordLink, { color: theme.colors.brand }]}>Forgot password?</Text>
-                </TouchableOpacity>
           </View>
 
           {(!email || !password) ? (

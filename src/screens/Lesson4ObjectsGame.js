@@ -61,7 +61,6 @@ const { width, height } = Dimensions.get('window');
 const QUESTION_TYPES = {
   LISTEN_CHOOSE: 'LISTEN_CHOOSE',
   PICTURE_MATCH: 'PICTURE_MATCH',
-  DRAG_MATCH: 'DRAG_MATCH',
   FILL_BLANK: 'FILL_BLANK',
 };
 
@@ -104,8 +103,6 @@ const getHintText = (type) => {
       return 'แตะปุ่มลำโพงเพื่อฟังซ้ำ แล้วเลือกคำที่ได้ยิน';
     case QUESTION_TYPES.PICTURE_MATCH:
       return 'ดูภาพตรงกลาง แล้วเลือกคำที่ตรงกัน';
-    case QUESTION_TYPES.DRAG_MATCH:
-      return 'แตะเพื่อจับคู่ ไทย ↔ English';
     case QUESTION_TYPES.FILL_BLANK:
       return 'แตะตัวเลือกเพื่อเติมคำให้ถูกต้อง';
     default:
@@ -120,7 +117,6 @@ const getTypeLabel = (type) => {
   switch (type) {
     case QUESTION_TYPES.LISTEN_CHOOSE: return 'ฟังเสียงเลือกคำ';
     case QUESTION_TYPES.PICTURE_MATCH: return 'จับคู่จากรูปภาพ';
-    case QUESTION_TYPES.DRAG_MATCH: return 'จับคู่ไทย ↔ English';
     case QUESTION_TYPES.FILL_BLANK: return 'เติมคำ';
     default: return '';
   }
@@ -171,40 +167,6 @@ const makePictureMatch = (word, pool) => {
   };
 };
 
-const makeDragMatch = (word, pool) => {
-  const otherWords = pool.filter(w => w.char !== word.char).slice(0, 3);
-  const allWords = shuffle([word, ...otherWords]);
-  
-  const leftItems = allWords.map((w, i) => ({
-    id: i,
-    text: w.char,
-    correctMatch: w.en,
-    speakText: w.audioText,
-  }));
-  
-  const rightItems = allWords.map((w, i) => ({
-    id: i,
-    text: w.en,
-    thai: w.char,
-    speakText: w.audioText,
-  }));
-  
-  // Shuffle right items for better gameplay
-  const rightItemsShuffled = shuffle([...rightItems]);
-  
-  return {
-    id: `dm_${word.char}_${uid()}`,
-    type: QUESTION_TYPES.DRAG_MATCH,
-    instruction: 'จับคู่คำไทยกับความหมายภาษาอังกฤษ',
-    leftItems,
-    rightItems: rightItemsShuffled,
-    correctPairs: leftItems.map(left => ({
-      leftId: left.id,
-      rightId: rightItemsShuffled.findIndex(r => r.text === left.correctMatch),
-    })),
-  };
-};
-
 const makeFillBlank = (word, pool) => {
   const templates = [
     `ฉันมี ____ ในกระเป๋า`,
@@ -234,13 +196,13 @@ const makeFillBlank = (word, pool) => {
   };
 };
 
-// Generate questions (target 12): LC×4, PM×3, DM×3, FB×2
+// Generate questions (target 12): LC×5, PM×4, FB×3
 const generateObjectQuestions = (pool) => {
   const questions = [];
   const usedChars = new Set();
   
-  // LISTEN_CHOOSE × 4
-  for (let i = 0; i < 4; i++) {
+  // LISTEN_CHOOSE × 5
+  for (let i = 0; i < 5; i++) {
     const available = pool.filter(w => !usedChars.has(w.char));
     if (available.length === 0) break;
     const word = pick(available);
@@ -248,8 +210,8 @@ const generateObjectQuestions = (pool) => {
     questions.push(makeListenChoose(word, pool));
   }
   
-  // PICTURE_MATCH × 3
-  for (let i = 0; i < 3; i++) {
+  // PICTURE_MATCH × 4
+  for (let i = 0; i < 4; i++) {
     const available = pool.filter(w => !usedChars.has(w.char));
     if (available.length === 0) break;
     const word = pick(available);
@@ -257,17 +219,8 @@ const generateObjectQuestions = (pool) => {
     questions.push(makePictureMatch(word, pool));
   }
   
-  // DRAG_MATCH × 3
+  // FILL_BLANK × 3
   for (let i = 0; i < 3; i++) {
-    const available = pool.filter(w => !usedChars.has(w.char));
-    if (available.length === 0) break;
-    const word = pick(available);
-    usedChars.add(word.char);
-    questions.push(makeDragMatch(word, pool));
-  }
-  
-  // FILL_BLANK × 2
-  for (let i = 0; i < 2; i++) {
     const available = pool.filter(w => !usedChars.has(w.char));
     if (available.length === 0) break;
     const word = pick(available);
@@ -285,17 +238,6 @@ const checkAnswer = (question, userAnswer) => {
     case QUESTION_TYPES.PICTURE_MATCH:
     case QUESTION_TYPES.FILL_BLANK:
       return userAnswer === question.correctText;
-    
-    case QUESTION_TYPES.DRAG_MATCH:
-      if (!userAnswer || !Array.isArray(userAnswer)) return false;
-      // Check if all pairs are correctly connected
-      const allCorrect = userAnswer.length === question.leftItems.length &&
-        userAnswer.every(pair => {
-          const leftItem = question.leftItems.find(l => l.id === pair.leftId);
-          const rightItem = question.rightItems.find(r => r.id === pair.rightId);
-          return leftItem && rightItem && leftItem.correctMatch === rightItem.text;
-        });
-      return allCorrect;
     
     default:
       return false;
@@ -364,9 +306,6 @@ const Lesson4ObjectsGame = ({ navigation, route }) => {
   const [resumeData, setResumeData] = useState(null);
   const [checked, setChecked] = useState(false);
   const [lastCorrect, setLastCorrect] = useState(null);
-  const [dmConnections, setDmConnections] = useState({});
-  const [dmSelectedLeft, setDmSelectedLeft] = useState(null);
-  const [dmSelectedRight, setDmSelectedRight] = useState(null);
 
   // Refs
   const startTimeRef = useRef(Date.now());
@@ -544,22 +483,7 @@ const Lesson4ObjectsGame = ({ navigation, route }) => {
   useEffect(() => {
     setChecked(false);
     setLastCorrect(null);
-    setDmSelectedLeft(null);
-    setDmSelectedRight(null);
   }, [currentIndex]);
-
-  // Sync dmConnections when currentAnswer changes (for DRAG_MATCH)
-  useEffect(() => {
-    if (currentAnswer && typeof currentAnswer === 'object' && Array.isArray(currentAnswer)) {
-      const conn = {};
-      currentAnswer.forEach(pair => {
-        conn[pair.leftId] = pair.rightId;
-      });
-      setDmConnections(conn);
-    } else {
-      setDmConnections({});
-    }
-  }, [currentAnswer]);
 
   // Next question
   const nextQuestion = () => {
@@ -810,131 +734,6 @@ const Lesson4ObjectsGame = ({ navigation, route }) => {
             </View>
           </View>
         );
-      
-      case QUESTION_TYPES.DRAG_MATCH: {
-        const palette = ['#FF9635', '#4ECDC4', '#45B7D1', '#96CEB4', '#F7C873', '#DDA0DD', '#98D8C8', '#F7DC6F'];
-
-        const getColorForPair = (leftId) => {
-          const pairIndex = Object.keys(dmConnections).indexOf(String(leftId));
-          return palette[pairIndex % palette.length];
-        };
-
-        return (
-          <View style={styles.questionContainer}>
-            <Text style={styles.instruction}>{question.instruction}</Text>
-            <Text style={styles.hintText}>{getHintText(question.type)}</Text>
-
-            <View style={styles.matchingWrapper}>
-              <View style={styles.matchingHeaderRow}>
-                <Text style={styles.matchingHeaderLabel}>ไทย</Text>
-                <Text style={styles.matchingHeaderLabel}>English</Text>
-              </View>
-              <View style={styles.matchingColumns}>
-                <View style={styles.matchingColumn}>
-                  {question.leftItems.map((item) => {
-                    const pairedRight = dmConnections[item.id];
-                    const isSelected = dmSelectedLeft === item.id;
-                    const color = pairedRight !== undefined ? getColorForPair(item.id) : '#e0e0e0';
-
-                    return (
-                      <TouchableOpacity
-                        key={item.id}
-                        style={[
-                          styles.matchCard,
-                          isSelected && styles.matchCardSelected,
-                          pairedRight !== undefined && [
-                            styles.matchCardPaired,
-                            { borderColor: color, backgroundColor: `${color}1A` },
-                          ],
-                        ]}
-                        onPress={() => {
-                          if (pairedRight !== undefined) {
-                            const next = { ...dmConnections };
-                            delete next[item.id];
-                            setDmConnections(next);
-                            const newPairs = Object.entries(next).map(([l, r]) => ({
-                              leftId: parseInt(l, 10),
-                              rightId: r,
-                            }));
-                            setCurrentAnswer(newPairs);
-                            return;
-                          }
-                          setDmSelectedLeft(item.id);
-                          setDmSelectedRight(null);
-                        }}
-                      >
-                        <Text style={styles.matchCardText}>{item.text}</Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-
-                <View style={styles.matchingDivider} />
-
-                <View style={styles.matchingColumn}>
-                  {question.rightItems.map((item, index) => {
-                    const pairedLeftEntry = Object.entries(dmConnections).find(([, r]) => r === index);
-                    const pairedLeftId = pairedLeftEntry ? Number(pairedLeftEntry[0]) : null;
-                    const isSelected = dmSelectedRight === index;
-                    const color = pairedLeftId !== null ? getColorForPair(pairedLeftId) : '#e0e0e0';
-
-                    return (
-                      <TouchableOpacity
-                        key={index}
-                        style={[
-                          styles.matchCard,
-                          isSelected && styles.matchCardSelected,
-                          pairedLeftId !== null && [
-                            styles.matchCardPaired,
-                            { borderColor: color, backgroundColor: `${color}1A` },
-                          ],
-                        ]}
-                        onPress={() => {
-                          if (pairedLeftId !== null) {
-                            const next = Object.entries(dmConnections)
-                              .filter(([l]) => Number(l) !== pairedLeftId)
-                              .reduce((acc, [l, r]) => ({ ...acc, [l]: r }), {});
-                            setDmConnections(next);
-                            const newPairs = Object.entries(next).map(([l, r]) => ({
-                              leftId: parseInt(l, 10),
-                              rightId: r,
-                            }));
-                            setCurrentAnswer(newPairs);
-                            return;
-                          }
-                          if (dmSelectedLeft !== null) {
-                            const next = { ...dmConnections, [dmSelectedLeft]: index };
-                            setDmConnections(next);
-                            setDmSelectedLeft(null);
-                            setDmSelectedRight(null);
-                            const newPairs = Object.entries(next).map(([l, r]) => ({
-                              leftId: parseInt(l, 10),
-                              rightId: r,
-                            }));
-                            setCurrentAnswer(newPairs);
-                            return;
-                          }
-                          setDmSelectedRight(index);
-                          setDmSelectedLeft(null);
-                        }}
-                      >
-                        <View style={styles.matchCardRightContent}>
-                          <View style={{ flex: 1 }}>
-                            <Text style={styles.matchCardText}>{item.text}</Text>
-                            {item.subLabel ? (
-                              <Text style={styles.matchCardSubText}>{item.subLabel}</Text>
-                            ) : null}
-                          </View>
-                        </View>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              </View>
-            </View>
-          </View>
-        );
-      }
       
       case QUESTION_TYPES.FILL_BLANK:
         return (
