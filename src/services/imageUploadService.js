@@ -1,6 +1,6 @@
 import * as FileSystem from 'expo-file-system';
+import { Alert, Platform, Linking } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { Alert, Platform } from 'react-native';
 
 class ImageUploadService {
   constructor() {

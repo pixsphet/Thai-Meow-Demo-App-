@@ -8,28 +8,28 @@
 
 /* Begin PBXBuildFile section */
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
+		2E26DA5FD6BDABA5B2749EA6 /* libPods-ThaiMeow.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 77CBE834252068DB3BDD6ABD /* libPods-ThaiMeow.a */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
-		4320B6C84B8DCB5F6C0F0738 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 6E548C880978134999E68E05 /* PrivacyInfo.xcprivacy */; };
-		633260E71D6A03204B8B2720 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EEBEC9470575EEA90D193B0 /* ExpoModulesProvider.swift */; };
-		98B76662ED1C076B4844F264 /* libPods-ThaiMeow.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F62DFBF57AD1E8711859A153 /* libPods-ThaiMeow.a */; };
+		8B4CF3022E63AC3A33564FA7 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 5633B7C1BCB5948514352548 /* PrivacyInfo.xcprivacy */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
+		C53F79A5DE26DAD949D670F8 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B64ED5B615108DE1D73A1B2 /* ExpoModulesProvider.swift */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		0E937217CF2FEFA84B2AC671 /* Pods-ThaiMeow.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ThaiMeow.release.xcconfig"; path = "Target Support Files/Pods-ThaiMeow/Pods-ThaiMeow.release.xcconfig"; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* ThaiMeow.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ThaiMeow.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = ThaiMeow/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = ThaiMeow/Info.plist; sourceTree = "<group>"; };
-		5EEBEC9470575EEA90D193B0 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-ThaiMeow/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
-		6E548C880978134999E68E05 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = ThaiMeow/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		1E087BF4CEC13F2D0A850C75 /* Pods-ThaiMeow.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ThaiMeow.debug.xcconfig"; path = "Target Support Files/Pods-ThaiMeow/Pods-ThaiMeow.debug.xcconfig"; sourceTree = "<group>"; };
+		2CE6860919DC2F4261875A72 /* Pods-ThaiMeow.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ThaiMeow.release.xcconfig"; path = "Target Support Files/Pods-ThaiMeow/Pods-ThaiMeow.release.xcconfig"; sourceTree = "<group>"; };
+		5633B7C1BCB5948514352548 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = ThaiMeow/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		77CBE834252068DB3BDD6ABD /* libPods-ThaiMeow.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ThaiMeow.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		7B64ED5B615108DE1D73A1B2 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-ThaiMeow/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = ThaiMeow/SplashScreen.storyboard; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
-		D4DAADBE04D211DD6CF02FA6 /* Pods-ThaiMeow.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ThaiMeow.debug.xcconfig"; path = "Target Support Files/Pods-ThaiMeow/Pods-ThaiMeow.debug.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = ThaiMeow/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* ThaiMeow-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "ThaiMeow-Bridging-Header.h"; path = "ThaiMeow/ThaiMeow-Bridging-Header.h"; sourceTree = "<group>"; };
-		F62DFBF57AD1E8711859A153 /* libPods-ThaiMeow.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ThaiMeow.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -37,7 +37,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				98B76662ED1C076B4844F264 /* libPods-ThaiMeow.a in Frameworks */,
+				2E26DA5FD6BDABA5B2749EA6 /* libPods-ThaiMeow.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -53,16 +53,24 @@
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				6E548C880978134999E68E05 /* PrivacyInfo.xcprivacy */,
+				5633B7C1BCB5948514352548 /* PrivacyInfo.xcprivacy */,
 			);
 			name = ThaiMeow;
+			sourceTree = "<group>";
+		};
+		20F7F60570BE071BD3E71C32 /* ExpoModulesProviders */ = {
+			isa = PBXGroup;
+			children = (
+				8B26AB2C602A0C3FED473122 /* ThaiMeow */,
+			);
+			name = ExpoModulesProviders;
 			sourceTree = "<group>";
 		};
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				F62DFBF57AD1E8711859A153 /* libPods-ThaiMeow.a */,
+				77CBE834252068DB3BDD6ABD /* libPods-ThaiMeow.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -81,8 +89,8 @@
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
-				8B3B684ED332944CDDAF38A2 /* Pods */,
-				BED6283BCB9721B53084B2DF /* ExpoModulesProviders */,
+				DEFCD7EE372DC2EA961A0207 /* Pods */,
+				20F7F60570BE071BD3E71C32 /* ExpoModulesProviders */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -97,14 +105,12 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		8B3B684ED332944CDDAF38A2 /* Pods */ = {
+		8B26AB2C602A0C3FED473122 /* ThaiMeow */ = {
 			isa = PBXGroup;
 			children = (
-				D4DAADBE04D211DD6CF02FA6 /* Pods-ThaiMeow.debug.xcconfig */,
-				0E937217CF2FEFA84B2AC671 /* Pods-ThaiMeow.release.xcconfig */,
+				7B64ED5B615108DE1D73A1B2 /* ExpoModulesProvider.swift */,
 			);
-			name = Pods;
-			path = Pods;
+			name = ThaiMeow;
 			sourceTree = "<group>";
 		};
 		BB2F792B24A3F905000567C9 /* Supporting */ = {
@@ -116,20 +122,14 @@
 			path = ThaiMeow/Supporting;
 			sourceTree = "<group>";
 		};
-		BED6283BCB9721B53084B2DF /* ExpoModulesProviders */ = {
+		DEFCD7EE372DC2EA961A0207 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				E2881F9405564B5574122967 /* ThaiMeow */,
+				1E087BF4CEC13F2D0A850C75 /* Pods-ThaiMeow.debug.xcconfig */,
+				2CE6860919DC2F4261875A72 /* Pods-ThaiMeow.release.xcconfig */,
 			);
-			name = ExpoModulesProviders;
-			sourceTree = "<group>";
-		};
-		E2881F9405564B5574122967 /* ThaiMeow */ = {
-			isa = PBXGroup;
-			children = (
-				5EEBEC9470575EEA90D193B0 /* ExpoModulesProvider.swift */,
-			);
-			name = ThaiMeow;
+			name = Pods;
+			path = Pods;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -140,13 +140,13 @@
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "ThaiMeow" */;
 			buildPhases = (
 				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
-				D0620326ADD52AF05933337F /* [Expo] Configure project */,
+				9CE7E34E71DC7A93F4025286 /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
-				FC80B725D8CD4EB9747B500A /* [CP] Embed Pods Frameworks */,
+				CFC6B78603B49859483A1465 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -196,7 +196,7 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				4320B6C84B8DCB5F6C0F0738 /* PrivacyInfo.xcprivacy in Resources */,
+				8B4CF3022E63AC3A33564FA7 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -260,6 +260,7 @@
 				"${PODS_CONFIGURATION_BUILD_DIR}/expo-dev-menu/EXDevMenu.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/lottie-ios/LottiePrivacyInfo.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/lottie-react-native/Lottie_React_Native_Privacy.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/react-native-image-picker/RNImagePickerPrivacyInfo.bundle",
 			);
 			name = "[CP] Copy Pods Resources";
 			outputPaths = (
@@ -274,13 +275,14 @@
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/EXDevMenu.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/LottiePrivacyInfo.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/Lottie_React_Native_Privacy.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/RNImagePickerPrivacyInfo.bundle",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ThaiMeow/Pods-ThaiMeow-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		D0620326ADD52AF05933337F /* [Expo] Configure project */ = {
+		9CE7E34E71DC7A93F4025286 /* [Expo] Configure project */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -304,7 +306,7 @@
 			shellPath = /bin/sh;
 			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-ThaiMeow/expo-configure-project.sh\"\n";
 		};
-		FC80B725D8CD4EB9747B500A /* [CP] Embed Pods Frameworks */ = {
+		CFC6B78603B49859483A1465 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -334,7 +336,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
-				633260E71D6A03204B8B2720 /* ExpoModulesProvider.swift in Sources */,
+				C53F79A5DE26DAD949D670F8 /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -343,7 +345,7 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = D4DAADBE04D211DD6CF02FA6 /* Pods-ThaiMeow.debug.xcconfig */;
+			baseConfigurationReference = 1E087BF4CEC13F2D0A850C75 /* Pods-ThaiMeow.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -379,7 +381,7 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 0E937217CF2FEFA84B2AC671 /* Pods-ThaiMeow.release.xcconfig */;
+			baseConfigurationReference = 2CE6860919DC2F4261875A72 /* Pods-ThaiMeow.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;

@@ -10,16 +10,13 @@ import {
   Alert,
   ActivityIndicator,
   Image,
-  Modal,
   Dimensions,
-  Animated,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useUser } from '../contexts/UserContext';
 import { useTheme } from '../contexts/ThemeContext';
 import userService from '../services/userService';
-import imageUploadService from '../services/imageUploadService';
 
 const { width } = Dimensions.get('window');
 
@@ -28,8 +25,6 @@ const EditProfileScreen = ({ navigation }) => {
   const { theme } = useTheme();
   
   const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [imagePickerVisible, setImagePickerVisible] = useState(false);
   const usernameRef = useRef(null);
   const emailRef = useRef(null);
   const petNameRef = useRef(null);
@@ -38,7 +33,6 @@ const EditProfileScreen = ({ navigation }) => {
     username: '',
     email: '',
     petName: '',
-    avatar: null,
   });
 
   const [errors, setErrors] = useState({
@@ -53,7 +47,6 @@ const EditProfileScreen = ({ navigation }) => {
       username: user?.username || '',
       email: user?.email || '',
       petName: user?.petName || '',
-      avatar: user?.avatar || null,
     });
     setErrors({
       username: '',
@@ -62,58 +55,6 @@ const EditProfileScreen = ({ navigation }) => {
     });
   }, [user]);
 
-  const handlePickImageFromLibrary = async () => {
-    try {
-      setUploading(true);
-      setImagePickerVisible(false);
-      
-      const pickedImage = await imageUploadService.pickImageFromLibrary();
-      
-      if (pickedImage) {
-        // Convert to base64
-        const base64 = await imageUploadService.imageToBase64(pickedImage.uri);
-        setFormData(prev => ({
-          ...prev,
-          avatar: base64
-        }));
-      }
-    } catch (error) {
-      console.error('Error picking image:', error);
-      Alert.alert('ข้อผิดพลาด', 'ไม่สามารถเลือกรูปภาพได้: ' + error.message);
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleTakePhoto = async () => {
-    try {
-      setUploading(true);
-      setImagePickerVisible(false);
-      
-      const photo = await imageUploadService.takePhotoWithCamera();
-      
-      if (photo) {
-        // Convert to base64
-        const base64 = await imageUploadService.imageToBase64(photo.uri);
-        setFormData(prev => ({
-          ...prev,
-          avatar: base64
-        }));
-      }
-    } catch (error) {
-      console.error('Error taking photo:', error);
-      Alert.alert('ข้อผิดพลาด', 'ไม่สามารถถ่ายรูปได้: ' + error.message);
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleRemoveImage = () => {
-    setFormData(prev => ({
-      ...prev,
-      avatar: null
-    }));
-  };
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -186,7 +127,6 @@ const EditProfileScreen = ({ navigation }) => {
         username: formData.username.trim(),
         email: user?.email, // Keep original email (locked)
         petName: user?.petName, // Keep original pet name (locked)
-        avatar: formData.avatar,
       });
 
       if (response.success) {
@@ -195,7 +135,6 @@ const EditProfileScreen = ({ navigation }) => {
           ...user,
           username: formData.username.trim(),
           // Email and petName stay the same (locked)
-          avatar: formData.avatar,
         });
 
         Alert.alert(
@@ -273,31 +212,9 @@ const EditProfileScreen = ({ navigation }) => {
           <View style={styles.previewRow}>
             <View style={styles.previewAvatarWrapper}>
               <Image
-                source={
-                  formData.avatar
-                    ? { uri: formData.avatar }
-                    : require("../assets/images/catangry-Photoroom.png")
-                }
+                source={require("../assets/images/catangry-Photoroom.png")}
                 style={[styles.avatar, { borderColor: theme.primary }]}
               />
-              <View style={styles.avatarButtonGroup}>
-                <TouchableOpacity
-                  style={[styles.changeAvatarButton, { backgroundColor: theme.primary }]}
-                  onPress={() => setImagePickerVisible(true)}
-                  disabled={uploading}
-                >
-                  <MaterialCommunityIcons name="camera-plus" size={14} color={theme.white} />
-                </TouchableOpacity>
-                {formData.avatar && (
-                  <TouchableOpacity
-                    style={[styles.removeAvatarButton, { backgroundColor: '#EF4444' }]}
-                    onPress={handleRemoveImage}
-                    disabled={uploading}
-                  >
-                    <MaterialCommunityIcons name="delete" size={14} color={theme.white} />
-                  </TouchableOpacity>
-                )}
-              </View>
             </View>
             <View style={styles.previewInfo}>
               <Text style={[styles.previewName, { color: theme.text }]}>
@@ -467,146 +384,6 @@ const EditProfileScreen = ({ navigation }) => {
           </LinearGradient>
         </View>
       </ScrollView>
-
-      {/* Image Picker Modal */}
-      <Modal
-        visible={imagePickerVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setImagePickerVisible(false)}
-      >
-        <View style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.3)' }]}>
-          <ScrollView 
-            contentContainerStyle={styles.modalScrollContent}
-            showsVerticalScrollIndicator={false}
-            scrollEnabled={true}
-          >
-            <View style={[styles.modalContentWrapper, { shadowColor: theme.primary }]}>
-              <LinearGradient
-                colors={['#FFF8F0', '#FFF5E8']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.modalContent}
-              >
-                <View style={styles.modalHeader}>
-                  <View style={styles.modalIconWrapper}>
-                    <MaterialCommunityIcons name="image-multiple" size={28} color={theme.primary} />
-                  </View>
-                  <Text style={[styles.modalTitle, { color: theme.text }]}>
-                    เลือกรูปโปรไฟล์
-                  </Text>
-                  <TouchableOpacity 
-                    onPress={() => setImagePickerVisible(false)}
-                    style={styles.modalCloseButton}
-                  >
-                    <MaterialCommunityIcons name="close" size={24} color={theme.textSecondary} />
-                  </TouchableOpacity>
-                </View>
-
-                <View style={styles.modalDivider} />
-
-                <TouchableOpacity
-                  style={[
-                    styles.modalButton, 
-                    { 
-                      backgroundColor: theme.primary + '15',
-                      borderColor: theme.primary + '30',
-                    }
-                  ]}
-                  onPress={handleTakePhoto}
-                  disabled={uploading}
-                  activeOpacity={0.7}
-                >
-                  <View style={[styles.modalButtonIcon, { backgroundColor: theme.primary + '25' }]}>
-                    <MaterialCommunityIcons name="camera" size={24} color={theme.primary} />
-                  </View>
-                  <View style={styles.modalButtonContent}>
-                    <Text style={[styles.modalButtonText, { color: theme.text }]}>
-                      ถ่ายรูปใหม่
-                    </Text>
-                    <Text style={[styles.modalButtonSubtext, { color: theme.textSecondary }]}>
-                      ใช้กล้องเพื่อถ่ายรูปโปรไฟล์
-                    </Text>
-                  </View>
-                  <MaterialCommunityIcons name="chevron-right" size={20} color={theme.primary} />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[
-                    styles.modalButton, 
-                    { 
-                      backgroundColor: theme.primary + '15',
-                      borderColor: theme.primary + '30',
-                    }
-                  ]}
-                  onPress={handlePickImageFromLibrary}
-                  disabled={uploading}
-                  activeOpacity={0.7}
-                >
-                  <View style={[styles.modalButtonIcon, { backgroundColor: theme.primary + '25' }]}>
-                    <MaterialCommunityIcons name="image" size={24} color={theme.primary} />
-                  </View>
-                  <View style={styles.modalButtonContent}>
-                    <Text style={[styles.modalButtonText, { color: theme.text }]}>
-                      เลือกจากไลบรารี่
-                    </Text>
-                    <Text style={[styles.modalButtonSubtext, { color: theme.textSecondary }]}>
-                      เลือกรูปภาพที่มีอยู่แล้ว
-                    </Text>
-                  </View>
-                  <MaterialCommunityIcons name="chevron-right" size={20} color={theme.primary} />
-                </TouchableOpacity>
-
-                {formData.avatar && (
-                  <>
-                    <View style={styles.modalDivider} />
-                    <TouchableOpacity
-                      style={[
-                        styles.modalButton, 
-                        { 
-                          backgroundColor: '#EF4444' + '15',
-                          borderColor: '#EF4444' + '30',
-                        }
-                      ]}
-                      onPress={() => {
-                        setImagePickerVisible(false);
-                        handleRemoveImage();
-                      }}
-                      disabled={uploading}
-                      activeOpacity={0.7}
-                    >
-                      <View style={[styles.modalButtonIcon, { backgroundColor: '#EF4444' + '25' }]}>
-                        <MaterialCommunityIcons name="trash-can" size={24} color="#EF4444" />
-                      </View>
-                      <View style={styles.modalButtonContent}>
-                        <Text style={[styles.modalButtonText, { color: '#EF4444' }]}>
-                          ลบรูปปัจจุบัน
-                        </Text>
-                        <Text style={[styles.modalButtonSubtext, { color: theme.textSecondary }]}>
-                          ใช้รูปค่าเริ่มต้น
-                        </Text>
-                      </View>
-                      <MaterialCommunityIcons name="chevron-right" size={20} color="#EF4444" />
-                    </TouchableOpacity>
-                  </>
-                )}
-              </LinearGradient>
-            </View>
-          </ScrollView>
-        </View>
-      </Modal>
-
-      {/* Uploading Indicator */}
-      {uploading && (
-        <View style={[styles.uploadingOverlay, { backgroundColor: 'rgba(0,0,0,0.6)' }]}>
-          <View style={[styles.uploadingBox, { backgroundColor: theme.surface }]}>
-            <ActivityIndicator size="large" color={theme.primary} />
-            <Text style={[styles.uploadingText, { color: theme.text, marginTop: 12 }]}>
-              กำลังประมวลผลรูปภาพ...
-            </Text>
-          </View>
-        </View>
-      )}
     </SafeAreaView>
   );
 };
@@ -667,37 +444,6 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: 50,
     borderWidth: 4,
-  },
-  avatarButtonGroup: {
-    position: 'absolute',
-    bottom: -10,
-    right: -8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  changeAvatarButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 0,
-    paddingHorizontal: 0,
-    gap: 0,
-  },
-  removeAvatarButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 0,
-    paddingHorizontal: 0,
-    gap: 0,
   },
   previewInfo: {
     flex: 1,
@@ -790,124 +536,6 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 16,
     fontWeight: '600',
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-  },
-  modalScrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 20,
-  },
-  modalContentWrapper: {
-    width: '100%',
-    maxWidth: width * 0.88,
-    borderRadius: 24,
-    overflow: 'hidden',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    elevation: 12,
-  },
-  modalContent: {
-    width: '100%',
-    paddingTop: 24,
-    paddingBottom: 24,
-    paddingHorizontal: 24,
-    alignItems: 'center',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    width: '100%',
-    marginBottom: 16,
-    gap: 12,
-  },
-  modalIconWrapper: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#FF9500' + '20',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalTitle: {
-    fontSize: 19,
-    fontWeight: '700',
-    flex: 1,
-    textAlign: 'center',
-    color: '#FF8C00',
-  },
-  modalCloseButton: {
-    padding: 8,
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 140, 0, 0.08)',
-  },
-  modalDivider: {
-    width: '100%',
-    height: 1.5,
-    backgroundColor: '#FF9500' + '20',
-    marginVertical: 16,
-  },
-  modalButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 14,
-    marginBottom: 10,
-    borderWidth: 1.5,
-    borderColor: 'transparent',
-  },
-  modalButtonIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalButtonContent: {
-    flex: 1,
-    marginLeft: 14,
-  },
-  modalButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  modalButtonSubtext: {
-    fontSize: 12,
-    marginTop: 2,
-    opacity: 0.7,
-  },
-  uploadingOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  uploadingBox: {
-    width: width * 0.7,
-    padding: 20,
-    borderRadius: 15,
-    alignItems: 'center',
-  },
-  uploadingText: {
-    fontSize: 16,
-    marginTop: 10,
   },
   errorText: {
     fontSize: 12,
