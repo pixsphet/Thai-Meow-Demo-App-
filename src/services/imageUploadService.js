@@ -35,10 +35,13 @@ class ImageUploadService {
   async pickImageFromLibrary() {
     try {
       const hasPermission = await this.requestPermissions();
-      if (!hasPermission) return null;
+      if (!hasPermission) {
+        Alert.alert('ข้อผิดพลาด', 'ต้องการสิทธิ์ในการเข้าถึงไลบรารี่รูปภาพ');
+        return null;
+      }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
+        mediaTypes: 'images',
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
@@ -51,7 +54,7 @@ class ImageUploadService {
       return null;
     } catch (error) {
       console.error('Error picking image:', error);
-      Alert.alert('ข้อผิดพลาด', error.message || 'ไม่สามารถเลือกรูปภาพได้');
+      Alert.alert('ข้อผิดพลาด', error.message || 'ไม่สามารถเลือกรูปภาพได้ ลองใหม่อีกครั้ง');
       return null;
     }
   }
@@ -60,7 +63,10 @@ class ImageUploadService {
   async takePhotoWithCamera() {
     try {
       const hasPermission = await this.requestPermissions();
-      if (!hasPermission) return null;
+      if (!hasPermission) {
+        Alert.alert('ข้อผิดพลาด', 'ต้องการสิทธิ์ในการเข้าถึงกล้อง');
+        return null;
+      }
 
       const result = await ImagePicker.launchCameraAsync({
         allowsEditing: true,
@@ -75,7 +81,7 @@ class ImageUploadService {
       return null;
     } catch (error) {
       console.error('Error taking photo:', error);
-      Alert.alert('ข้อผิดพลาด', error.message || 'ไม่สามารถถ่ายรูปได้');
+      Alert.alert('ข้อผิดพลาด', error.message || 'ไม่สามารถถ่ายรูปได้ ลองใหม่อีกครั้ง');
       return null;
     }
   }

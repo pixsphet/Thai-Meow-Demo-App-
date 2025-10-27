@@ -18,7 +18,9 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.thaimeow.app",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "This app needs access to your camera to take profile photos.",
+        "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to select profile photos."
       }
     },
     "android": {
@@ -26,12 +28,25 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
       },
-      "package": "com.thaimeow.app"
+      "package": "com.thaimeow.app",
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [],
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app needs access to your photos to select profile images.",
+          "cameraPermission": "The app needs access to your camera to take profile photos."
+        }
+      ]
+    ],
     "extra": {
       "eas": {
         "projectId": "538a68d3-8297-4e7d-8147-990c36f4e169"

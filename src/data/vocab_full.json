@@ -2433,119 +2433,6 @@
         "Door key",
         "Key is lost"
       ]
-    },
-    {
-      "thai": "นาฬิกา",
-      "english": "clock",
-      "descriptionTH": "นาฬิกาเป็นเครื่องบอกเวลา มีเข็มบอกเวลา",
-      "descriptionEN": "Clock is device to tell time has hands to tell time.",
-      "imageKey": "Objects/นาฬิกา",
-      "examplesTH": [
-        "ดูนาฬิกา",
-        "นาฬิกาดี",
-        "นาฬิกาเวลา"
-      ],
-      "examplesEN": [
-        "Looking at clock",
-        "Clock is good",
-        "Clock shows time"
-      ]
-    },
-    {
-      "thai": "กาว",
-      "english": "glue",
-      "descriptionTH": "กาวเป็นของเชื่อมติด",
-      "descriptionEN": "Glue is item to stick together.",
-      "imageKey": "Objects/กาว",
-      "examplesTH": [
-        "ใช้กาว",
-        "กาวดี",
-        "ติดด้วยกาว"
-      ],
-      "examplesEN": [
-        "Using glue",
-        "Glue is good",
-        "Sticking with glue"
-      ]
-    },
-    {
-      "thai": "เหรียญ",
-      "english": "coin",
-      "descriptionTH": "เหรียญเป็นเงินเล็ก",
-      "descriptionEN": "Coin is small money.",
-      "imageKey": "Objects/เหรียญ",
-      "examplesTH": [
-        "เหรียญดี",
-        "ใช้เหรียญ",
-        "เหรียญใหม่"
-      ],
-      "examplesEN": [
-        "Coin is good",
-        "Using coin",
-        "New coin"
-      ]
-    },
-    {
-      "thai": "สมาร์ทโฟน",
-      "english": "smartphone",
-      "descriptionTH": "สมาร์ทโฟนเป็นโทรศัพท์สมาร์ท",
-      "descriptionEN": "Smartphone is smart phone.",
-      "imageKey": "Objects/สมาร์ทโฟน",
-      "examplesTH": [
-        "ใช้สมาร์ทโฟน",
-        "สมาร์ทโฟนดี",
-        "สมาร์ทโฟนใหม่"
-      ],
-      "examplesEN": [
-        "Using smartphone",
-        "Smartphone is good",
-        "New smartphone"
-      ]
-    },
-    {
-      "thai": "นาฬิกา",
-      "english": "clock",
-      "descriptionTH": "นาฬิกาใช้บอกเวลา มีหน้าปัดและเข็มนาฬิกา มีทั้งแบบแขวนผนังและแบบตั้งโต๊ะ",
-      "descriptionEN": "Clock is used to tell time has a dial and hands Available in wall hanging and desk styles",
-      "imageKey": "Objects/นาฬิกา",
-      "examplesTH": [
-        "ฉันใช้นาฬิกา",
-        "นาฬิกาเป็นประโยชน์"
-      ],
-      "examplesEN": [
-        "I use clock",
-        "Clock is useful"
-      ]
-    },
-    {
-      "thai": "กาว",
-      "english": "glue",
-      "descriptionTH": "กาวใช้ติดของเข้าด้วยกัน มีหลายสีและประเภท กาวมีกลิ่นเฉพาะตัว",
-      "descriptionEN": "Glue is used to stick things together Available in many colors and types Glue has a distinctive smell",
-      "imageKey": "Objects/กาว",
-      "examplesTH": [
-        "ฉันใช้กาว",
-        "กาวเป็นประโยชน์"
-      ],
-      "examplesEN": [
-        "I use glue",
-        "Glue is useful"
-      ]
-    },
-    {
-      "thai": "เหรียญ",
-      "english": "coin",
-      "descriptionTH": "เหรียญเป็นเงินโลหะมีค่าเล็กๆ ใช้ซื้อของ ประเทศไทยมีเหรียญบาท 5 บาท 10 บาท",
-      "descriptionEN": "Coins are small valuable metal currency used for buying things Thailand has 1 baht 5 baht 10 baht coins",
-      "imageKey": "Objects/เหรียญ",
-      "examplesTH": [
-        "ฉันใช้เหรียญ",
-        "เหรียญเป็นประโยชน์"
-      ],
-      "examplesEN": [
-        "I use coin",
-        "Coin is useful"
-      ]
     }
   ],
   "Greetings & Common Phrases": [
@@ -2649,23 +2536,6 @@
         "I'm fine",
         "I'm fine",
         "Fine"
-      ]
-    },
-    {
-      "thai": "ไม่เป็นไร",
-      "english": "never mind",
-      "descriptionTH": "ไม่เป็นไรเป็นการทำให้สบายใจ",
-      "descriptionEN": "Never mind is making feel comfortable.",
-      "imageKey": "Greetings & Common Phrases/ไม่เป็นไร",
-      "examplesTH": [
-        "ไม่เป็นไรครับ",
-        "ไม่เป็นไรค่ะ",
-        "ไม่เป็นไรเลย"
-      ],
-      "examplesEN": [
-        "Never mind",
-        "Never mind",
-        "No problem"
       ]
     },
     {
@@ -2805,23 +2675,6 @@
       ]
     },
     {
-      "thai": "ไม่ได้",
-      "english": "cannot",
-      "descriptionTH": "ไม่ได้เป็นการปฏิเสธความสามารถ",
-      "descriptionEN": "Cannot is negative of ability.",
-      "imageKey": "Greetings & Common Phrases/ไม่ได้",
-      "examplesTH": [
-        "ไม่ได้ครับ",
-        "ไม่ได้ค่ะ",
-        "ทำไม่ได้"
-      ],
-      "examplesEN": [
-        "Cannot",
-        "Cannot",
-        "Unable to do"
-      ]
-    },
-    {
       "thai": "ดีมาก",
       "english": "very good",
       "descriptionTH": "ดีมากเป็นการแสดงความพอใจ",
@@ -2853,40 +2706,6 @@
         "Excellent",
         "Excellent",
         "Very skilled"
-      ]
-    },
-    {
-      "thai": "สนุก",
-      "english": "fun",
-      "descriptionTH": "สนุกเป็นการแสดงความสนุกสนาน",
-      "descriptionEN": "Fun is expressing enjoyment.",
-      "imageKey": "Greetings & Common Phrases/สนุก",
-      "examplesTH": [
-        "สนุกมาก",
-        "สนุกจริง",
-        "กิจกรรมสนุก"
-      ],
-      "examplesEN": [
-        "Very fun",
-        "Really fun",
-        "Fun activity"
-      ]
-    },
-    {
-      "thai": "รัก",
-      "english": "love",
-      "descriptionTH": "รักเป็นการแสดงความรัก",
-      "descriptionEN": "Love is expressing love.",
-      "imageKey": "Greetings & Common Phrases/รัก",
-      "examplesTH": [
-        "รักมาก",
-        "ฉันรัก",
-        "รักครอบครัว"
-      ],
-      "examplesEN": [
-        "Love very much",
-        "I love",
-        "Love family"
       ]
     }
   ],
@@ -3232,23 +3051,6 @@
       ]
     },
     {
-      "thai": "สอน",
-      "english": "teach",
-      "descriptionTH": "สอนเป็นกิจกรรมเพื่อให้ความรู้",
-      "descriptionEN": "Teach is activity to give knowledge.",
-      "imageKey": "Activities/สอน",
-      "examplesTH": [
-        "สอนดี",
-        "สอนเก่ง",
-        "สอนได้"
-      ],
-      "examplesEN": [
-        "Teaching well",
-        "Teaching excellently",
-        "Can teach"
-      ]
-    },
-    {
       "thai": "เรียนภาษา",
       "english": "learn language",
       "descriptionTH": "เรียนภาษาเป็นกิจกรรมเรียนรู้ภาษา",
@@ -3263,57 +3065,6 @@
         "Learning Thai",
         "Learning language well",
         "Learning language excellently"
-      ]
-    },
-    {
-      "thai": "ปั่นจักรยาน",
-      "english": "ride bike",
-      "descriptionTH": "ปั่นจักรยานเป็นการปั่นจักรยาน",
-      "descriptionEN": "Ride bike is riding bicycle.",
-      "imageKey": "Activities/ปั่นจักรยาน",
-      "examplesTH": [
-        "ปั่นจักรยานได้",
-        "ปั่นจักรยานสนุก",
-        "ปั่นจักรยานเร็ว"
-      ],
-      "examplesEN": [
-        "Can ride bike",
-        "Riding bike is fun",
-        "Riding bike fast"
-      ]
-    },
-    {
-      "thai": "เช็ดถู",
-      "english": "clean",
-      "descriptionTH": "เช็ดถูเป็นการทำความสะอาด",
-      "descriptionEN": "Clean is cleaning activity.",
-      "imageKey": "Activities/เช็ดถู",
-      "examplesTH": [
-        "เช็ดถูดี",
-        "เช็ดถูบ้าน",
-        "เช็ดถูหมด"
-      ],
-      "examplesEN": [
-        "Cleaning well",
-        "Cleaning house",
-        "Cleaning everything"
-      ]
-    },
-    {
-      "thai": "ช้อปปิ้ง",
-      "english": "shopping",
-      "descriptionTH": "ช้อปปิ้งเป็นการซื้อของ",
-      "descriptionEN": "Shopping is buying things.",
-      "imageKey": "Activities/ช้อปปิ้ง",
-      "examplesTH": [
-        "ไปช้อปปิ้ง",
-        "ช้อปปิ้งสนุก",
-        "ช้อปปิ้งดี"
-      ],
-      "examplesEN": [
-        "Going shopping",
-        "Shopping is fun",
-        "Shopping is good"
       ]
     }
   ],
@@ -3489,23 +3240,6 @@
       ]
     },
     {
-      "thai": "รัก",
-      "english": "love",
-      "descriptionTH": "รักเป็นการแสดงความรัก",
-      "descriptionEN": "Love is expressing love.",
-      "imageKey": "Emotions/รัก",
-      "examplesTH": [
-        "รักมาก",
-        "รู้สึกรัก",
-        "รักจริง"
-      ],
-      "examplesEN": [
-        "Love very much",
-        "Feeling love",
-        "Really love"
-      ]
-    },
-    {
       "thai": "เกลียด",
       "english": "hate",
       "descriptionTH": "เกลียดเป็นการแสดงความเกลียด",
@@ -3574,23 +3308,6 @@
       ]
     },
     {
-      "thai": "สนุก",
-      "english": "fun",
-      "descriptionTH": "สนุกเป็นการแสดงความสนุก",
-      "descriptionEN": "Fun is expressing fun.",
-      "imageKey": "Emotions/สนุก",
-      "examplesTH": [
-        "สนุกมาก",
-        "รู้สึกสนุก",
-        "สนุกจริง"
-      ],
-      "examplesEN": [
-        "Very fun",
-        "Feeling fun",
-        "Really fun"
-      ]
-    },
-    {
       "thai": "ผ่อนคลาย",
       "english": "relaxed",
       "descriptionTH": "ผ่อนคลายเป็นการแสดงความผ่อนคลาย",
@@ -3605,40 +3322,6 @@
         "Very relaxed",
         "Feeling relaxed",
         "Really relaxed"
-      ]
-    },
-    {
-      "thai": "ประหลาดใจ",
-      "english": "amazed",
-      "descriptionTH": "ประหลาดใจเป็นความประหลาดใจ",
-      "descriptionEN": "Amazed is feeling of amazement.",
-      "imageKey": "Emotions/ประหลาดใจ",
-      "examplesTH": [
-        "ประหลาดใจมาก",
-        "รู้สึกประหลาดใจ",
-        "ประหลาดใจจริง"
-      ],
-      "examplesEN": [
-        "Very amazed",
-        "Feeling amazed",
-        "Really amazed"
-      ]
-    },
-    {
-      "thai": "เลื่อมใส",
-      "english": "inspired",
-      "descriptionTH": "เลื่อมใสเป็นความเลื่อมใส",
-      "descriptionEN": "Inspired is feeling inspiration.",
-      "imageKey": "Emotions/เลื่อมใส",
-      "examplesTH": [
-        "เลื่อมใสมาก",
-        "รู้สึกเลื่อมใส",
-        "เลื่อมใสจริง"
-      ],
-      "examplesEN": [
-        "Very inspired",
-        "Feeling inspired",
-        "Really inspired"
       ]
     },
     {

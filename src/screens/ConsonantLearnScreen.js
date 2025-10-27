@@ -2,7 +2,6 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator, Image, ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import ThemedBackButton from '../components/ThemedBackButton';
-import FlipCard from '../components/FlipCard';
 import { restoreProgress, saveProgress, saveLocal, loadLocal } from '../services/progressService';
 import vaja9TtsService from '../services/vaja9TtsService';
 import { charToImage } from '../assets/letters/map';
@@ -107,6 +106,7 @@ const thaiTones = [
 ];
 
 const VocabLearnCard = ({ item, onSpeak, seen }) => {
+  const [showDescription, setShowDescription] = useState(false);
   const mastered = seen?.mastered;
   
   // Load image from ADD_IMAGES with fuzzy matching
@@ -157,14 +157,17 @@ const VocabLearnCard = ({ item, onSpeak, seen }) => {
 
   const imageSource = getImageSource();
 
-  // Front of card - รูป + Thai + English
-  const front = (
-    <View style={[styles.card, styles.vocabCardLearn, mastered && styles.cardMastered]}>
+  return (
+    <TouchableOpacity 
+      activeOpacity={0.7} 
+      onPress={() => onSpeak(item)}
+      style={[styles.card, styles.vocabCardLearn, mastered && styles.cardMastered]}
+    >
       <View style={styles.cardHeader}>
         <Text style={styles.vocabChar}>{item.thai}</Text>
-        <TouchableOpacity style={styles.sound} onPress={(e) => { e.stopPropagation(); onSpeak(item); }}>
+        <View style={styles.sound}>
           <Image source={require('../assets/icons/speaker.png')} style={styles.speakerIcon} />
-        </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.imageBox}>
@@ -180,8 +183,36 @@ const VocabLearnCard = ({ item, onSpeak, seen }) => {
         <Text style={styles.englishText}>{item.english || ''}</Text>
       </View>
 
+      {/* Description Toggle Button */}
+      <TouchableOpacity 
+        style={styles.descriptionButton}
+        onPress={(e) => {
+          e.stopPropagation();
+          setShowDescription(!showDescription);
+        }}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.descriptionButtonText}>
+          {showDescription ? 'ซ่อนคำอธิบาย' : 'ดูคำอธิบาย'}
+        </Text>
+      </TouchableOpacity>
+
+      {/* Description Content */}
+      {showDescription && (
+        <View style={styles.descriptionContainer}>
+          <View style={styles.backSection}>
+            <Text style={styles.backLabel}>🇹🇭 คำอธิบาย</Text>
+            <Text style={styles.backTextThai}>{item.descriptionTH}</Text>
+          </View>
+          
+          <View style={styles.backSection}>
+            <Text style={styles.backLabel}>🇬🇧 Description</Text>
+            <Text style={styles.backTextEnglish}>{item.descriptionEN}</Text>
+          </View>
+        </View>
+      )}
+
       <View style={styles.footerRow}>
-        <Text style={styles.meta}>{item.english}</Text>
         {seen ? (
           <Text style={[styles.meta, mastered && { color: '#2e7d32', fontWeight: '700' }]}>
             {mastered ? 'Mastered' : `Seen ${seen.correct + seen.wrong}x`}
@@ -190,41 +221,7 @@ const VocabLearnCard = ({ item, onSpeak, seen }) => {
           <Text style={styles.meta}>New</Text>
         )}
       </View>
-    </View>
-  );
-
-  // Back of card - คำอธิบายสั้นๆ ไทย + อังกฤษ
-  const back = (
-    <View style={[styles.card, styles.vocabCardBack, mastered && styles.cardMastered]}>
-      <View style={styles.cardHeader}>
-        <Text style={styles.vocabChar}>{item.thai}</Text>
-        <TouchableOpacity style={styles.sound} onPress={(e) => { e.stopPropagation(); onSpeak(item); }}>
-          <Image source={require('../assets/icons/speaker.png')} style={styles.speakerIcon} />
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.backContentContainer}>
-        {/* Thai Description */}
-        <View style={styles.backSection}>
-          <Text style={styles.backLabel}>🇹🇭 คำอธิบาย</Text>
-          <Text style={styles.backTextThai}>{item.descriptionTH}</Text>
-        </View>
-        
-        {/* English Description */}
-        <View style={styles.backSection}>
-          <Text style={styles.backLabel}>🇬🇧 Description</Text>
-          <Text style={styles.backTextEnglish}>{item.descriptionEN}</Text>
-        </View>
-      </View>
-    </View>
-  );
-
-  return (
-    <FlipCard 
-      front={front} 
-      back={back} 
-      style={styles.flipCardWrapper}
-    />
+    </TouchableOpacity>
   );
 };
 
@@ -569,17 +566,13 @@ const ConsonantLearnScreen = ({ navigation }) => {
                   columnWrapperStyle={styles.columnWrapper}
                   contentContainerStyle={styles.flatListContent}
                   renderItem={({ item, index }) => (
-                    <TouchableOpacity 
-                      activeOpacity={0.9} 
-                      onPress={() => onSpeak(item)} 
-                      style={styles.gridCardWrapper}
-                    >
+                    <View style={styles.gridCardWrapper}>
                       <VocabLearnCard 
                         item={item} 
                         onSpeak={onSpeak} 
                         seen={perLetter[item.thai]} 
                       />
-                    </TouchableOpacity>
+                    </View>
                   )}
                 />
               </View>
@@ -974,42 +967,52 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   
-  // Flip Card styles
-  flipCardWrapper: {
-    width: '100%',
-    height: 240,
-    marginBottom: 16,
-  },
-  vocabCardBack: {
-    backgroundColor: '#FFF8F0',
-    borderLeftWidth: 4,
-    borderLeftColor: '#FF6B6B',
-  },
-  backContentContainer: {
-    flex: 1,
-    justifyContent: 'center',
+  // Description Button
+  descriptionButton: {
+    backgroundColor: '#FF6B6B',
     paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    marginTop: 8,
+    marginBottom: 8,
+    alignItems: 'center',
   },
-  backSection: {
-    marginBottom: 16,
-  },
-  backLabel: {
+  descriptionButtonText: {
+    color: '#fff',
     fontSize: 14,
     fontWeight: '700',
+  },
+  
+  // Description Container
+  descriptionContainer: {
+    marginTop: 8,
+    marginBottom: 8,
+    padding: 12,
+    backgroundColor: '#FFF8F0',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FFD700',
+  },
+  backSection: {
+    marginBottom: 12,
+  },
+  backLabel: {
+    fontSize: 13,
+    fontWeight: '700',
     color: '#FF8000',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   backTextThai: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '500',
     color: '#2c3e50',
-    lineHeight: 22,
+    lineHeight: 20,
   },
   backTextEnglish: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '400',
     color: '#495057',
-    lineHeight: 20,
+    lineHeight: 18,
     fontStyle: 'italic',
   },
 
