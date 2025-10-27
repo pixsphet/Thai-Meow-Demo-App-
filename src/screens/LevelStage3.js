@@ -356,12 +356,14 @@ const LevelStage3 = ({ navigation }) => {
           };
         }
 
-        const wasLockedBefore =
-          !levelProgress.status ||
-          levelProgress.status === 'locked' ||
-          levelProgress.status === 'unlocked';
-
-        if (wasLockedBefore && user?.id && prevStage) {
+        // Check if level is already unlocked from database
+        const isUnlocked = await levelUnlockService.isLevelUnlocked(levelId);
+        
+        // Only unlock this specific level if:
+        // 1. Previous stage passed (>= 70%)
+        // 2. Current level not yet unlocked
+        // 3. Previous stage exists
+        if (prevPassed && !isUnlocked && user?.id && prevStage) {
           const previousLevelId = `level${prevStage.lesson_id}_advanced`;
           try {
             await levelUnlockService.unlockLevel({
@@ -374,6 +376,7 @@ const LevelStage3 = ({ navigation }) => {
               attempts: levelProgress.attempts ?? 0,
               bestScore: levelProgress.bestScore ?? 0,
             });
+            console.log(`🔓 Unlocked: ${levelId}`);
           } catch (unlockError) {
             console.warn(
               '⚠️ Unable to persist advanced unlock for',
@@ -384,11 +387,14 @@ const LevelStage3 = ({ navigation }) => {
         }
 
         let statusFromProgress = levelProgress.status;
-        if (!statusFromProgress || statusFromProgress === 'locked') {
-          statusFromProgress = 'current';
-        }
+        
+        // Determine status based on unlock state and completion
         if (levelProgress.completed) {
           statusFromProgress = 'done';
+        } else if (isUnlocked || prevPassed) {
+          statusFromProgress = 'current';
+        } else {
+          statusFromProgress = 'locked';
         }
 
         const accuracyPercent =

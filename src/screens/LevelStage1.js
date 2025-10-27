@@ -367,7 +367,7 @@ const LevelStage1 = ({ navigation }) => {
             let statusFromProgress = levelProgress.status;
 
             // ด่านถัดไป: ปลดล็อกก็ต่อเมื่อ prevPassed (ด่านก่อนหน้า ≥70%)
-    // ถ้าด่านก่อนหน้าไม่ผ่าน 70% ให้ lock ไว้เสมอ (ใช้ accuracyPercent ที่ normalize แล้ว)
+    // ถ้าด่านก่อนหน้าไม่ผ่าน 70% ให้ lock ไว้เสมอ
     if (!prevPassed) {
       return { 
         ...s, 
@@ -377,14 +377,33 @@ const LevelStage1 = ({ navigation }) => {
       };
     }
 
-            // ด่านก่อนหน้าผ่าน 70% → ปลดล็อกด่านนี้
-            if (!statusFromProgress || statusFromProgress === 'locked') {
-              statusFromProgress = 'current';
+            // ด่านก่อนหน้าผ่าน 70% → ถ้ายังไม่เคย unlock ให้ unlock เฉพาะด่านนี้
+            const isUnlocked = await levelUnlockService.isLevelUnlocked(levelId);
+            
+            // ถ้ายังไม่ unlock และ prevPassed แล้ว → unlock เฉพาะด่านนี้
+            if (!isUnlocked && prevPassed) {
+              try {
+                await levelUnlockService.unlockLevel({
+                  userId: user?.id,
+                  currentLevel: `level${arr[i-1].lesson_id}`,
+                  unlockedLevel: levelId,
+                  levelId,
+                  unlockedAt: new Date().toISOString(),
+                  accuracy: Math.round(prevAccuracyRatio * 100),
+                  attempts: levelProgress.attempts ?? 0,
+                  bestScore: levelProgress.bestScore ?? 0,
+                });
+                statusFromProgress = 'current';
+              } catch (unlockError) {
+                console.warn('⚠️ Unable to unlock level:', unlockError?.message);
+              }
             }
             
-    let status = statusFromProgress;
-    if (levelProgress.completed) {
+            let status = statusFromProgress || 'locked';
+            if (levelProgress.completed) {
       status = 'done';
+    } else if (isUnlocked || prevPassed) {
+      status = 'current';
     }
 
             const accuracyPercent =
