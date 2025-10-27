@@ -436,6 +436,7 @@ exports.changePassword = async (req, res, next) => {
   try {
     const { currentPassword, newPassword } = req.body;
     const userId = req.user?.id || req.query.userId;
+    const bcrypt = require('bcryptjs');
 
     // ✅ Validation
     if (!currentPassword || !newPassword) {
@@ -449,14 +450,6 @@ exports.changePassword = async (req, res, next) => {
       return res.status(400).json({
         success: false,
         message: 'รหัสผ่านใหม่ต้องมีอย่างน้อย 6 ตัวอักษร'
-      });
-    }
-
-    // ✅ Password strength validation
-    if (!/[a-z]/.test(newPassword) || !/[A-Z]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
-      return res.status(400).json({
-        success: false,
-        message: 'รหัสผ่านต้องมี: ตัวเล็ก, ตัวใหญ่, ตัวเลข'
       });
     }
 
@@ -485,8 +478,9 @@ exports.changePassword = async (req, res, next) => {
       });
     }
 
-    // ✅ Update password
-    user.password = newPassword;
+    // ✅ Update password with bcrypt hash
+    const salt = await bcrypt.genSalt(10);
+    user.passwordHash = await bcrypt.hash(newPassword, salt);
     await user.save();
 
     return res.status(200).json({

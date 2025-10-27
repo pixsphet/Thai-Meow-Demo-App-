@@ -131,4 +131,13 @@ UserSchema.methods.updateStreak = function updateStreak() {
   };
 };
 
+// Method to compare password
+UserSchema.methods.matchPassword = async function matchPassword(password) {
+  const bcrypt = require('bcryptjs');
+  if (!this.passwordHash) {
+    return false;
+  }
+  return await bcrypt.compare(password, this.passwordHash);
+};
+
 module.exports = mongoose.model('User', UserSchema);
