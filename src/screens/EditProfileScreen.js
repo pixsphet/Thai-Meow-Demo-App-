@@ -181,11 +181,11 @@ const EditProfileScreen = ({ navigation }) => {
       setLoading(true);
       
       // Update user data via API
-      // Note: Email is LOCKED and cannot be changed
+      // Note: Email and Pet Name are LOCKED and cannot be changed
       const response = await userService.updateUserProfile({
         username: formData.username.trim(),
         email: user?.email, // Keep original email (locked)
-        petName: formData.petName.trim(),
+        petName: user?.petName, // Keep original pet name (locked)
         avatar: formData.avatar,
       });
 
@@ -194,8 +194,7 @@ const EditProfileScreen = ({ navigation }) => {
         updateUser({
           ...user,
           username: formData.username.trim(),
-          // Email stays the same (locked)
-          petName: formData.petName.trim(),
+          // Email and petName stay the same (locked)
           avatar: formData.avatar,
         });
 
@@ -395,34 +394,38 @@ const EditProfileScreen = ({ navigation }) => {
             )}
           </View>
 
-          {/* Pet Name Input */}
+          {/* Pet Name Input - LOCKED */}
           <View style={[styles.inputCard, { backgroundColor: theme.surface }]}>
             <View style={styles.inputLabelRow}>
               <MaterialCommunityIcons name="cat" size={18} color={theme.primary} />
               <Text style={[styles.label, { color: theme.text, marginLeft: 8 }]}>
                 ชื่อสัตว์เลี้ยง
               </Text>
+              <View style={{ marginLeft: 'auto', flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <MaterialCommunityIcons name="lock" size={14} color="#FF9500" />
+                <Text style={{ fontSize: 11, color: '#FF9500', fontWeight: '600' }}>ล็อก</Text>
+              </View>
             </View>
             <TextInput
               style={[
                 styles.inputField,
                 {
-                  backgroundColor: theme.lightGray || '#f5f5f5',
-                  borderColor: errors.petName ? '#EF4444' : theme.lightGray,
-                  color: theme.text,
+                  backgroundColor: '#f0f0f0',
+                  borderColor: '#cccccc',
+                  color: theme.textSecondary,
                   borderWidth: 1,
+                  opacity: 0.7,
                 }
               ]}
               value={formData.petName}
               ref={petNameRef}
-              onChangeText={(value) => handleInputChange('petName', value)}
-              placeholder="กรอกชื่อสัตว์เลี้ยง (ไม่บังคับ)"
+              editable={false}
+              placeholder="ชื่อสัตว์เลี้ยงของคุณ"
               placeholderTextColor={theme.textSecondary}
-              maxLength={15}
             />
-            {errors.petName && (
-              <Text style={[styles.errorText, { color: '#EF4444' }]}>{errors.petName}</Text>
-            )}
+            <Text style={[styles.hintText, { color: theme.textSecondary, marginTop: 6 }]}>
+              💡 ชื่อสัตว์เลี้ยงไม่สามารถเปลี่ยนได้ เพื่อใช้ในการลืมรหัสผ่าน
+            </Text>
           </View>
         </View>
 
