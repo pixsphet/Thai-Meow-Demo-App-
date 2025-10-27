@@ -135,8 +135,6 @@ const SettingsScreen = () => {
     setContactExpanded(prev => !prev);
   };
 
-  // Reset handlers for each level
-
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: flatTheme.background }]}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
