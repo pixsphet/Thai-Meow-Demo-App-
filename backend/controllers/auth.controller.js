@@ -53,9 +53,17 @@ exports.login = async (req, res, next) => {
     );
 
     return res.json({ success:true, data:{ user: {
-      id: user._id, email: user.email, username: user.username,
-      level: user.level, xp: user.xp, streak: user.streak, hearts: user.hearts,
-      lessonsCompleted: user.lessonsCompleted, badges: user.badges
+      id: user._id, 
+      email: user.email, 
+      username: user.username,
+      petName: user.petName,
+      avatar: user.avatar,
+      level: user.level, 
+      xp: user.xp, 
+      streak: user.streak, 
+      hearts: user.hearts,
+      lessonsCompleted: user.lessonsCompleted, 
+      badges: user.badges
     }, token }});
   } catch (e) { 
     console.error('❌ [LOGIN] error:', e);
