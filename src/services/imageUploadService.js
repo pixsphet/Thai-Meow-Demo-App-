@@ -1,16 +1,6 @@
 import * as FileSystem from 'expo-file-system';
+import * as ImagePicker from 'expo-image-picker';
 import { Alert, Platform } from 'react-native';
-
-let ImagePicker = null;
-
-// Safely import ImagePicker only on native platforms
-try {
-  if (Platform.OS !== 'web') {
-    ImagePicker = require('expo-image-picker');
-  }
-} catch (error) {
-  console.warn('ImagePicker not available:', error.message);
-}
 
 class ImageUploadService {
   constructor() {
@@ -21,11 +11,6 @@ class ImageUploadService {
   // Request permissions for camera and library
   async requestPermissions() {
     try {
-      if (!ImagePicker) {
-        console.log('ImagePicker not available on this platform');
-        return false;
-      }
-
       // Request camera permission
       const cameraStatus = await ImagePicker.requestCameraPermissionsAsync();
       // Request media library permission
@@ -49,11 +34,6 @@ class ImageUploadService {
   // Pick image from library
   async pickImageFromLibrary() {
     try {
-      if (!ImagePicker) {
-        Alert.alert('ข้อผิดพลาด', 'ฟีเจอร์เลือกรูปไม่พร้อมใช้งาน');
-        return null;
-      }
-
       const hasPermission = await this.requestPermissions();
       if (!hasPermission) return null;
 
@@ -79,11 +59,6 @@ class ImageUploadService {
   // Take photo with camera
   async takePhotoWithCamera() {
     try {
-      if (!ImagePicker) {
-        Alert.alert('ข้อผิดพลาด', 'ฟีเจอร์ถ่ายรูปไม่พร้อมใช้งาน');
-        return null;
-      }
-
       const hasPermission = await this.requestPermissions();
       if (!hasPermission) return null;
 
@@ -100,7 +75,7 @@ class ImageUploadService {
       return null;
     } catch (error) {
       console.error('Error taking photo:', error);
-      Alert.alert('ข้อผิดพลาด', 'ไม่สามารถถ่ายรูปได้');
+      Alert.alert('ข้อผิดพลาด', error.message || 'ไม่สามารถถ่ายรูปได้');
       return null;
     }
   }
