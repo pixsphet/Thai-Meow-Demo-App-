@@ -80,7 +80,13 @@ export const UserProvider = ({ children }) => {
 
   const updateUser = async (userData) => {
     try {
-      setUser(prev => ({ ...prev, ...userData }));
+      const updatedUser = { ...user, ...userData };
+      setUser(updatedUser);
+      
+      // Also update in AsyncStorage
+      await AsyncStorage.setItem('userData', JSON.stringify(updatedUser));
+      
+      console.log('✅ User updated:', updatedUser);
       return { success: true };
     } catch (error) {
       console.error('Error updating user:', error);
