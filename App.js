@@ -21,6 +21,7 @@ import Onboarding2 from './src/screens/Onboarding2';
 import Onboarding3 from './src/screens/Onboarding3';
 import SignInScreen from './src/screens/SignInScreen';
 import SignUpScreen from './src/screens/SignUpScreen';
+import ForgotPasswordScreen from './src/screens/ForgotPasswordScreen';
 import ChangePasswordScreen from './src/screens/ChangePasswordScreen';
 
 // Navigation
@@ -92,6 +93,11 @@ const AppNavigator = () => {
           <Stack.Screen
             name="Register"
             component={SignUpScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="ForgotPassword"
+            component={ForgotPasswordScreen}
             options={{ headerShown: false }}
           />
           <Stack.Screen

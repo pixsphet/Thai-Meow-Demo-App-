@@ -148,3 +148,119 @@ exports.register = async (req, res, next) => {
     next(error);
   }
 };
+
+// ✅ POST /api/auth/verify-identity - Verify identity with email and pet name
+exports.verifyIdentityForReset = async (req, res, next) => {
+  try {
+    const { email, petName } = req.body;
+    console.log('🔐 [VERIFY_IDENTITY] body =', { email, petName: petName ? '***' : undefined });
+
+    if (!email || !petName) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'อีเมลและชื่อสัตว์เลี้ยงจำเป็นต้องกรอก' 
+      });
+    }
+
+    const normEmail = String(email).toLowerCase().trim();
+    
+    // Find user by email (case-insensitive)
+    const userDoc = await User.findOne({ email: { $regex: new RegExp(`^${normEmail}$`, 'i') } });
+    const user = userDoc ? userDoc.toObject() : null;
+    console.log('🔎 [VERIFY_IDENTITY] find user by', normEmail, '=>', !!user);
+
+    if (!user) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'ไม่พบผู้ใช้ในระบบ' 
+      });
+    }
+
+    // Verify pet name
+    if (user.petName !== petName) {
+      return res.status(401).json({ 
+        success: false, 
+        error: 'ชื่อสัตว์เลี้ยงไม่ถูกต้อง' 
+      });
+    }
+
+    console.log('✅ [VERIFY_IDENTITY] identity verified for', normEmail);
+
+    return res.json({ 
+      success: true, 
+      message: 'ยืนยันตัวตนสำเร็จ' 
+    });
+
+  } catch (error) {
+    console.error('❌ [VERIFY_IDENTITY] error:', error);
+    next(error);
+  }
+};
+
+// ✅ POST /api/auth/reset-password - Reset password with verified identity
+exports.resetPassword = async (req, res, next) => {
+  try {
+    const { email, petName, newPassword } = req.body;
+    console.log('🔐 [RESET_PASSWORD] body =', { email, petName: petName ? '***' : undefined });
+
+    if (!email || !petName || !newPassword) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'อีเมล ชื่อสัตว์เลี้ยง และรหัสผ่านใหม่จำเป็นต้องกรอก' 
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'รหัสผ่านใหม่ต้องมีอย่างน้อย 6 ตัวอักษร' 
+      });
+    }
+
+    const normEmail = String(email).toLowerCase().trim();
+    
+    // Find user by email (case-insensitive)
+    const userDoc = await User.findOne({ email: { $regex: new RegExp(`^${normEmail}$`, 'i') } });
+    const user = userDoc ? userDoc.toObject() : null;
+    console.log('🔎 [RESET_PASSWORD] find user by', normEmail, '=>', !!user);
+
+    if (!user) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'ไม่พบผู้ใช้ในระบบ' 
+      });
+    }
+
+    // Verify pet name
+    if (user.petName !== petName) {
+      return res.status(401).json({ 
+        success: false, 
+        error: 'ชื่อสัตว์เลี้ยงไม่ถูกต้อง' 
+      });
+    }
+
+    // Hash new password
+    const bcrypt = require('bcryptjs');
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+
+    // Update user password
+    await User.updateOne(
+      { _id: user._id }, 
+      { 
+        $set: { passwordHash },
+        $unset: { password: 1 } // Remove legacy password field if exists
+      }
+    );
+
+    console.log('✅ [RESET_PASSWORD] password updated for', normEmail);
+
+    return res.json({ 
+      success: true, 
+      message: 'รีเซ็ตรหัสผ่านสำเร็จ' 
+    });
+
+  } catch (error) {
+    console.error('❌ [RESET_PASSWORD] error:', error);
+    next(error);
+  }
+};

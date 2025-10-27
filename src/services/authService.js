@@ -151,17 +151,47 @@ class AuthService {
     }
   }
 
-  async resetPasswordWithPet(email, petName, newPassword) {
+  async verifyIdentityForReset(data) {
     try {
-      console.log('📤 [APP] resetPasswordWithPet payload =', { email, petName });
+      console.log('📤 [AUTH] verifyIdentity payload =', { email: data.email });
 
-      const res = await api.post('/auth/reset-password-with-pet', { 
-        email, 
-        petName, 
-        newPassword 
+      const res = await api.post('/auth/verify-identity', data);
+      
+      console.log('📨 [AUTH] verifyIdentity response =', res.data);
+      
+      if (res.data.success) {
+        return {
+          success: true,
+          message: res.data.message || 'ยืนยันตัวตนสำเร็จ'
+        };
+      } else {
+        return {
+          success: false,
+          message: res.data.error || 'ข้อมูลไม่ถูกต้อง'
+        };
+      }
+    } catch (err) {
+      console.log('❌ [AUTH] verifyIdentity error =', {
+        status: err.response?.status,
+        data: err.response?.data,
+        message: err.message
       });
       
-      console.log('📨 [APP] resetPasswordWithPet response =', res.data);
+      const errorMessage = err.response?.data?.error || err.message || 'เกิดข้อผิดพลาดในการตรวจสอบข้อมูล';
+      return {
+        success: false,
+        message: errorMessage
+      };
+    }
+  }
+
+  async resetPassword(data) {
+    try {
+      console.log('📤 [AUTH] resetPassword payload =', { email: data.email });
+
+      const res = await api.post('/auth/reset-password', data);
+      
+      console.log('📨 [AUTH] resetPassword response =', res.data);
       
       if (res.data.success) {
         return {
@@ -171,11 +201,11 @@ class AuthService {
       } else {
         return {
           success: false,
-          error: res.data.error || 'ไม่สามารถรีเซ็ตรหัสผ่านได้'
+          message: res.data.error || 'ไม่สามารถรีเซ็ตรหัสผ่านได้'
         };
       }
     } catch (err) {
-      console.log('❌ [APP] resetPasswordWithPet error =', {
+      console.log('❌ [AUTH] resetPassword error =', {
         status: err.response?.status,
         data: err.response?.data,
         message: err.message
@@ -184,7 +214,7 @@ class AuthService {
       const errorMessage = err.response?.data?.error || err.message || 'เกิดข้อผิดพลาดในการรีเซ็ตรหัสผ่าน';
       return {
         success: false,
-        error: errorMessage
+        message: errorMessage
       };
     }
   }
