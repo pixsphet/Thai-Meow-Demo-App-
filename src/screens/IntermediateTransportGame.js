@@ -53,20 +53,20 @@ const uid = () => Math.random().toString(36).substr(2, 9);
 
 const getHintText = (type) => {
   switch (type) {
-    case TRANSPORT_QUESTION_TYPES.LISTEN_CHOOSE: return 'ฟังเสียงยานพาหนะแล้วเลือกคำที่ได้ยิน';
-    case TRANSPORT_QUESTION_TYPES.PICTURE_MATCH: return 'ดูรูปยานพาหนะแล้วเลือกชื่อที่ถูกต้อง';
-    case TRANSPORT_QUESTION_TYPES.TRANSLATE_MATCH: return 'จับคู่คำศัพท์ไทยกับภาษาอังกฤษ';
-    case TRANSPORT_QUESTION_TYPES.FILL_BLANK_DIALOG: return 'เลือกยานพาหนะให้ตรงกับบทสนทนา';
+    case TRANSPORT_QUESTION_TYPES.LISTEN_CHOOSE: return 'Listen to the vehicle sound and select the word you hear';
+    case TRANSPORT_QUESTION_TYPES.PICTURE_MATCH: return 'Look at the vehicle image and select the correct name';
+    case TRANSPORT_QUESTION_TYPES.TRANSLATE_MATCH: return 'Match Thai words with English';
+    case TRANSPORT_QUESTION_TYPES.FILL_BLANK_DIALOG: return 'Select the vehicle that matches the conversation';
     default: return '';
   }
 };
 
 const getTypeLabel = (type) => {
   switch (type) {
-    case TRANSPORT_QUESTION_TYPES.LISTEN_CHOOSE: return 'ฟังและเลือก';
-    case TRANSPORT_QUESTION_TYPES.PICTURE_MATCH: return 'จับคู่รูป';
-    case TRANSPORT_QUESTION_TYPES.TRANSLATE_MATCH: return 'จับคู่ไทย-English';
-    case TRANSPORT_QUESTION_TYPES.FILL_BLANK_DIALOG: return 'เติมบทสนทนา';
+    case TRANSPORT_QUESTION_TYPES.LISTEN_CHOOSE: return 'Listen & Choose';
+    case TRANSPORT_QUESTION_TYPES.PICTURE_MATCH: return 'Picture Match';
+    case TRANSPORT_QUESTION_TYPES.TRANSLATE_MATCH: return 'Match Thai-English';
+    case TRANSPORT_QUESTION_TYPES.FILL_BLANK_DIALOG: return 'Fill Dialog';
     default: return '';
   }
 };
@@ -318,11 +318,11 @@ const IntermediateTransportGame = ({ navigation, route }) => {
       // If hearts are depleted, prompt to buy more
       if (newHearts <= 0) {
         Alert.alert(
-          'หัวใจหมดแล้ว',
-          'ซื้อหัวใจเพิ่มเพื่อเล่นต่อ',
+          'Out of Hearts',
+          'Buy more hearts to continue playing',
           [
-            { text: 'ไปร้านหัวใจ', onPress: () => navigation.navigate('GemShop') },
-            { text: 'ยกเลิก', style: 'cancel' }
+            { text: 'Go to Shop', onPress: () => navigation.navigate('GemShop') },
+            { text: 'Cancel', style: 'cancel' }
           ]
         );
       }
@@ -814,7 +814,7 @@ const IntermediateTransportGame = ({ navigation, route }) => {
               color={currentFeedback === 'correct' ? '#4CAF50' : '#FF7043'} 
             />
             <Text style={styles.feedbackTextEnhanced}>
-              {currentFeedback === 'correct' ? 'ถูกต้อง!' : 'ผิด!'}
+              {currentFeedback === 'correct' ? 'Correct!' : 'Wrong!'}
             </Text>
           </View>
         )}
@@ -841,7 +841,7 @@ const IntermediateTransportGame = ({ navigation, route }) => {
             style={styles.checkGradientEnhanced}
           >
             <Text style={styles.checkButtonTextEnhanced}>
-              {currentFeedback ? (currentIndex < questions.length - 1 ? 'ต่อไป' : 'จบเกม') : 'ตรวจ'}
+              {currentFeedback ? (currentIndex < questions.length - 1 ? 'Next' : 'End Game') : 'CHECK'}
             </Text>
           </LinearGradient>
         </TouchableOpacity>

@@ -103,28 +103,28 @@ const normalizeConsonant = (doc) => ({
 const getHintText = (type) => {
   switch (type) {
     case QUESTION_TYPES.LISTEN_CHOOSE:
-      return 'แตะปุ่มลำโพงเพื่อฟังซ้ำ แล้วเลือกตัวอักษรที่ได้ยิน';
+      return 'Tap the speaker button to listen again, then select the letter you hear';
     case QUESTION_TYPES.PICTURE_MATCH:
-      return 'ดูภาพตัวอักษรตรงกลาง แล้วเลือกตัวอักษรที่ตรงกัน';
+      return 'Look at the letter image in the center, then select the matching letter';
     case QUESTION_TYPES.DRAG_MATCH:
-      return 'แตะเพื่อจับคู่ ชื่อเรียก/โรมัน ↔ ตัวอักษรไทย';
+      return 'Tap to match name/roman ↔ Thai letter';
     case 'TRANSLATE_MATCH':
     case 'MATCH_IDIOM_MEANING':
-      return 'แตะเพื่อจับคู่คำ ให้ตรงกัน';
+      return 'Tap to match words correctly';
     case QUESTION_TYPES.FILL_BLANK:
-      return 'แตะตัวเลือกเพื่อเติมคำให้ถูกต้อง';
+      return 'Tap an option to fill in the word correctly';
     case QUESTION_TYPES.ARRANGE_SENTENCE:
-      return 'แตะคำเรียงตามลำดับให้ถูกต้อง';
+      return 'Tap words in the correct order';
     case QUESTION_TYPES.SYLLABLE_BUILDER:
-      return 'เลือกให้ครบทุกช่องเพื่อประกอบพยางค์';
+      return 'Select all slots to build a syllable';
     case QUESTION_TYPES.ORDER_TILES:
-      return 'แตะคำตามลำดับ ถ้ากดพลาดแตะซ้ำเพื่อเอาออก';
+      return 'Tap words in order. Tap again to remove if wrong';
     case QUESTION_TYPES.A_OR_B:
-      return 'ฟังเสียงแล้วเลือก A หรือ B เร็ว ๆ';
+      return 'Listen and select A or B quickly';
     case QUESTION_TYPES.MEMORY_MATCH:
-      return 'จับคู่การ์ดตัวอักษรกับชื่ออ่านให้ครบ';
+      return 'Match letter cards with reading names';
     case QUESTION_TYPES.CHALLENGE:
-      return 'ท้าทายต่อเนื่องกับคำถามหลายแบบ';
+      return 'Continuous challenge with multiple question types';
     default:
       return '';
   }
@@ -139,18 +139,18 @@ const SHOW_THAI = true; // Also show Thai characters
 
 const getTypeLabel = (type) => {
   switch (type) {
-    case QUESTION_TYPES.LISTEN_CHOOSE: return 'ฟังเสียงเลือกตัวอักษร';
-    case QUESTION_TYPES.PICTURE_MATCH: return 'จับคู่จากรูปภาพ';
-    case QUESTION_TYPES.DRAG_MATCH: return 'จับคู่ชื่อเรียก ↔ ตัวอักษร';
+    case QUESTION_TYPES.LISTEN_CHOOSE: return 'Listen & Choose';
+    case QUESTION_TYPES.PICTURE_MATCH: return 'Picture Match';
+    case QUESTION_TYPES.DRAG_MATCH: return 'Match Name ↔ Letter';
     case 'TRANSLATE_MATCH':
-    case 'MATCH_IDIOM_MEANING': return 'จับคู่คำ';
-    case QUESTION_TYPES.FILL_BLANK: return 'เติมคำให้ถูก';
-    case QUESTION_TYPES.ARRANGE_SENTENCE: return 'เรียงคำ';
-    case QUESTION_TYPES.SYLLABLE_BUILDER: return 'ประกอบพยางค์';
-    case QUESTION_TYPES.ORDER_TILES: return 'เรียงบัตรคำ';
-    case QUESTION_TYPES.A_OR_B: return 'เลือก A หรือ B';
-    case QUESTION_TYPES.MEMORY_MATCH: return 'จับคู่ความจำ';
-    case QUESTION_TYPES.CHALLENGE: return 'ท้าทายรวม';
+    case 'MATCH_IDIOM_MEANING': return 'Match Words';
+    case QUESTION_TYPES.FILL_BLANK: return 'Fill Blank';
+    case QUESTION_TYPES.ARRANGE_SENTENCE: return 'Arrange Sentence';
+    case QUESTION_TYPES.SYLLABLE_BUILDER: return 'Build Syllable';
+    case QUESTION_TYPES.ORDER_TILES: return 'Order Tiles';
+    case QUESTION_TYPES.A_OR_B: return 'A or B';
+    case QUESTION_TYPES.MEMORY_MATCH: return 'Memory Match';
+    case QUESTION_TYPES.CHALLENGE: return 'Challenge';
     default: return '';
   }
 };
@@ -175,8 +175,8 @@ const makeListenChoose = (word, pool, usedChars = new Set()) => {
   return {
     id: `lc_${word.char}_${uid()}`,
     type: QUESTION_TYPES.LISTEN_CHOOSE,
-    instruction: 'ฟังเสียงแล้วเลือกตัวอักษรที่ได้ยิน',
-    questionText: 'แตะปุ่มลำโพงเพื่อฟัง',
+    instruction: 'Listen and select the letter you hear',
+    questionText: 'Tap the speaker button to listen',
     audioText: word.audioText,
     correctText: word.char,
     // Rewards for this question
@@ -203,7 +203,7 @@ const makePictureMatch = (word, pool, usedChars = new Set()) => {
   return {
     id: `pm_${word.char}_${uid()}`,
     type: QUESTION_TYPES.PICTURE_MATCH,
-    instruction: 'ดูภาพแล้วเลือกพยัญชนะให้ถูกต้อง',
+    instruction: 'Look at the image and select the correct consonant',
     imageKey: word.image,
     correctText: word.char,
     // Rewards for this question
@@ -385,7 +385,7 @@ const makeAorB = (word, pool = [], usedChars = new Set()) => {
   return {
     id: `aob_${word.char}_${uid()}`,
     type: QUESTION_TYPES.A_OR_B,
-    instruction: 'เลือก A หรือ B',
+    instruction: 'Select A or B',
     audioText: word.audioText || word.name,
     // Rewards for this question
     rewardXP: 15,
@@ -941,11 +941,11 @@ const ConsonantStage1Game = ({ navigation, route }) => {
       // If hearts are depleted, prompt to buy more
       if (newHearts <= 0) {
         Alert.alert(
-          'หัวใจหมดแล้ว',
-          'ซื้อหัวใจเพิ่มเพื่อเล่นต่อ',
+          'Out of Hearts',
+          'Buy more hearts to continue playing',
           [
-            { text: 'ไปร้านหัวใจ', onPress: () => navigation.navigate('GemShop') },
-            { text: 'ยกเลิก', style: 'cancel' }
+            { text: 'Go to Shop', onPress: () => navigation.navigate('GemShop') },
+            { text: 'Cancel', style: 'cancel' }
           ]
         );
       }
@@ -2165,7 +2165,7 @@ const ConsonantStage1Game = ({ navigation, route }) => {
                 <Text style={styles.questionText}>{question.questionText}</Text>
               )}
               <Text style={styles.hintText}>
-                {question?.type ? `คำถามประเภท: ${question.type}` : 'การ์ดนี้เป็นแบบอ่าน ทำความเข้าใจแล้วกด CHECK'}
+                {question?.type ? `Question type: ${question.type}` : 'This is a learning card. Read and understand, then tap CHECK'}
               </Text>
               {Array.isArray(question?.choices) && question.choices.length > 0 && (
                 <View style={styles.choicesContainer}>
@@ -2187,7 +2187,7 @@ const ConsonantStage1Game = ({ navigation, route }) => {
               )}
               {(!question?.choices || question.choices.length === 0) && (
                 <Text style={[styles.hintText, { marginTop: 20, color: COLORS.gray }]}>
-                  การ์ดนี้ไม่มีตัวเลือก กด CHECK เพื่อไปข้อต่อไป
+                  This card has no choices. Tap CHECK to continue
                 </Text>
               )}
             </View>
@@ -2200,7 +2200,7 @@ const ConsonantStage1Game = ({ navigation, route }) => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>กำลังโหลด...</Text>
+          <Text style={styles.loadingText}>Loading...</Text>
         </View>
       </SafeAreaView>
     );
@@ -2217,15 +2217,15 @@ const ConsonantStage1Game = ({ navigation, route }) => {
               loop
               style={styles.introAnim}
             />
-            <Text style={styles.startTitle}>พยัญชนะ ก-ฮ</Text>
-            <Text style={styles.startSubtitle}>เรียนรู้พยัญชนะไทยพื้นฐาน</Text>
+            <Text style={styles.startTitle}>Consonants ก-ฮ</Text>
+            <Text style={styles.startSubtitle}>Learn basic Thai consonants</Text>
           </View>
 
           {/* Player Stats Display removed per request */}
           
           {resumeData && (
             <TouchableOpacity style={styles.resumeButton} onPress={resumeGame} activeOpacity={0.9}>
-              <Text style={styles.resumeButtonText}>เล่นต่อจากข้อที่ {resumeData.currentIndex + 1}</Text>
+              <Text style={styles.resumeButtonText}>Resume from question {resumeData.currentIndex + 1}</Text>
             </TouchableOpacity>
           )}
           
@@ -2236,7 +2236,7 @@ const ConsonantStage1Game = ({ navigation, route }) => {
               end={{ x: 1, y: 1 }}
               style={styles.startGradient}
             >
-              <Text style={styles.startButtonText}>เริ่มเล่น</Text>
+              <Text style={styles.startButtonText}>Start Game</Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
@@ -2379,7 +2379,7 @@ const ConsonantStage1Game = ({ navigation, route }) => {
               style={{ marginRight: 8 }}
             />
             <Text style={styles.feedbackTextEnhanced}>
-              {currentFeedback === 'correct' ? 'ถูกต้อง! ยอดเยี่ยม' : 'พยายามอีกครั้ง'}
+              {currentFeedback === 'correct' ? 'Correct! Great job!' : 'Try again'}
             </Text>
           </View>
         )}
@@ -2427,7 +2427,7 @@ const ConsonantStage1Game = ({ navigation, route }) => {
                 style={{ marginRight: 8 }}
               />
               <Text style={styles.checkButtonTextEnhanced}>
-                {currentFeedback !== null ? (hearts === 0 ? 'จบเกม' : 'ต่อไป') : 'CHECK'}
+                {currentFeedback !== null ? (hearts === 0 ? 'End Game' : 'Next') : 'CHECK'}
               </Text>
             </View>
           </LinearGradient>
