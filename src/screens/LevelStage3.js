@@ -24,15 +24,7 @@ const DEBUG_UNLOCK_ALL_STAGES = false; // Set to false for production - enable l
 
 const CUSTOM_STAGE_META = {
   // Advanced level stages (reordered)
-  1: {
-    lesson_id: 1,
-    title: 'อาชีพ (Occupations)',
-    key: 'advanced_occupations',
-    category: 'thai-occupations',
-    level: 'Advanced',
-    description: 'เรียนรู้คำศัพท์อาชีพและการบรรยาย',
-    gameScreen: 'Advanced1OccupationsGame',
-  },
+  // Stage 1 (Advanced1OccupationsGame) - DISABLED
   2: {
     lesson_id: 2,
     title: 'หัวข้อขั้นสูง (Advanced Topics)',
@@ -688,13 +680,6 @@ const LevelStage3 = ({ navigation }) => {
                     // Navigate to appropriate game screen based on stage metadata
                     if (stage.gameScreen === 'Advanced5IdiomsGame') {
                       navigation.navigate('Advanced5IdiomsGame', {
-                        lessonId: stage.lesson_id,
-                        category: stage.category,
-                        level: stage.level,
-                        stageTitle: stage.title
-                      });
-                    } else if (stage.gameScreen === 'Advanced1OccupationsGame') {
-                      navigation.navigate('Advanced1OccupationsGame', {
                         lessonId: stage.lesson_id,
                         category: stage.category,
                         level: stage.level,

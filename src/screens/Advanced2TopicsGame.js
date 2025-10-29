@@ -143,7 +143,7 @@ const Advanced2TopicsGame = ({ navigation, route }) => {
   
   // Contexts
   const { applyDelta, user: progressUser } = useProgress();
-  const { stats } = useUnifiedStats();
+  const { stats, hearts: unifiedHearts, updateStats } = useUnifiedStats();
   const { userData } = useUserData();
   
   // State
@@ -151,7 +151,7 @@ const Advanced2TopicsGame = ({ navigation, route }) => {
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentAnswer, setCurrentAnswer] = useState(null);
-  const [hearts, setHearts] = useState(5);
+  const [hearts, setHearts] = useState(unifiedHearts || 5);
   const [streak, setStreak] = useState(0);
   const [maxStreak, setMaxStreak] = useState(0);
   const [score, setScore] = useState(0);
@@ -182,6 +182,20 @@ const Advanced2TopicsGame = ({ navigation, route }) => {
       setQuestions(filtered);
     }
   }, [questions]);
+  
+  // Sync hearts with unified stats
+  useEffect(() => {
+    if (unifiedHearts !== undefined && unifiedHearts !== hearts) {
+      setHearts(unifiedHearts);
+    }
+  }, [unifiedHearts]);
+  
+  // Update unified stats when hearts change
+  useEffect(() => {
+    if (hearts !== undefined && updateStats) {
+      updateStats({ hearts });
+    }
+  }, [hearts]);
   
   // Load topics data
   useEffect(() => {
@@ -1181,15 +1195,17 @@ const Advanced2TopicsGame = ({ navigation, route }) => {
             end={{ x: 1, y: 1 }}
             style={styles.checkGradientEnhanced}
           >
-            <FontAwesome 
-              name={currentFeedback !== null ? 'arrow-right' : (isLearn ? 'arrow-right' : 'check')} 
-              size={20} 
-              color={COLORS.white}
-              style={{ marginRight: 8 }}
-            />
-            <Text style={styles.checkButtonTextEnhanced}>
-              {currentFeedback !== null ? (hearts === 0 ? 'จบเกม' : 'ต่อไป') : (isLearn ? 'NEXT' : 'CHECK')}
-            </Text>
+            <View style={styles.checkButtonContent}>
+              <FontAwesome 
+                name={currentFeedback !== null ? 'arrow-right' : (isLearn ? 'arrow-right' : 'check')} 
+                size={20} 
+                color={COLORS.white}
+                style={{ marginRight: 8 }}
+              />
+              <Text style={styles.checkButtonTextEnhanced}>
+                {currentFeedback !== null ? (hearts === 0 ? 'จบเกม' : 'ต่อไป') : (isLearn ? 'NEXT' : 'CHECK')}
+              </Text>
+            </View>
           </LinearGradient>
         </TouchableOpacity>
       </View>
@@ -1646,7 +1662,11 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
     borderRadius: 28,
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkButtonContent: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'center',
   },
   checkButtonDisabledEnhanced: {

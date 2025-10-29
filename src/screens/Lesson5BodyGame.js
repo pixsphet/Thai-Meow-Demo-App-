@@ -28,6 +28,7 @@ import dailyStreakService from '../services/dailyStreakService';
 import { useProgress } from '../contexts/ProgressContext';
 import { useUnifiedStats } from '../contexts/UnifiedStatsContext';
 import { useUserData } from '../contexts/UserDataContext';
+import { useGameHearts } from '../utils/useGameHearts';
 
 // Data
 import bodyFallback from '../data/lesson5_body.json';
@@ -268,12 +269,14 @@ const Lesson5BodyGame = ({ navigation, route }) => {
   const { stats } = useUnifiedStats();
   const { userData } = useUserData();
   
+  // Use unified hearts system
+  const { hearts, heartsDisplay, loseHeart, setHearts } = useGameHearts();
+  
   // State
   const [bodyParts, setBodyParts] = useState([]);
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentAnswer, setCurrentAnswer] = useState(null);
-  const [hearts, setHearts] = useState(5);
   const [streak, setStreak] = useState(0);
   const [maxStreak, setMaxStreak] = useState(0);
   const [score, setScore] = useState(0);
@@ -311,7 +314,9 @@ const Lesson5BodyGame = ({ navigation, route }) => {
         if (savedProgress && savedProgress.questionsSnapshot) {
           setResumeData(savedProgress);
           setCurrentIndex(savedProgress.currentIndex || 0);
-          setHearts(savedProgress.hearts || 5);
+          if (savedProgress.hearts !== undefined) {
+            setHearts(savedProgress.hearts);
+          }
           setStreak(savedProgress.streak || 0);
           setMaxStreak(savedProgress.maxStreak || 0);
           setScore(savedProgress.score || 0);
@@ -464,7 +469,7 @@ const Lesson5BodyGame = ({ navigation, route }) => {
       setDiamondsEarned(newDiamonds);
     } else {
       const newHearts = Math.max(0, hearts - 1);
-      setHearts(newHearts);
+      loseHeart(1);
       if (newHearts === 0) {
         Alert.alert(
           'หัวใจหมดแล้ว',
@@ -1043,15 +1048,17 @@ const Lesson5BodyGame = ({ navigation, route }) => {
             end={{ x: 1, y: 1 }}
             style={styles.checkGradientEnhanced}
           >
-            <FontAwesome 
-              name={currentFeedback !== null ? 'arrow-right' : 'check'} 
-              size={20} 
-              color={COLORS.white}
-              style={{ marginRight: 8 }}
-            />
-            <Text style={styles.checkButtonTextEnhanced}>
-              {currentFeedback !== null ? (hearts === 0 ? 'จบเกม' : 'ต่อไป') : 'CHECK'}
-            </Text>
+            <View style={styles.checkButtonContent}>
+              <FontAwesome 
+                name={currentFeedback !== null ? 'arrow-right' : 'check'} 
+                size={20} 
+                color={COLORS.white}
+                style={{ marginRight: 8 }}
+              />
+              <Text style={styles.checkButtonTextEnhanced}>
+                {currentFeedback !== null ? (hearts === 0 ? 'จบเกม' : 'ต่อไป') : 'CHECK'}
+              </Text>
+            </View>
           </LinearGradient>
         </TouchableOpacity>
       </View>
@@ -1630,7 +1637,11 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  checkButtonContent: {
     flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   checkButtonDisabledEnhanced: {
     backgroundColor: '#D0D0D0',

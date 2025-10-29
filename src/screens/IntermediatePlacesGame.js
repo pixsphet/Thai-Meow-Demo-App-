@@ -76,7 +76,6 @@ export default function IntermediatePlacesGame({ navigation, route }) {
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentAnswer, setCurrentAnswer] = useState(null);
-  const [hearts, setHearts] = useState(5);
   const [streak, setStreak] = useState(0);
   const [maxStreak, setMaxStreak] = useState(0);
   const [score, setScore] = useState(0);
@@ -97,7 +96,7 @@ export default function IntermediatePlacesGame({ navigation, route }) {
   const [currentFeedback, setCurrentFeedback] = useState(null); // 'correct'|'wrong'|null
 
   const { progressUser, applyDelta } = useProgress();
-  const { stats } = useUnifiedStats();
+  const { hearts, updateStats, stats } = useUnifiedStats();
   const { userData } = useUserData();
 
   const startTimeRef = useRef(Date.now());
@@ -113,7 +112,7 @@ export default function IntermediatePlacesGame({ navigation, route }) {
         const savedProgress = await restoreProgress(LESSON_ID);
         if (savedProgress?.questionsSnapshot) {
           setCurrentIndex(savedProgress.currentIndex || 0);
-          setHearts(savedProgress.hearts || 5);
+          // hearts จัดการโดย useUnifiedStats แล้ว
           setStreak(savedProgress.streak || 0);
           setMaxStreak(savedProgress.maxStreak || 0);
           setScore(savedProgress.score || 0);
@@ -150,14 +149,14 @@ export default function IntermediatePlacesGame({ navigation, route }) {
   const autosave = useCallback(async () => {
     if (questions.length === 0) return;
     const snapshot = {
-      questionsSnapshot: questions, currentIndex, hearts, score, xpEarned, diamondsEarned,
+      questionsSnapshot: questions, currentIndex, score, xpEarned, diamondsEarned,
       streak, maxStreak, answers: answersRef.current, accuracy, totalAnswered,
       gameProgress: { generator: 'places', lessonId: LESSON_ID, timestamp: Date.now() },
     };
     try { await saveProgress(LESSON_ID, snapshot); } catch (error) { console.error('Error autosaving:', error); }
-  }, [questions, currentIndex, hearts, score, xpEarned, diamondsEarned, streak, maxStreak, accuracy, totalAnswered]);
+  }, [questions, currentIndex, score, xpEarned, diamondsEarned, streak, maxStreak, accuracy, totalAnswered]);
 
-  useEffect(() => { if (gameStarted && !gameFinished) autosave(); }, [currentIndex, hearts, score, streak, gameStarted, gameFinished, autosave]);
+  useEffect(() => { if (gameStarted && !gameFinished) autosave(); }, [currentIndex, score, streak, gameStarted, gameFinished, autosave]);
 
   useEffect(() => {
     if (gameFinished && [5, 10, 20, 30, 50, 100].includes(maxStreak)) {
@@ -222,7 +221,7 @@ export default function IntermediatePlacesGame({ navigation, route }) {
       setDiamondsEarned(newDiamonds);
     } else {
       const newHearts = Math.max(0, hearts - 1);
-      setHearts(newHearts);
+      updateStats({ hearts: newHearts });
       if (newHearts === 0) {
         Alert.alert(
           'หัวใจหมดแล้ว',
@@ -677,15 +676,17 @@ export default function IntermediatePlacesGame({ navigation, route }) {
             end={{ x: 1, y: 1 }}
             style={styles.checkGradientEnhanced}
           >
-            <FontAwesome 
-              name={currentFeedback !== null ? 'arrow-right' : 'check'} 
-              size={20} 
-              color={COLORS.white}
-              style={{ marginRight: 8 }}
-            />
-            <Text style={styles.checkButtonTextEnhanced}>
-              {currentFeedback !== null ? (hearts === 0 ? 'จบเกม' : 'ต่อไป') : 'CHECK'}
-            </Text>
+            <View style={styles.checkButtonContent}>
+              <FontAwesome 
+                name={currentFeedback !== null ? 'arrow-right' : 'check'} 
+                size={20} 
+                color={COLORS.white}
+                style={{ marginRight: 8 }}
+              />
+              <Text style={styles.checkButtonTextEnhanced}>
+                {currentFeedback !== null ? (hearts === 0 ? 'จบเกม' : 'ต่อไป') : 'CHECK'}
+              </Text>
+            </View>
           </LinearGradient>
         </TouchableOpacity>
       </View>
@@ -1080,7 +1081,11 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  checkButtonContent: {
     flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   checkButtonDisabledEnhanced: {
     backgroundColor: '#D0D0D0',

@@ -27,6 +27,7 @@ import dailyStreakService from '../services/dailyStreakService';
 import { useProgress } from '../contexts/ProgressContext';
 import { useUnifiedStats } from '../contexts/UnifiedStatsContext';
 import { useUserData } from '../contexts/UserDataContext';
+import { useGameHearts } from '../utils/useGameHearts';
 
 // Data
 import objectsFallback from '../data/lesson4_objects_data.json';
@@ -288,12 +289,14 @@ const Lesson4ObjectsGame = ({ navigation, route }) => {
   const { stats } = useUnifiedStats();
   const { userData } = useUserData();
 
+  // Use unified hearts system
+  const { hearts, heartsDisplay, loseHeart, setHearts } = useGameHearts();
+
   // State
   const [objects, setObjects] = useState([]);
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentAnswer, setCurrentAnswer] = useState(null);
-  const [hearts, setHearts] = useState(5);
   const [streak, setStreak] = useState(0);
   const [maxStreak, setMaxStreak] = useState(0);
   const [score, setScore] = useState(0);
@@ -327,7 +330,9 @@ const Lesson4ObjectsGame = ({ navigation, route }) => {
         if (savedProgress && savedProgress.questionsSnapshot) {
           setResumeData(savedProgress);
           setCurrentIndex(savedProgress.currentIndex || 0);
-          setHearts(savedProgress.hearts || 5);
+          if (savedProgress.hearts !== undefined) {
+            setHearts(savedProgress.hearts);
+          }
           setStreak(savedProgress.streak || 0);
           setMaxStreak(savedProgress.maxStreak || 0);
           setScore(savedProgress.score || 0);
@@ -470,7 +475,7 @@ const Lesson4ObjectsGame = ({ navigation, route }) => {
       setDiamondsEarned(newDiamonds);
     } else {
       const newHearts = Math.max(0, hearts - 1);
-      setHearts(newHearts);
+      loseHeart(1);
       if (newHearts === 0) {
         const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
         finishLesson(elapsed);

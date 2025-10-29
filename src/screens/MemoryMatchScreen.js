@@ -315,6 +315,12 @@ const MemoryMatchScreen = ({ route }) => {
           <ThemedBackButton onPress={() => navigation.goBack()} style={styles.backButton} />
           
           <View style={styles.headerTitle}>
+            <LottieView 
+              source={require('../assets/animations/MemoryMatch.json')} 
+              autoPlay 
+              loop 
+              style={styles.memoryMatchAnim} 
+            />
             <Text style={styles.headerTitleText}>Memory Match</Text>
             <Text style={styles.headerSubtitle}>จับคู่คำศัพท์กับรูปภาพ</Text>
           </View>
@@ -588,6 +594,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     marginHorizontal: 20,
+  },
+  memoryMatchAnim: {
+    width: 60,
+    height: 60,
+    marginBottom: 8,
   },
   headerTitleText: {
     fontSize: 24,

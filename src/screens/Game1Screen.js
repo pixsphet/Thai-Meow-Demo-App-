@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef} from "react";
 import {
   View,
   Text,
@@ -9,21 +9,17 @@ import {
   Alert,
   Image,
 } from "react-native";
-import { FontAwesome } from '@expo/vector-icons';
-import LottieView from "lottie-react-native";
-import { useNavigation } from "@react-navigation/native";
 import { MOCK_LEVELS } from "../add/Data/DataMiniGame.js";
-import { getByCategory } from '../services/gameVocabService';
-import { awardDiamondsOnce, calculateDiamondReward } from '../services/minigameRewards';
-import { useUnifiedStats } from '../contexts/UnifiedStatsContext';
+import LottieView from "lottie-react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 
 const { width } = Dimensions.get("window");
 const gridSize = 8;
 
-// ข้อมูลคำศัพท์สำหรับเกม - ใช้จาก DataMiniGame.js
-
 // ตัวอักษรไทย
-const consonants = "กขฃคฅฆงจฉชซฌญฎฏฐฑฒณดตถทธนบปผฝพฟภมยรลวศษสหฬอฮ";
+const consonants =
+  "กขฃคฅฆงจฉชซฌญฎฏฐฑฒณดตถทธนบปผฝพฟภมยรลวศษสหฬอฮ";
 const vowels = ["ะ", "า", "ิ", "ี", "ึ", "ื", "ุ", "ู", "เ", "แ", "โ", "ใ", "ไ", ""];
 const tones = ["", "่", "้", "๊", "๋"];
 
@@ -141,9 +137,7 @@ const findWordCells = (grid, words) => {
   return wordLocations;
 };
 
-const Game1Screen = ({ route }) => {
-  const category = route?.params?.category || 'Animals';
-  const { updateFromGameSession } = useUnifiedStats();
+const Game1Screen = () => {
   const [levelIndex, setLevelIndex] = useState(0);
   const [grid, setGrid] = useState([]);
   const [selectedCells, setSelectedCells] = useState([]);
@@ -154,28 +148,31 @@ const Game1Screen = ({ route }) => {
   const [score, setScore] = useState(0);
   const [attempts, setAttempts] = useState(0);
   const [showEndPopup, setShowEndPopup] = useState(false);
-  const [rewardInfo, setRewardInfo] = useState(null);
 
   const navigation = useNavigation();
-  const [customLevel, setCustomLevel] = useState(null);
-  const currentLevel = customLevel || MOCK_LEVELS[levelIndex];
+  const currentLevel = MOCK_LEVELS[levelIndex];
 
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const words = await getByCategory(category, { count: 8 });
-        if (!mounted) return;
-        if (Array.isArray(words) && words.length) {
-          const normalized = words.map((w, idx) => ({ id: idx + 1, word: w.thai, hint: `${category}` }));
-          setCustomLevel({ level: 1, name: `${category}`, words: normalized });
-          return;
-        }
-      } catch (_) {}
-      setCustomLevel(null);
-    })();
-    return () => { mounted = false; };
-  }, [category]);
+  // Always use MOCK_LEVELS with Thai hints
+  // useEffect(() => {
+  //   let mounted = true;
+  //   (async () => {
+  //     try {
+  //       const words = await getByCategory(category, { count: 8 });
+  //       if (!mounted) return;
+  //       if (Array.isArray(words) && words.length) {
+  //         const normalized = words.map((w, idx) => ({ 
+  //           id: idx + 1, 
+  //           word: w.thai, 
+  //           hint: w.hint || w.english || category 
+  //         }));
+  //         setCustomLevel({ level: 1, name: `${category}`, words: normalized });
+  //         return;
+  //       }
+  //     } catch (_) {}
+  //     setCustomLevel(null);
+  //   })();
+  //   return () => { mounted = false; };
+  // }, [category]);
 
   const generateGrid = (words) => {
     const newGrid = Array.from({ length: gridSize }, () =>
@@ -322,22 +319,10 @@ const Game1Screen = ({ route }) => {
             setMessage("");
             setIsGameComplete(false);
           } else {
+            // 🎯 ด่านสุดท้ายแล้ว → แสดง Popup "ผ่านทุกด่าน"
             setShowEndPopup(true);
-            // set reward preview for final completion
-            const reward = calculateDiamondReward({
-              difficulty: 'Medium',
-              metrics: {
-                score,
-                scoreTarget: currentLevel.words.length * 100,
-                accuracy: 100,
-                timeUsed: 0,
-                timeTarget: 0,
-                maxCombo: 0,
-              }
-            });
-            setRewardInfo(reward);
           }
-        }, 3000);
+        }, 3000); // แสดงอนิเมชัน 3 วิ ก่อนแสดง popup หรือไปด่านต่อไป
       }
     } else if (cells.length > 12) {
       setMessage("❌ ไม่ถูกต้อง ลองใหม่อีกครั้ง");
@@ -370,8 +355,10 @@ const Game1Screen = ({ route }) => {
 
   const nextLevel = () => {
     if (levelIndex < MOCK_LEVELS.length - 1) {
+      // ไปด่านต่อไป
       setLevelIndex((prev) => prev + 1);
     } else {
+      // ผ่านทุกด่านแล้ว แสดง popup จบเกม
       setShowEndPopup(true);
     }
   };
@@ -402,7 +389,7 @@ const Game1Screen = ({ route }) => {
               onPress={() => navigation.goBack()}
               style={styles.closeButtonInline}
             >
-              <FontAwesome name="times" size={24} color="#8f59c5ff" />
+              <Ionicons name="close" size={34} color="#8f59c5ff" />
             </TouchableOpacity>
           </View>
 
@@ -520,12 +507,22 @@ const Game1Screen = ({ route }) => {
 
         {isGameComplete && (
           <View style={styles.lottieWrapper}>
-            <LottieView
-              source={require('../assets/animations/Star.json')}
-              autoPlay
-              loop={false}
-              style={styles.lottieAnimation}
-            />
+            {levelIndex === MOCK_LEVELS.length - 1 ? (
+              <Image
+                source={require("../add/picture/แมวเสร็จภารกิจ.png")}
+                style={styles.finalImage}
+                resizeMode="contain"
+              />
+            ) : (
+              <>
+                <LottieView
+                  source={require('../assets/animations/Star.json')}
+                  autoPlay
+                  loop={false}
+                  style={styles.lottieAnimation}
+                />
+              </>
+            )}
           </View>
         )}
       </View>
@@ -537,52 +534,17 @@ const Game1Screen = ({ route }) => {
             <Text style={styles.endPopupText}>คุณผ่านทุกด่านแล้ว!</Text>
             <Text style={styles.endPopupScore}>คะแนนรวม: {score} คะแนน</Text>
 
-            {rewardInfo && (
-              <View style={{ backgroundColor: '#F8F9FA', padding: 12, borderRadius: 16, marginTop: 6, width: '100%', alignItems: 'center' }}>
-                <LottieView source={require('../assets/animations/Diamond.json')} autoPlay loop style={{ width: 36, height: 36 }} />
-                <Text style={{ textAlign: 'center', fontSize: 16, fontWeight: '800', color: '#1F2937' }}>+{rewardInfo.diamonds}</Text>
-              </View>
-            )}
-
             <View style={styles.popupButtonRow}>
+              {/* ปุ่ม เริ่มใหม่ */}
               <TouchableOpacity
                 style={[styles.popupButton, { backgroundColor: "#FF6B9D" }]}
                 activeOpacity={0.8}
-                onPress={async () => {
-                  const sessionId = String(Date.now());
-                  const metrics = {
-                    score,
-                    scoreTarget: currentLevel.words.length * 100,
-                    accuracy: 100,
-                    timeUsed: 0,
-                    timeTarget: 0,
-                    maxCombo: 0,
-                  };
-                  const result = await awardDiamondsOnce({
-                    gameId: 'word-finder',
-                    difficulty: 'Medium',
-                    sessionId,
-                    metrics,
-                  });
-                  if (result && result.diamonds > 0) {
-                    try {
-                      await updateFromGameSession({
-                        gameType: 'minigame-word-finder',
-                        diamondsEarned: result.diamonds,
-                        xpEarned: 0,
-                        timeSpent: metrics.timeUsed,
-                        accuracy: metrics.accuracy,
-                        correctAnswers: currentLevel.words.length,
-                        wrongAnswers: 0,
-                        totalQuestions: currentLevel.words.length,
-                      });
-                    } catch (_) {}
-                  }
-                  setShowEndPopup(false);
-                  setLevelIndex(0);
-                  setScore(0);
-                  setIsGameComplete(false);
-                  const newGrid = generateGrid(MOCK_LEVELS[0].words);
+                onPress={() => {
+                  setShowEndPopup(false);       // ซ่อน popup
+                  setLevelIndex(0);             // เริ่มด่านแรก
+                  setScore(0);                  // รีเซ็ตคะแนน
+                  setIsGameComplete(false);     // รีเซ็ตสถานะจบเกม → ทำให้แมวหาย
+                  const newGrid = generateGrid(MOCK_LEVELS[0].words);  // สร้างกริดใหม่
                   setGrid(newGrid);
                   setSelectedCells([]);
                   setFoundWords([]);
@@ -594,44 +556,19 @@ const Game1Screen = ({ route }) => {
                 <Text style={styles.popupButtonText}>เริ่มใหม่</Text>
               </TouchableOpacity>
 
+              {/* ปุ่ม ออกเกม */}
               <TouchableOpacity
                 style={[styles.popupButton, { backgroundColor: "#667eea" }]}
                 activeOpacity={0.8}
-                onPress={async () => {
-                  const sessionId = String(Date.now());
-                  const metrics = {
-                    score,
-                    scoreTarget: currentLevel.words.length * 100,
-                    accuracy: 100,
-                    timeUsed: 0,
-                    timeTarget: 0,
-                    maxCombo: 0,
-                  };
-                  const result = await awardDiamondsOnce({
-                    gameId: 'word-finder',
-                    difficulty: 'Medium',
-                    sessionId,
-                    metrics,
-                  });
-                  if (result && result.diamonds > 0) {
-                    try {
-                      await updateFromGameSession({
-                        gameType: 'minigame-word-finder',
-                        diamondsEarned: result.diamonds,
-                        xpEarned: 0,
-                        timeSpent: metrics.timeUsed,
-                        accuracy: metrics.accuracy,
-                        correctAnswers: currentLevel.words.length,
-                        wrongAnswers: 0,
-                        totalQuestions: currentLevel.words.length,
-                      });
-                    } catch (_) {}
-                  }
+                onPress={() => {
                   setShowEndPopup(false);
-                  navigation.navigate('Minigame');
+                  navigation.popToTop(); // กลับไปหน้าหลักของ stack ปัจจุบัน
+                    navigation.navigate("MainTab", {
+                      screen: "Profile",
+                    });
                 }}
               >
-                <Text style={styles.popupButtonText}>กลับเกม</Text>
+                <Text style={styles.popupButtonText}>ออกเกม</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -653,11 +590,11 @@ const styles = StyleSheet.create({
   },
   closeButtonInline: {
     position: "absolute",
-    left: -15,
-    top: 2,
-    transform: [{ translateY: -17 }],
+    left: -15, 
+    top: 2, 
+    transform: [{ translateY: -17 }], 
     padding: 4,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#FFFFFF", 
     borderRadius: 20,
     borderWidth: 3,
     borderColor: "#FF6B9D",
@@ -721,17 +658,17 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: "#FFD700",
   },
-  progress: {
-    fontSize: 18,
-    color: "#667eea",
+  progress: { 
+    fontSize: 18, 
+    color: "#667eea", 
     fontWeight: "900",
     textShadowColor: 'rgba(102, 126, 234, 0.3)',
     textShadowOffset: {width: 1, height: 1},
     textShadowRadius: 2
   },
-  score: {
-    fontSize: 18,
-    color: "#FF6B9D",
+  score: { 
+    fontSize: 18, 
+    color: "#FF6B9D", 
     fontWeight: "900",
     textShadowColor: 'rgba(255, 107, 157, 0.3)',
     textShadowOffset: {width: 1, height: 1},
@@ -748,19 +685,19 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 8,
   },
-  successMessage: {
+  successMessage: { 
     backgroundColor: "#4ECDC4",
     borderColor: "#26A69A",
   },
-  completeMessage: {
+  completeMessage: { 
     backgroundColor: "#FFD700",
     borderColor: "#FFA000",
   },
-  errorMessage: {
+  errorMessage: { 
     backgroundColor: "#FF6B9D",
     borderColor: "#E91E63",
   },
-  warningMessage: {
+  warningMessage: { 
     backgroundColor: "#FFE66D",
     borderColor: "#FFC107",
   },
@@ -773,22 +710,23 @@ const styles = StyleSheet.create({
     textShadowOffset: {width: 2, height: 2},
     textShadowRadius: 0,
   },
-  gridWrapper: {
-    alignItems: "center",
-    marginBottom: 18,
-  },
-  gridContainer: {
-    backgroundColor: "#FFFFFF",
-    padding: 10,
-    borderRadius: 20,
-    borderWidth: 4,
-    borderColor: "#667eea",
-    shadowColor: "#667eea",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 15,
-    elevation: 12,
-  },
+  gridWrapper: { 
+  alignItems: "center", 
+  marginBottom: 18, 
+},
+gridContainer: {
+  backgroundColor: "#FFFFFF",
+  padding: 10,
+  borderRadius: 20, 
+  borderWidth: 4, 
+  borderColor: "#667eea",
+  shadowColor: "#667eea",
+  shadowOffset: { width: 0, height: 8 }, 
+  shadowOpacity: 0.3, 
+  shadowRadius: 15, 
+  elevation: 12, 
+},
+
   row: { flexDirection: "row" },
   cell: {
     width: 45,
@@ -832,7 +770,7 @@ const styles = StyleSheet.create({
     textShadowOffset: {width: 1, height: 1},
     textShadowRadius: 2,
   },
-  cellTextHighlight: {
+  cellTextHighlight: { 
     color: "#FFFFFF",
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: {width: 1, height: 1},
@@ -874,9 +812,9 @@ const styles = StyleSheet.create({
     shadowRadius: 15,
     elevation: 12,
   },
-  selectedWordLabel: {
-    fontSize: 14,
-    color: "#764ba2",
+  selectedWordLabel: { 
+    fontSize: 14, 
+    color: "#764ba2", 
     marginBottom: 8,
     fontWeight: "700",
     letterSpacing: 1,
@@ -902,9 +840,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 8,
   },
-  clearButtonText: {
-    color: "#FFF",
-    fontSize: 16,
+  clearButtonText: { 
+    color: "#FFF", 
+    fontSize: 16, 
     fontWeight: "900",
     letterSpacing: 0.5,
   },
@@ -931,9 +869,9 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     textAlign: "center",
   },
-  hintItem: {
-    flexDirection: "row",
-    alignItems: "flex-start",
+  hintItem: { 
+    flexDirection: "row", 
+    alignItems: "flex-start", 
     marginBottom: 12,
     backgroundColor: "#F8F9FA",
     padding: 12,
@@ -941,24 +879,24 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
     borderLeftColor: "#4ECDC4",
   },
-  hintItemFound: {
+  hintItemFound: { 
     opacity: 0.5,
     borderLeftColor: "#E0E0E0",
   },
-  hintIcon: {
-    fontSize: 18,
-    marginRight: 12,
+  hintIcon: { 
+    fontSize: 18, 
+    marginRight: 12, 
     color: "#FF6B9D",
     fontWeight: "900",
   },
   hintTextContainer: { flex: 1 },
-  hintText: {
-    fontSize: 16,
+  hintText: { 
+    fontSize: 16, 
     color: "#333",
     fontWeight: "600",
   },
-  hintTextFound: {
-    textDecorationLine: "line-through",
+  hintTextFound: { 
+    textDecorationLine: "line-through", 
     color: "#999",
   },
   wordBoxesContainer: {
@@ -988,12 +926,17 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgba(137, 137, 137, 0.4)",
-    zIndex: 1000,
+    zIndex: 1000, 
   },
   lottieAnimation: {
     width: 300,
     height: 300,
     transform: [{ translateY: -150 }],
+  },
+  finalImage: {
+    width: 280,
+    height: 280,
+    marginBottom: 100,
   },
   endPopupOverlay: {
     position: "absolute",
@@ -1020,6 +963,11 @@ const styles = StyleSheet.create({
     shadowRadius: 15,
     elevation: 15,
   },
+  endPopupLottie: {
+    width: 200,
+    height: 200,
+    marginBottom: 10,
+  },
   endPopupTitle: {
     fontSize: 24,
     fontWeight: "900",
@@ -1039,13 +987,30 @@ const styles = StyleSheet.create({
     color: "#FFD700",
     marginBottom: 20,
   },
-  popupButtonRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 25,
-    width: "100%",
-    gap: 15,
+  restartButtonPopup: {
+    backgroundColor: "#FF6B9D",
+    paddingHorizontal: 40,
+    paddingVertical: 12,
+    borderRadius: 20,
+    borderWidth: 3,
+    borderColor: "#FFF",
+    shadowColor: "#FF1744",
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 8,
   },
+  restartButtonText: {
+    color: "#FFF",
+    fontSize: 18,
+    fontWeight: "900",
+  },
+  popupButtonRow: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  marginTop: 25,
+  width: "100%",
+  gap: 15,
+},
   popupButton: {
     flex: 1,
     paddingVertical: 14,
@@ -1054,6 +1019,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     transform: [{ translateY: 0 }],
   },
+
   popupButtonText: {
     color: "#FFF",
     fontSize: 18,

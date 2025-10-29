@@ -69,12 +69,11 @@ const checkAnswer = (question, answer) => {
 };
 
 export default function IntermediateRoutinesGame({ navigation, route }) {
-  const { hearts: unifiedHearts, updateStats } = useUnifiedStats();
+  const { hearts, updateStats } = useUnifiedStats();
   
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentAnswer, setCurrentAnswer] = useState(null);
-  const [hearts, setHearts] = useState(unifiedHearts || 5);
   const [streak, setStreak] = useState(0);
   const [maxStreak, setMaxStreak] = useState(0);
   const [score, setScore] = useState(0);
@@ -108,8 +107,7 @@ export default function IntermediateRoutinesGame({ navigation, route }) {
         const savedProgress = await restoreProgress(LESSON_ID);
         if (savedProgress?.questionsSnapshot) {
           setCurrentIndex(savedProgress.currentIndex || 0);
-          // ใช้ hearts จาก UnifiedStats ไม่ใช่ savedProgress
-          setHearts(unifiedHearts || 5);
+          // hearts จัดการโดย useUnifiedStats แล้ว
           setStreak(savedProgress.streak || 0);
           setMaxStreak(savedProgress.maxStreak || 0);
           setScore(savedProgress.score || 0);
@@ -126,25 +124,6 @@ export default function IntermediateRoutinesGame({ navigation, route }) {
     };
     loadQuestions();
   }, []);
-
-  // Sync hearts from UnifiedStats - เป็น source of truth หลัก
-  useEffect(() => {
-    if (Number.isFinite(unifiedHearts)) {
-      // ใช้ UnifiedStats เป็นหลัก อัพเดท local state ถ้าไม่ตรง
-      if (hearts !== unifiedHearts) {
-        console.log('🔄 Syncing hearts from UnifiedStats:', unifiedHearts);
-        setHearts(unifiedHearts);
-      }
-    }
-  }, [unifiedHearts]);
-
-  // Update hearts back to UnifiedStats ทันทีเมื่อเปลี่ยนแปลง
-  useEffect(() => {
-    if (hearts !== unifiedHearts) {
-      console.log('📤 Updating hearts to UnifiedStats:', hearts);
-      updateStats({ hearts });
-    }
-  }, [hearts]);
 
   // ใช้ useMemo สำหรับ userId ที่ stable
   const stableUserId = useMemo(() => {
@@ -173,7 +152,6 @@ export default function IntermediateRoutinesGame({ navigation, route }) {
     const snapshot = {
       questionsSnapshot: questions,
       currentIndex,
-      hearts,
       score,
       xpEarned,
       diamondsEarned,
@@ -191,7 +169,7 @@ export default function IntermediateRoutinesGame({ navigation, route }) {
     } catch (error) {
       console.error('Error autosaving:', error);
     }
-  }, [questions, currentIndex, hearts, score, xpEarned, diamondsEarned, streak, maxStreak, gameStarted, gameFinished]);
+  }, [questions, currentIndex, score, xpEarned, diamondsEarned, streak, maxStreak, gameStarted, gameFinished]);
 
   // Auto-save progress when game state changes (debounced)
   useEffect(() => {
@@ -202,7 +180,7 @@ export default function IntermediateRoutinesGame({ navigation, route }) {
     }, 1000); // Debounce 1 second
 
     return () => clearTimeout(timer);
-  }, [currentIndex, hearts, score, streak, gameStarted, gameFinished, autosave]);
+  }, [currentIndex, score, streak, gameStarted, gameFinished, autosave]);
 
   const playTTS = useCallback(async (text) => {
     try { await vaja9TtsService.playThai(text); } catch (error) { console.error('TTS Error:', error); }
@@ -288,7 +266,7 @@ export default function IntermediateRoutinesGame({ navigation, route }) {
       // Wrong answer
       const heartPenalty = currentQuestion.penaltyHeart || 1;
       const newHearts = Math.max(0, hearts - heartPenalty);
-      setHearts(newHearts);
+      updateStats({ hearts: newHearts });
 
       // If hearts are depleted, prompt to buy more
       if (newHearts <= 0) {
@@ -766,15 +744,17 @@ export default function IntermediateRoutinesGame({ navigation, route }) {
             end={{ x: 1, y: 1 }}
             style={styles.checkGradientEnhanced}
           >
-            <FontAwesome 
-              name={currentFeedback !== null ? 'arrow-right' : 'check'} 
-              size={20} 
-              color={COLORS.white}
-              style={{ marginRight: 8 }}
-            />
-            <Text style={styles.checkButtonTextEnhanced}>
-              {currentFeedback !== null ? (hearts === 0 ? 'จบเกม' : 'ต่อไป') : 'CHECK'}
-            </Text>
+            <View style={styles.checkButtonContent}>
+              <FontAwesome 
+                name={currentFeedback !== null ? 'arrow-right' : 'check'} 
+                size={20} 
+                color={COLORS.white}
+                style={{ marginRight: 8 }}
+              />
+              <Text style={styles.checkButtonTextEnhanced}>
+                {currentFeedback !== null ? (hearts === 0 ? 'จบเกม' : 'ต่อไป') : 'CHECK'}
+              </Text>
+            </View>
           </LinearGradient>
         </TouchableOpacity>
       </View>
@@ -1241,7 +1221,11 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
     borderRadius: 28,
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkButtonContent: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'center',
   },
   checkButtonDisabledEnhanced: {

@@ -114,8 +114,6 @@ const HomeScreen = ({ navigation }) => {
       description: 'สำรวจบทเรียนพื้นฐานสำหรับพยัญชนะ สระ และวรรณยุกต์ พร้อมภาพและเสียงประกอบ',
       color: '#FF8C00', // สีส้มหลัก
       image: require('../assets/images/Grumpy Cat.png'),
-      stageCount: 44,
-      completedStages: 0,
     },
     {
       id: 'beginner',
@@ -123,8 +121,6 @@ const HomeScreen = ({ navigation }) => {
       description: 'เรียนรู้คำศัพท์พื้นฐาน การออกเสียง และประโยคง่ายๆ',
       color: '#FFA500', // สีส้มอ่อน
       image: require('../assets/images/Catsmile.png'),
-      stageCount: 10,
-      completedStages: 0,
     },
     {
       id: 'intermediate',
@@ -132,8 +128,7 @@ const HomeScreen = ({ navigation }) => {
       description: 'พัฒนาทักษะการพูด ฟัง อ่าน เขียน สำหรับการใช้ในชีวิตประจำวัน',
       color: '#FF6B35', // สีส้มแดง
       image: require('../assets/images/Catsmile1.png'),
-      stageCount: 10,
-      completedStages: 0,
+
     },
     {
       id: 'advanced',
@@ -141,8 +136,6 @@ const HomeScreen = ({ navigation }) => {
       description: 'สำหรับผู้เชี่ยวชาญในสำนวน ไวยากรณ์ และการสนทนาที่ซับซ้อน',
       color: '#E67300', // สีส้มเข้ม
       image: require('../assets/images/happy.png'),
-      stageCount: 10,
-      completedStages: 0,
     },
   ];
 
@@ -440,101 +433,10 @@ const HomeScreen = ({ navigation }) => {
 
         {/* Quick Actions removed per request */}
 
-        {/* Test Section */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>🧪 ทดสอบระบบ</Text>
-          
-          <TouchableOpacity
-            style={[styles.minigameCard, { backgroundColor: '#FFF5E5', marginBottom: 15 }]}
-            onPress={() => navigation.navigate('TestConsonantGame')}
-          >
-            <View style={styles.minigameContent}>
-              <View style={styles.minigameIconContainer}>
-                <Text style={styles.testIcon}>ก</Text>
-              </View>
-              <View style={styles.minigameText}>
-                <Text style={[styles.minigameTitle, { color: '#333' }]}>
-                  ทดสอบ ConsonantStage1Game
-                </Text>
-                <Text style={[styles.minigameSubtitle, { color: '#666' }]}>
-                  พยัญชนะ ก-ฮ • 12 คำถาม
-                </Text>
-                <View style={styles.minigameFeatures}>
-                  <Text style={[styles.minigameFeature, { color: '#666' }]}>
-                    🎧 ฟังเสียง • 🖼️ ดูรูป • 🧩 จับคู่ • 📝 เติมคำ • 🔤 เรียงคำ
-                  </Text>
-                </View>
-              </View>
-              <Ionicons name="chevron-forward" size={24} color="#666" />
-            </View>
-          </TouchableOpacity>
-        </View>
-
         {/* Minigames Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>🎮 เกมสนุก ๆ</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>🎮 Mini Games</Text>
           
-          {/* Lesson3Game Test Button */}
-         <TouchableOpacity
-           style={[styles.minigameCard, { backgroundColor: '#FFE4E1', marginBottom: 15 }]}
-           onPress={() => navigation.navigate('Lesson3Game', {
-             lessonId: 3,
-             category: 'greetings',
-             level: 'Beginner',
-             stageTitle: 'คำทักทาย 10 คำ'
-           })}
-         >
-           <View style={styles.minigameContent}>
-             <View style={styles.minigameIconContainer}>
-               <Text style={styles.testIcon}>👋</Text>
-             </View>
-             <View style={styles.minigameText}>
-               <Text style={[styles.minigameTitle, { color: '#333' }]}>
-                 ทดสอบ Lesson3Game
-               </Text>
-               <Text style={[styles.minigameSubtitle, { color: '#666' }]}>
-                 คำทักทาย 10 คำ • 15 คำถาม
-               </Text>
-               <View style={styles.minigameFeatures}>
-                 <Text style={[styles.minigameFeature, { color: '#666' }]}>
-                   🎧 ฟังเสียง • 🖼️ ดูรูป • 🧩 จับคู่
-                 </Text>
-               </View>
-             </View>
-             <Ionicons name="chevron-forward" size={24} color="#666" />
-           </View>
-         </TouchableOpacity>
-
-         <TouchableOpacity
-           style={[styles.minigameCard, { backgroundColor: '#E3F2FD', marginBottom: 15 }]}
-           onPress={() => navigation.navigate('Lesson4Game', {
-             lessonId: 4,
-             category: 'time',
-             level: 'Beginner',
-             stageTitle: 'เวลา & ตารางชีวิตประจำวัน'
-           })}
-         >
-           <View style={styles.minigameContent}>
-             <View style={styles.minigameIconContainer}>
-               <Text style={styles.testIcon}>⏰</Text>
-             </View>
-             <View style={styles.minigameText}>
-               <Text style={[styles.minigameTitle, { color: '#333' }]}>
-                 ทดสอบ Lesson4Game
-               </Text>
-               <Text style={[styles.minigameSubtitle, { color: '#666' }]}>
-                 เวลา & กิจวัตร 14 คำ • 21 คำถาม
-               </Text>
-               <View style={styles.minigameFeatures}>
-                 <Text style={[styles.minigameFeature, { color: '#666' }]}>
-                   🎧 ฟังเสียง • 🖼️ ดูรูป • 🧩 จับคู่ • 📝 เติมคำ
-                 </Text>
-               </View>
-             </View>
-             <Ionicons name="chevron-forward" size={24} color="#666" />
-           </View>
-         </TouchableOpacity>
-
           <TouchableOpacity 
             style={[styles.minigameCard, { backgroundColor: theme.card }]}
             onPress={() => navigation.navigate('Minigame')}
@@ -557,7 +459,7 @@ const HomeScreen = ({ navigation }) => {
                 </Text>
                 <View style={styles.minigameFeatures}>
                   <Text style={[styles.minigameFeature, { color: theme.textSecondary }]}>
-                    🔍 Word Finder • 🧩 Word Scramble
+                    🔍 Word Finder • 🧩 Word Scramble • 🃏 Memory Match • ⌨️ Speed Typing
                   </Text>
                 </View>
               </View>

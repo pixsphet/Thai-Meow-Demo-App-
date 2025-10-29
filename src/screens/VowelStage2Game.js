@@ -28,6 +28,7 @@ import dailyStreakService from '../services/dailyStreakService';
 import { useProgress } from '../contexts/ProgressContext';
 import { useUnifiedStats } from '../contexts/UnifiedStatsContext';
 import { useUserData } from '../contexts/UserDataContext';
+import { useGameHearts } from '../utils/useGameHearts';
 
 // Data
 import vowelsFallback from '../data/vowels_fallback.json';
@@ -377,12 +378,14 @@ const VowelStage2Game = ({ navigation, route }) => {
   const { stats } = useUnifiedStats();
   const { userData } = useUserData();
 
+  // Use unified hearts system
+  const { hearts, heartsDisplay, loseHeart, setHearts } = useGameHearts();
+  
   // State
   const [vowels, setVowels] = useState([]);
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentAnswer, setCurrentAnswer] = useState(null);
-  const [hearts, setHearts] = useState(5);
   const [streak, setStreak] = useState(0);
   const [maxStreak, setMaxStreak] = useState(0);
   const [score, setScore] = useState(0);
@@ -440,7 +443,9 @@ const VowelStage2Game = ({ navigation, route }) => {
 
           setResumeData(resumePayload);
           setCurrentIndex(Math.min(savedProgress.currentIndex || 0, Math.max(sanitizedSnapshot.length - 1, 0)));
-          setHearts(savedProgress.hearts || 5);
+          if (savedProgress.hearts !== undefined) {
+            setHearts(savedProgress.hearts);
+          }
           setStreak(savedProgress.streak || 0);
           setMaxStreak(savedProgress.maxStreak || 0);
           setScore(savedProgress.score || 0);
@@ -595,7 +600,8 @@ const VowelStage2Game = ({ navigation, route }) => {
       // Wrong answer - use question's penalty data
       const heartPenalty = currentQuestion.penaltyHeart || 1;
       const newHearts = Math.max(0, hearts - heartPenalty);
-      setHearts(newHearts);
+      loseHeart(heartPenalty);
+      
       if (newHearts <= 0) {
         Alert.alert(
           'หัวใจหมดแล้ว',
@@ -608,7 +614,6 @@ const VowelStage2Game = ({ navigation, route }) => {
             }}
           ]
         );
-        return;
       }
     }
   };
@@ -1211,20 +1216,22 @@ const VowelStage2Game = ({ navigation, route }) => {
           activeOpacity={0.85}
         >
           <LinearGradient
-            colors={currentAnswer === null ? ['#ddd', '#ccc'] : [COLORS.primary, '#FFA24D']}
+            colors={currentAnswer === null ? ['#ddd', '#ccc'] : ['#6B8F9F', '#4A7C94']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.checkGradientEnhanced}
           >
-            <FontAwesome 
-              name={checked ? 'arrow-right' : 'check'} 
-              size={20} 
-              color={COLORS.white}
-              style={{ marginRight: 8 }}
-            />
-            <Text style={styles.checkButtonTextEnhanced}>
-              {checked ? (hearts === 0 ? 'จบเกม' : 'ต่อไป') : 'CHECK'}
-            </Text>
+            <View style={styles.checkButtonContent}>
+              <FontAwesome 
+                name={checked ? 'arrow-right' : 'check'} 
+                size={20} 
+                color={COLORS.white}
+                style={{ marginRight: 8 }}
+              />
+              <Text style={styles.checkButtonTextEnhanced}>
+                {checked ? (hearts === 0 ? 'จบเกม' : 'ต่อไป') : 'CHECK'}
+              </Text>
+            </View>
           </LinearGradient>
         </TouchableOpacity>
       </View>
@@ -1750,11 +1757,11 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
     borderRadius: 28,
     alignItems: 'center',
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 5,
     minWidth: 200,
   },
   checkGradientEnhanced: {
@@ -1763,7 +1770,11 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  checkButtonContent: {
     flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   checkButtonDisabledEnhanced: {
     backgroundColor: '#D0D0D0',

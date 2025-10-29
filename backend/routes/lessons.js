@@ -122,29 +122,12 @@ router.post('/check-unlock/:levelId', auth, async (req, res) => {
     const { accuracy, score } = req.body;
     const User = require('../models/User');
     
-    // Determine nextLevelId robustly for different level id formats:
-    // - Beginner: 'level1' -> 'level2'
-    // - Intermediate: 'level_intermediate_1' -> 'level_intermediate_2'
-    // - Advanced: 'level1_advanced' -> 'level2_advanced'
-    const extractNumber = (str) => {
-      const m = String(str).match(/(\d+)/);
-      return m ? parseInt(m[0], 10) : NaN;
-    };
-
-    let nextLevelId;
-    if (String(levelId).toLowerCase().includes('intermediate')) {
-      const n = extractNumber(levelId);
-      nextLevelId = Number.isFinite(n) ? `level_intermediate_${n + 1}` : null;
-    } else if (String(levelId).toLowerCase().includes('_advanced') || String(levelId).toLowerCase().endsWith('advanced')) {
-      const n = extractNumber(levelId);
-      nextLevelId = Number.isFinite(n) ? `level${n + 1}_advanced` : null;
-    } else {
-      const n = extractNumber(levelId);
-      nextLevelId = Number.isFinite(n) ? `level${n + 1}` : null;
-    }
-
+    // Parse level number from levelId (e.g., 'level2' => 2)
+    const currentLevelNum = parseInt(levelId.replace('level', ''));
+    const nextLevelId = `level${currentLevelNum + 1}`;
+    
     // Check if accuracy >= 70%
-    const shouldUnlock = accuracy >= 70 && !!nextLevelId;
+    const shouldUnlock = accuracy >= 70;
     
     if (shouldUnlock && userId) {
       // Update user's unlockedLevels in DB

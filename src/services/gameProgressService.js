@@ -70,26 +70,23 @@ const canonicalizeLevelId = (value) => {
 };
 
 const inferLevelTierFromContext = (lessonId, context = {}) => {
-  // Be more strict when inferring level tier — look for explicit level patterns
-  const candidates = [lessonId, context.levelId, context.lessonKey, context.gameMode, context.category, context.levelTier]
+  const tokens = [
+    lessonId,
+    context.levelId,
+    context.lessonKey,
+    context.gameMode,
+    context.category,
+    context.levelTier,
+  ]
     .filter(Boolean)
-    .map(String);
+    .map(value => value.toString().toLowerCase());
 
-  // Check explicit advanced patterns like 'level1_advanced' or tokens ending with '_advanced'
-  for (const v of candidates) {
-    if (/level\d+_advanced/i.test(v) || /\badvanced\b/i.test(v) || /_advanced\b/i.test(v)) {
-      return 'advanced';
-    }
+  if (tokens.some(token => token.includes('advanced'))) {
+    return 'advanced';
   }
-
-  // Check explicit intermediate patterns like 'level_intermediate_1' or token 'intermediate'
-  for (const v of candidates) {
-    if (/level_intermediate_\d+/i.test(v) || /\bintermediate\b/i.test(v)) {
-      return 'intermediate';
-    }
+  if (tokens.some(token => token.includes('intermediate'))) {
+    return 'intermediate';
   }
-
-  // Default to beginner
   return 'beginner';
 };
 

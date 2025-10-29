@@ -108,6 +108,9 @@ const getHintText = (type) => {
       return 'ดูภาพตัวอักษรตรงกลาง แล้วเลือกตัวอักษรที่ตรงกัน';
     case QUESTION_TYPES.DRAG_MATCH:
       return 'แตะเพื่อจับคู่ ชื่อเรียก/โรมัน ↔ ตัวอักษรไทย';
+    case 'TRANSLATE_MATCH':
+    case 'MATCH_IDIOM_MEANING':
+      return 'แตะเพื่อจับคู่คำ ให้ตรงกัน';
     case QUESTION_TYPES.FILL_BLANK:
       return 'แตะตัวเลือกเพื่อเติมคำให้ถูกต้อง';
     case QUESTION_TYPES.ARRANGE_SENTENCE:
@@ -139,6 +142,8 @@ const getTypeLabel = (type) => {
     case QUESTION_TYPES.LISTEN_CHOOSE: return 'ฟังเสียงเลือกตัวอักษร';
     case QUESTION_TYPES.PICTURE_MATCH: return 'จับคู่จากรูปภาพ';
     case QUESTION_TYPES.DRAG_MATCH: return 'จับคู่ชื่อเรียก ↔ ตัวอักษร';
+    case 'TRANSLATE_MATCH':
+    case 'MATCH_IDIOM_MEANING': return 'จับคู่คำ';
     case QUESTION_TYPES.FILL_BLANK: return 'เติมคำให้ถูก';
     case QUESTION_TYPES.ARRANGE_SENTENCE: return 'เรียงคำ';
     case QUESTION_TYPES.SYLLABLE_BUILDER: return 'ประกอบพยางค์';
@@ -407,7 +412,49 @@ const makeAorB = (word, pool = [], usedChars = new Set()) => {
   };
 };
 
-// Memory Match removed from Consonant game
+// Memory Match: flip cards to match characters with their names
+const makeMemoryMatch = (wordList) => {
+  const cards = [];
+  const pairs = wordList.slice(0, 6).map(w => ({
+    char: w.char,
+    name: w.name,
+    audioText: w.audioText,
+  }));
+  
+  // Create card pairs (character + name for each word)
+  pairs.forEach((pair, idx) => {
+    cards.push({
+      id: `mm_char_${idx}`,
+      type: 'char',
+      front: pair.char,
+      back: pair.char,
+      pairId: idx,
+      audioText: pair.audioText,
+    });
+    cards.push({
+      id: `mm_name_${idx}`,
+      type: 'name',
+      front: '?',
+      back: pair.name,
+      pairId: idx,
+      audioText: pair.audioText,
+    });
+  });
+  
+  const shuffledCards = shuffle(cards);
+  
+  return {
+    id: `mm_${uid()}`,
+    type: QUESTION_TYPES.MEMORY_MATCH,
+    instruction: 'จับคู่ตัวอักษรกับชื่ออ่าน',
+    // Rewards for this question
+    rewardXP: 15,
+    rewardDiamond: 1,
+    penaltyHeart: 1,
+    cards: shuffledCards,
+    pairCount: pairs.length,
+  };
+};
 
 // Challenge: mini game combining multiple quick question types
 const makeChallenge = (word, pool = [], usedChars = new Set()) => {
@@ -433,13 +480,13 @@ const makeChallenge = (word, pool = [], usedChars = new Set()) => {
 };
 
 // Generate questions tailored for ก-ฮ (focus on recognition):
-// Target 16-17 total: LC×5, PM×4, DM×3, FB×3, A/B×2
+// Target 14 total: LC×4, PM×4, DM×3, A/B×3
 const generateConsonantQuestions = (pool) => {
   const questions = [];
   const usedChars = new Set();
 
-  // LISTEN_CHOOSE × 5
-  for (let i = 0; i < 5; i++) {
+  // LISTEN_CHOOSE × 4
+  for (let i = 0; i < 4; i++) {
     const available = pool.filter(w => !usedChars.has(w.char));
     if (available.length === 0) break;
     const word = pick(available);
@@ -465,9 +512,8 @@ const generateConsonantQuestions = (pool) => {
     questions.push(makeDragMatch(word, pool, usedChars));
   }
 
-
-  // A_OR_B × 2
-  for (let i = 0; i < 2; i++) {
+  // A_OR_B × 3
+  for (let i = 0; i < 3; i++) {
     const available = pool.filter(w => !usedChars.has(w.char));
     if (available.length === 0) break;
     const word = pick(available);
@@ -488,6 +534,8 @@ const checkAnswer = (question, userAnswer) => {
       return userAnswer === question.correctText;
     
     case QUESTION_TYPES.DRAG_MATCH:
+    case 'TRANSLATE_MATCH':
+    case 'MATCH_IDIOM_MEANING':
       // For drag match, check if all pairs are correct
       return userAnswer && userAnswer.every(pair => 
         question.leftItems.find(left => left.id === pair.leftId)?.correctMatch ===
@@ -571,7 +619,7 @@ const ConsonantStage1Game = ({ navigation, route }) => {
   
   // Contexts
   const { applyDelta, user: progressUser } = useProgress();
-  const { hearts: unifiedHearts, updateStats, stats } = useUnifiedStats();
+  const { stats, hearts: unifiedHearts, updateStats } = useUnifiedStats();
   const { userData } = useUserData();
   
   // State
@@ -598,7 +646,8 @@ const ConsonantStage1Game = ({ navigation, route }) => {
   const [aobTimeLeft, setAobTimeLeft] = useState(null);
   
   // Memory Match state
-  // Memory Match removed per request
+  const [mmFlipped, setMmFlipped] = useState(new Set()); // card IDs that are flipped
+  const [mmMatched, setMmMatched] = useState(new Set()); // pair IDs that are matched
   
   // Challenge state
   const [challengeSubIndex, setChallengeSubIndex] = useState(0); // current sub-question in challenge
@@ -661,15 +710,30 @@ const ConsonantStage1Game = ({ navigation, route }) => {
         
         // Generate questions
         const generatedQuestions = generateConsonantQuestions(normalizedConsonants);
-        const filteredQuestions = generatedQuestions.filter(q => !SENTENCE_ORDER_TYPES.has(q.type));
+        
+        // FIXED: Only allow valid question types for consonants game
+        const validQuestionTypes = Object.values(QUESTION_TYPES);
+        const filteredQuestions = generatedQuestions.filter(q => 
+          q && validQuestionTypes.includes(q.type)
+        );
+        
         setQuestions(filteredQuestions);
         
         // Try to restore progress
         const savedProgress = await restoreProgress(lessonId);
         if (savedProgress && savedProgress.questionsSnapshot) {
+          // FIXED: Filter out invalid question types from saved progress
           const sanitizedSnapshot = (savedProgress.questionsSnapshot || []).filter(
-            (q) => q && !SENTENCE_ORDER_TYPES.has(q.type)
+            (q) => q && validQuestionTypes.includes(q.type) && !SENTENCE_ORDER_TYPES.has(q.type)
           );
+
+          // If sanitized snapshot is empty or has wrong types, use new questions
+          if (sanitizedSnapshot.length === 0) {
+            console.log('🔄 Saved progress has invalid question types, using fresh questions');
+            setQuestions(filteredQuestions);
+            setLoading(false);
+            return;
+          }
 
           const resumePayload = {
             ...savedProgress,
@@ -991,6 +1055,8 @@ const ConsonantStage1Game = ({ navigation, route }) => {
     setDmSelected({ leftId: null, rightId: null });
     setDmPairs([]);
     setCurrentFeedback(null);
+    setMmFlipped(new Set());
+    setMmMatched(new Set());
     setChallengeSubIndex(0);
   }, [currentIndex]);
 
@@ -1593,7 +1659,73 @@ const ConsonantStage1Game = ({ navigation, route }) => {
           </View>
         );
       
-      // MEMORY_MATCH removed from ConsonantStage1Game
+      case QUESTION_TYPES.MEMORY_MATCH:
+        console.debug(`[Q${currentIndex + 1}/${questions.length}] MEMORY_MATCH`, { questionId: question.id, pairCount: question.pairCount });
+        return (
+          <View style={styles.questionContainer}>
+            <View style={styles.questionCard}>
+              <Text style={styles.instruction}>{question.instruction}</Text>
+              <Text style={styles.hintText}>{getHintText(question.type)}</Text>
+              
+              <View style={styles.memoryGrid}>
+                {question.cards.map((card) => (
+                  <TouchableOpacity
+                    key={card.id}
+                    style={[
+                      styles.memoryCard,
+                      mmMatched.has(card.pairId) && styles.memoryCardMatched,
+                    ]}
+                    onPress={() => {
+                      if (mmMatched.has(card.pairId)) return; // Already matched
+                      
+                      const newFlipped = new Set(mmFlipped);
+                      if (newFlipped.has(card.id)) {
+                        newFlipped.delete(card.id);
+                      } else {
+                        newFlipped.add(card.id);
+                      }
+                      setMmFlipped(newFlipped);
+                      
+                      // Check if 2 cards are flipped
+                      const flippedCards = question.cards.filter(c => newFlipped.has(c.id));
+                      if (flippedCards.length === 2) {
+                        const [card1, card2] = flippedCards;
+                        if (card1.pairId === card2.pairId) {
+                          // Match found!
+                          vaja9TtsService.playThai(card1.audioText);
+                          const newMatched = new Set(mmMatched);
+                          newMatched.add(card1.pairId);
+                          setMmMatched(newMatched);
+                          setMmFlipped(new Set());
+                          
+                          // Auto-check if all matched
+                          if (newMatched.size === question.pairCount) {
+                            setTimeout(() => {
+                              setCurrentAnswer(Array.from(newMatched));
+                              setCurrentFeedback('correct');
+                            }, 300);
+                          }
+                        } else {
+                          // No match, flip back
+                          setTimeout(() => {
+                            setMmFlipped(new Set());
+                          }, 800);
+                        }
+                      }
+                    }}
+                    disabled={mmMatched.has(card.pairId)}
+                  >
+                    {mmFlipped.has(card.id) || mmMatched.has(card.pairId) ? (
+                      <Text style={styles.memoryCardText}>{card.back}</Text>
+                    ) : (
+                      <Text style={styles.memoryCardFront}>?</Text>
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          </View>
+        );
       
       case QUESTION_TYPES.ARRANGE_SENTENCE:
         return (
@@ -1865,8 +1997,171 @@ const ConsonantStage1Game = ({ navigation, route }) => {
           </View>
         );
       
+      case 'TRANSLATE_MATCH':
+      case 'MATCH_IDIOM_MEANING':
+        // Handle matching game with leftItems and rightItems
+        console.debug(`[Q${currentIndex + 1}/${questions.length}] TRANSLATE_MATCH/MATCH_IDIOM`, { questionId: question.id });
+        
+        const connectionColors2 = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F'];
+        const connectionSymbols2 = ['●', '▲', '■', '♦', '★', '◆', '⬟', '⬢'];
+
+        const getLeftIndex2 = (leftId) => {
+          const idx = (question.leftItems || []).findIndex(l => l.id === leftId);
+          return idx >= 0 ? idx : 0;
+        };
+        
+        const getConnectionColor2 = (leftId) => {
+          const connectionIndex = getLeftIndex2(leftId);
+          return connectionColors2[connectionIndex % connectionColors2.length];
+        };
+        
+        const getConnectionSymbol2 = (leftId) => {
+          const connectionIndex = getLeftIndex2(leftId);
+          return connectionSymbols2[connectionIndex % connectionSymbols2.length];
+        };
+        
+        const isConnected2 = (leftId) => dmPairs.some(p => p.leftId === leftId);
+        
+        const handleLeftPress2 = (leftItem) => {
+          if (currentFeedback) return;
+          setDmSelected({ leftId: leftItem.id, rightId: dmSelected.rightId });
+        };
+
+        const handleRightPress2 = (rightItem) => {
+          if (currentFeedback) return;
+          
+          if (dmSelected.leftId) {
+            const newPairs = dmPairs.filter(p => p.rightId !== rightItem.id && p.leftId !== dmSelected.leftId);
+            const newPair = { leftId: dmSelected.leftId, rightId: rightItem.id };
+            const updated = [...newPairs, newPair];
+            setDmPairs(updated);
+            setCurrentAnswer(updated);
+            setDmSelected({ leftId: null, rightId: null });
+          } else {
+            setDmSelected({ leftId: null, rightId: rightItem.id });
+          }
+        };
+        
+        return (
+          <View style={styles.questionContainer}>
+            <Text style={styles.instruction}>{question.instruction || 'จับคู่คำไทยกับคำภาษาอังกฤษ'}</Text>
+            {!!question.questionText && <Text style={styles.questionText}>{question.questionText}</Text>}
+            
+            <View style={styles.dragMatchContainer}>
+              {/* Left Column */}
+              <View style={styles.leftColumn}>
+                {question.leftItems?.map((item) => {
+                  const connected = isConnected2(item.id);
+                  const color = connected ? getConnectionColor2(item.id) : '#e0e0e0';
+                  const symbol = connected ? getConnectionSymbol2(item.id) : '';
+                  const isSelected = dmSelected.leftId === item.id;
+                  
+                  return (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={[
+                        styles.dragItem,
+                        isSelected && styles.selectedDragItem,
+                        { 
+                          backgroundColor: connected ? color : (isSelected ? '#fff5e6' : '#fff'),
+                          borderColor: connected ? color : (isSelected ? '#FF8000' : '#e0e0e0'),
+                          borderWidth: isSelected ? 4 : 3
+                        }
+                      ]}
+                      onPress={() => handleLeftPress2(item)}
+                      disabled={currentFeedback !== null}
+                    >
+                      <View style={styles.dragItemContent}>
+                        {connected && (
+                          <TouchableOpacity
+                            style={styles.removeButton}
+                            onPress={() => {
+                              const filtered = dmPairs.filter(p => p.leftId !== item.id);
+                              setDmPairs(filtered);
+                              setCurrentAnswer(filtered);
+                            }}
+                          >
+                            <FontAwesome name="times" size={12} color="#fff" />
+                          </TouchableOpacity>
+                        )}
+                        <Text style={[
+                          styles.dragItemText,
+                          connected && { color: '#fff', fontWeight: 'bold' },
+                          isSelected && { color: '#FF8000', fontWeight: 'bold' }
+                        ]}>{item.text}</Text>
+                        {connected && (
+                          <Text style={[styles.connectionSymbol, { color: '#fff' }]}>
+                            {symbol}
+                          </Text>
+                        )}
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              {/* Right Column */}
+              <View style={styles.rightColumn}>
+                {question.rightItems?.map((item) => {
+                  const connectedLeftId = dmPairs.find(p => p.rightId === item.id)?.leftId;
+                  const color = connectedLeftId ? getConnectionColor2(connectedLeftId) : '#e0e0e0';
+                  const symbol = connectedLeftId ? getConnectionSymbol2(connectedLeftId) : '';
+                  const isSelected = dmSelected.rightId === item.id;
+                  
+                  return (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={[
+                        styles.dragItem,
+                        isSelected && styles.selectedDragItem,
+                        { 
+                          backgroundColor: connectedLeftId ? color : (isSelected ? '#fff5e6' : '#fff'),
+                          borderColor: connectedLeftId ? color : (isSelected ? '#FF8000' : '#e0e0e0'),
+                          borderWidth: isSelected ? 4 : 3
+                        }
+                      ]}
+                      onPress={() => handleRightPress2(item)}
+                      disabled={currentFeedback !== null}
+                    >
+                      <View style={styles.dragItemContent}>
+                        <Text style={[
+                          styles.dragItemText,
+                          connectedLeftId && { color: '#fff', fontWeight: 'bold' },
+                          isSelected && { color: '#FF8000', fontWeight: 'bold' }
+                        ]}>{item.text}</Text>
+                        {connectedLeftId && (
+                          <Text style={[styles.connectionSymbol, { color: '#fff' }]}>
+                            {symbol}
+                          </Text>
+                        )}
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+
+            {/* Connection Info */}
+            {dmPairs.length > 0 && (
+              <View style={styles.connectionInfo}>
+                <Text style={styles.connectionText}>
+                  เชื่อมต่อแล้ว {dmPairs.length}/{question.leftItems?.length || 0} คู่
+                </Text>
+              </View>
+            )}
+          </View>
+        );
+
       default:
-        return null;
+        console.warn(`[Unknown Question Type] Q${currentIndex + 1}: ${question.type}`);
+        return (
+          <View style={styles.questionContainer}>
+            <View style={styles.questionCard}>
+              <Text style={styles.instruction}>Unknown question type: {question.type}</Text>
+              <Text style={styles.hintText}>Please report this issue</Text>
+            </View>
+          </View>
+        );
     }
   };
   
@@ -1924,6 +2219,18 @@ const ConsonantStage1Game = ({ navigation, route }) => {
   
   const currentQuestion = questions[currentIndex];
   const progress = ((currentIndex + 1) / questions.length) * 100;
+  
+  // Safety check: if no current question, show loading
+  if (!currentQuestion) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <LottieView source={require('../assets/animations/LoadingCat.json')} autoPlay loop style={{ width: 200, height: 200 }} />
+          <Text style={styles.loadingText}>กำลังโหลดคำถาม...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
   
   return (
     <SafeAreaView style={styles.container}>
@@ -2068,15 +2375,17 @@ const ConsonantStage1Game = ({ navigation, route }) => {
             end={{ x: 1, y: 1 }}
             style={styles.checkGradientEnhanced}
           >
-            <FontAwesome 
-              name={currentFeedback !== null ? 'arrow-right' : 'check'} 
-              size={20} 
-              color={COLORS.white}
-              style={{ marginRight: 8 }}
-            />
-            <Text style={styles.checkButtonTextEnhanced}>
-              {currentFeedback !== null ? (hearts === 0 ? 'จบเกม' : 'ต่อไป') : 'CHECK'}
-            </Text>
+            <View style={styles.checkButtonContent}>
+              <FontAwesome 
+                name={currentFeedback !== null ? 'arrow-right' : 'check'} 
+                size={20} 
+                color={COLORS.white}
+                style={{ marginRight: 8 }}
+              />
+              <Text style={styles.checkButtonTextEnhanced}>
+                {currentFeedback !== null ? (hearts === 0 ? 'จบเกม' : 'ต่อไป') : 'CHECK'}
+              </Text>
+            </View>
           </LinearGradient>
         </TouchableOpacity>
       </View>
@@ -2672,17 +2981,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.dark,
   },
-  memoryCardSubtitle: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: COLORS.gray,
-    marginTop: 4,
-  },
-  memoryImage: {
-    width: 96,
-    height: 96,
-    borderRadius: 12,
-  },
   playerStatsContainer: {
     marginBottom: 20,
   },
@@ -2831,15 +3129,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 16,
     elevation: 10,
-    width: 220,
-    alignSelf: 'center',
   },
   checkGradientEnhanced: {
     width: '100%',
     paddingVertical: 18,
     borderRadius: 28,
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkButtonContent: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'center',
   },
   checkButtonDisabledEnhanced: {

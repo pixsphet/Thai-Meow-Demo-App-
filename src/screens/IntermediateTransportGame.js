@@ -101,7 +101,7 @@ const IntermediateTransportGame = ({ navigation, route }) => {
 
   // Contexts
   const { applyDelta, user: progressUser } = useProgress();
-  const { stats } = useUnifiedStats();
+  const { hearts, updateStats, stats } = useUnifiedStats();
   const { userData } = useUserData();
   
   // State
@@ -109,7 +109,6 @@ const IntermediateTransportGame = ({ navigation, route }) => {
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentAnswer, setCurrentAnswer] = useState(null);
-  const [hearts, setHearts] = useState(5);
   const [streak, setStreak] = useState(0);
   const [maxStreak, setMaxStreak] = useState(0);
   const [score, setScore] = useState(0);
@@ -152,7 +151,7 @@ const IntermediateTransportGame = ({ navigation, route }) => {
         if (savedProgress && savedProgress.questionsSnapshot) {
           setResumeData(savedProgress);
           setCurrentIndex(savedProgress.currentIndex || 0);
-          setHearts(savedProgress.hearts || 5);
+          // hearts จัดการโดย useUnifiedStats แล้ว
           setStreak(savedProgress.streak || 0);
           setMaxStreak(savedProgress.maxStreak || 0);
           setScore(savedProgress.score || 0);
@@ -217,7 +216,6 @@ const IntermediateTransportGame = ({ navigation, route }) => {
     const snapshot = {
       questionsSnapshot: questions,
       currentIndex,
-      hearts,
       score,
       xpEarned,
       diamondsEarned,
@@ -236,14 +234,14 @@ const IntermediateTransportGame = ({ navigation, route }) => {
     } catch (error) {
       console.error('Error saving progress:', error);
     }
-  }, [questions, currentIndex, hearts, score, xpEarned, diamondsEarned, streak, maxStreak, lessonId]);
+  }, [questions, currentIndex, score, xpEarned, diamondsEarned, streak, maxStreak, lessonId]);
   
   // Save progress when state changes
   useEffect(() => {
     if (gameStarted && !gameFinished) {
       autosave();
     }
-  }, [currentIndex, hearts, score, streak, gameStarted, gameFinished, autosave]);
+  }, [currentIndex, score, streak, gameStarted, gameFinished, autosave]);
   
   const playTTS = useCallback(async (text) => {
     try {
@@ -315,7 +313,7 @@ const IntermediateTransportGame = ({ navigation, route }) => {
       // Wrong answer
       const heartPenalty = currentQuestion.penaltyHeart || 1;
       const newHearts = Math.max(0, hearts - heartPenalty);
-      setHearts(newHearts);
+      updateStats({ hearts: newHearts });
 
       // If hearts are depleted, prompt to buy more
       if (newHearts <= 0) {

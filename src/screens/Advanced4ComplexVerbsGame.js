@@ -243,14 +243,14 @@ const Advanced4ComplexVerbsGame = ({ navigation, route }) => {
   const { lessonId = LESSON_ID, category: routeCategory = CATEGORY, stageTitle = 'กริยาซับซ้อน (Complex Verbs)', level: stageLevel = 'Advanced', stageSelectRoute = 'LevelStage3' } = route.params || {};
   
   const { applyDelta, user: progressUser } = useProgress();
-  const { stats } = useUnifiedStats();
+  const { stats, hearts: unifiedHearts, updateStats } = useUnifiedStats();
   const { userData } = useUserData();
   
   const [linkers, setLinkers] = useState([]);
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentAnswer, setCurrentAnswer] = useState(null);
-  const [hearts, setHearts] = useState(5);
+  const [hearts, setHearts] = useState(unifiedHearts || 5);
   const [streak, setStreak] = useState(0);
   const [maxStreak, setMaxStreak] = useState(0);
   const [score, setScore] = useState(0);
@@ -280,6 +280,20 @@ const Advanced4ComplexVerbsGame = ({ navigation, route }) => {
       setQuestions(filtered);
     }
   }, [questions]);
+  
+  // Sync hearts with unified stats
+  useEffect(() => {
+    if (unifiedHearts !== undefined && unifiedHearts !== hearts) {
+      setHearts(unifiedHearts);
+    }
+  }, [unifiedHearts]);
+  
+  // Update unified stats when hearts change
+  useEffect(() => {
+    if (hearts !== undefined && updateStats) {
+      updateStats({ hearts });
+    }
+  }, [hearts]);
 
   useEffect(() => {
     const loadLinkers = async () => {

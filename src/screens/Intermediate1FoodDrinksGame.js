@@ -299,7 +299,7 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
   
   // Contexts
   const { applyDelta, user: progressUser } = useProgress();
-  const { stats } = useUnifiedStats();
+  const { hearts, updateStats, stats } = useUnifiedStats();
   const { userData } = useUserData();
   
   // State
@@ -307,7 +307,6 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentAnswer, setCurrentAnswer] = useState(null);
-  const [hearts, setHearts] = useState(5);
   const [streak, setStreak] = useState(0);
   const [maxStreak, setMaxStreak] = useState(0);
   const [score, setScore] = useState(0);
@@ -346,7 +345,7 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
         if (savedProgress && savedProgress.questionsSnapshot) {
           setResumeData(savedProgress);
           setCurrentIndex(savedProgress.currentIndex || 0);
-          setHearts(savedProgress.hearts || 5);
+          // hearts จัดการโดย useUnifiedStats แล้ว ไม่ต้อง set
           setStreak(savedProgress.streak || 0);
           setMaxStreak(savedProgress.maxStreak || 0);
           setScore(savedProgress.score || 0);
@@ -409,7 +408,6 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
     const snapshot = {
       questionsSnapshot: questions,
       currentIndex,
-      hearts,
       score,
       xpEarned,
       diamondsEarned,
@@ -428,14 +426,14 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
     } catch (error) {
       console.error('Error saving progress:', error);
     }
-  }, [questions, currentIndex, hearts, score, xpEarned, diamondsEarned, streak, maxStreak, lessonId]);
+  }, [questions, currentIndex, score, xpEarned, diamondsEarned, streak, maxStreak, lessonId]);
   
   // Save progress when state changes
   useEffect(() => {
     if (gameStarted && !gameFinished) {
       autosave();
     }
-  }, [currentIndex, hearts, score, streak, gameStarted, gameFinished, autosave]);
+  }, [currentIndex, score, streak, gameStarted, gameFinished, autosave]);
   
   // Play TTS
   const playTTS = useCallback(async (text) => {
@@ -487,7 +485,7 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
     } else {
       const heartPenalty = currentQuestion.penaltyHeart || 1;
       const newHearts = Math.max(0, hearts - heartPenalty);
-      setHearts(newHearts);
+      updateStats({ hearts: newHearts });
       if (newHearts === 0) {
         const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
         finishLesson(elapsed);
@@ -1074,15 +1072,17 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
             end={{ x: 1, y: 1 }}
             style={styles.checkGradientEnhanced}
           >
-            <FontAwesome 
-              name={currentFeedback !== null ? 'arrow-right' : 'check'} 
-              size={20} 
-              color={COLORS.white}
-              style={{ marginRight: 8 }}
-            />
-            <Text style={styles.checkButtonTextEnhanced}>
-              {currentFeedback !== null ? (hearts === 0 ? 'จบเกม' : 'ต่อไป') : 'CHECK'}
-            </Text>
+            <View style={styles.checkButtonContent}>
+              <FontAwesome 
+                name={currentFeedback !== null ? 'arrow-right' : 'check'} 
+                size={20} 
+                color={COLORS.white}
+                style={{ marginRight: 8 }}
+              />
+              <Text style={styles.checkButtonTextEnhanced}>
+                {currentFeedback !== null ? (hearts === 0 ? 'จบเกม' : 'ต่อไป') : 'CHECK'}
+              </Text>
+            </View>
           </LinearGradient>
         </TouchableOpacity>
       </View>
@@ -1563,7 +1563,11 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
     borderRadius: 28,
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkButtonContent: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'center',
   },
   checkButtonDisabledEnhanced: {
