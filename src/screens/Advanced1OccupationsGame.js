@@ -542,9 +542,37 @@ const Advanced1OccupationsGame = ({ navigation, route }) => {
   
   // Render question component
   const renderQuestionComponent = () => {
-    if (questions.length === 0 || currentIndex >= questions.length) return null;
+    if (questions.length === 0 || currentIndex >= questions.length) {
+      console.warn('[Advanced1OccupationsGame] No questions or invalid index', {
+        questionsLength: questions.length,
+        currentIndex,
+      });
+      return null;
+    }
     
     const question = questions[currentIndex];
+    
+    if (!question) {
+      console.error('[Advanced1OccupationsGame] Question is null/undefined', {
+        currentIndex,
+        questionsLength: questions.length,
+      });
+      return (
+        <View style={styles.questionContainer}>
+          <View style={styles.questionCard}>
+            <Text style={styles.instruction}>ข้อผิดพลาด: ไม่พบคำถาม</Text>
+            <Text style={styles.hintText}>กรุณาลองใหม่อีกครั้ง</Text>
+          </View>
+        </View>
+      );
+    }
+    
+    if (!question.type) {
+      console.warn('[Advanced1OccupationsGame] Question missing type', {
+        questionId: question.id,
+        question: question,
+      });
+    }
     
     switch (question.type) {
       case QUESTION_TYPES.LEARN_IDIOM:
@@ -1011,31 +1039,48 @@ const Advanced1OccupationsGame = ({ navigation, route }) => {
       
       default:
         // Safe fallback UI for any unexpected question type
+        console.warn(`[Advanced1OccupationsGame] Unknown Question Type: Q${currentIndex + 1}/${questions.length}`, {
+          type: question?.type || 'undefined',
+          questionId: question?.id,
+          hasInstruction: !!question?.instruction,
+          hasQuestionText: !!question?.questionText,
+          hasChoices: Array.isArray(question?.choices) && question.choices.length > 0,
+          question: question,
+        });
         return (
           <View style={styles.questionContainer}>
             <View style={styles.questionCard}>
-              {!!question.instruction && (
+              {!!question?.instruction && (
                 <Text style={styles.instruction}>{question.instruction}</Text>
               )}
-              {!!question.questionText && (
+              {!!question?.questionText && (
                 <Text style={styles.questionText}>{question.questionText}</Text>
               )}
-              <Text style={styles.hintText}>การ์ดนี้เป็นแบบอ่าน ทำความเข้าใจแล้วกด NEXT</Text>
-              {Array.isArray(question.choices) && question.choices.length > 0 && (
+              <Text style={styles.hintText}>
+                {question?.type ? `คำถามประเภท: ${question.type}` : 'การ์ดนี้เป็นแบบอ่าน ทำความเข้าใจแล้วกด NEXT'}
+              </Text>
+              {Array.isArray(question?.choices) && question.choices.length > 0 && (
                 <View style={styles.choicesContainer}>
-                  {question.choices.map((choice) => (
+                  {question.choices.map((choice, idx) => (
                     <TouchableOpacity
-                      key={choice.id || choice.text}
+                      key={choice.id || choice.text || idx}
                       style={[
                         styles.choiceButton,
-                        currentAnswer === choice.text && styles.choiceSelected,
+                        currentAnswer === (choice.text || choice.thai) && styles.choiceSelected,
                       ]}
-                      onPress={() => handleAnswerSelect(choice.text, choice.speakText)}
+                      onPress={() => handleAnswerSelect(choice.text || choice.thai, choice.speakText || choice.text || choice.thai)}
                     >
-                      <Text style={styles.choiceText}>{choice.text}</Text>
+                      <Text style={styles.choiceText}>
+                        {choice.text || choice.thai || String(choice)}
+                      </Text>
                     </TouchableOpacity>
                   ))}
                 </View>
+              )}
+              {(!question?.choices || question.choices.length === 0) && (
+                <Text style={[styles.hintText, { marginTop: 20, color: COLORS.gray }]}>
+                  การ์ดนี้ไม่มีตัวเลือก กด NEXT เพื่อไปข้อต่อไป
+                </Text>
               )}
             </View>
           </View>
