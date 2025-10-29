@@ -34,7 +34,7 @@ import GreetingStage3Game from '../screens/GreetingStage3Game';
 import Lesson4ObjectsGame from '../screens/Lesson4ObjectsGame';
 import Lesson5BodyGame from '../screens/Lesson5BodyGame';
 import Advanced5IdiomsGame from '../screens/Advanced5IdiomsGame';
-// import Advanced1OccupationsGame from '../screens/Advanced1OccupationsGame'; // DISABLED
+import Advanced1OccupationsGame from '../screens/Advanced1OccupationsGame';
 import Advanced2TopicsGame from '../screens/Advanced2TopicsGame';
 import Advanced3DirectionsGame from '../screens/Advanced3DirectionsGame';
 import Advanced4ComplexVerbsGame from '../screens/Advanced4ComplexVerbsGame';
@@ -188,12 +188,11 @@ const MainStackNavigator = () => {
         component={Advanced5IdiomsGame} 
         options={{ headerShown: false }}
       />
-      {/* Advanced1OccupationsGame - DISABLED */}
-      {/* <Stack.Screen 
+      <Stack.Screen 
         name="Advanced1OccupationsGame" 
         component={Advanced1OccupationsGame} 
         options={{ headerShown: false }}
-      /> */}
+      />
       <Stack.Screen 
         name="Advanced2TopicsGame" 
         component={Advanced2TopicsGame} 

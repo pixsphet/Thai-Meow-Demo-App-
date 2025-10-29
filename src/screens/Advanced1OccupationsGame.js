@@ -1010,7 +1010,36 @@ const Advanced1OccupationsGame = ({ navigation, route }) => {
         );
       
       default:
-        return null;
+        // Safe fallback UI for any unexpected question type
+        return (
+          <View style={styles.questionContainer}>
+            <View style={styles.questionCard}>
+              {!!question.instruction && (
+                <Text style={styles.instruction}>{question.instruction}</Text>
+              )}
+              {!!question.questionText && (
+                <Text style={styles.questionText}>{question.questionText}</Text>
+              )}
+              <Text style={styles.hintText}>การ์ดนี้เป็นแบบอ่าน ทำความเข้าใจแล้วกด NEXT</Text>
+              {Array.isArray(question.choices) && question.choices.length > 0 && (
+                <View style={styles.choicesContainer}>
+                  {question.choices.map((choice) => (
+                    <TouchableOpacity
+                      key={choice.id || choice.text}
+                      style={[
+                        styles.choiceButton,
+                        currentAnswer === choice.text && styles.choiceSelected,
+                      ]}
+                      onPress={() => handleAnswerSelect(choice.text, choice.speakText)}
+                    >
+                      <Text style={styles.choiceText}>{choice.text}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </View>
+          </View>
+        );
     }
   };
   
@@ -1066,8 +1095,9 @@ const Advanced1OccupationsGame = ({ navigation, route }) => {
   }
   
   const currentQuestion = questions[currentIndex];
-  const progress = ((currentIndex + 1) / questions.length) * 100;
-  const isLearn = currentQuestion?.type === QUESTION_TYPES.LEARN_IDIOM;
+  const progress = ((currentIndex + 1) / Math.max(1, questions.length)) * 100;
+  const hasChoices = Array.isArray(currentQuestion?.choices) && currentQuestion.choices.length > 0;
+  const isLearn = currentQuestion?.type === QUESTION_TYPES.LEARN_IDIOM || !hasChoices;
   
   return (
     <SafeAreaView style={styles.container}>

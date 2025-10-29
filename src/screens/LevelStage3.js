@@ -24,7 +24,15 @@ const DEBUG_UNLOCK_ALL_STAGES = false; // Set to false for production - enable l
 
 const CUSTOM_STAGE_META = {
   // Advanced level stages (reordered)
-  // Stage 1 (Advanced1OccupationsGame) - DISABLED
+  1: {
+    lesson_id: 1,
+    title: '\u0e2d\u0e32\u0e0a\u0e35\u0e1e (Occupations)',
+    key: 'advanced_occupations',
+    category: 'thai-occupations',
+    level: 'Advanced',
+    description: '\u0e40\u0e23\u0e35\u0e22\u0e19\u0e23\u0e39\u0e49\u0e04\u0e33\u0e28\u0e31\u0e1e\u0e17\u0e4c\u0e2d\u0e32\u0e0a\u0e35\u0e1e\u0e41\u0e25\u0e30\u0e01\u0e32\u0e23\u0e1a\u0e23\u0e23\u0e22\u0e32',
+    gameScreen: 'Advanced1OccupationsGame',
+  },
   2: {
     lesson_id: 2,
     title: 'หัวข้อขั้นสูง (Advanced Topics)',
@@ -680,6 +688,13 @@ const LevelStage3 = ({ navigation }) => {
                     // Navigate to appropriate game screen based on stage metadata
                     if (stage.gameScreen === 'Advanced5IdiomsGame') {
                       navigation.navigate('Advanced5IdiomsGame', {
+                        lessonId: stage.lesson_id,
+                        category: stage.category,
+                        level: stage.level,
+                        stageTitle: stage.title
+                      });
+                    } else if (stage.gameScreen === 'Advanced1OccupationsGame') {
+                      navigation.navigate('Advanced1OccupationsGame', {
                         lessonId: stage.lesson_id,
                         category: stage.category,
                         level: stage.level,
