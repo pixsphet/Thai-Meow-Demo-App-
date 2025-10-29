@@ -2153,12 +2153,43 @@ const ConsonantStage1Game = ({ navigation, route }) => {
         );
 
       default:
-        console.warn(`[Unknown Question Type] Q${currentIndex + 1}: ${question.type}`);
+        // Safe fallback UI for any unexpected question type
+        console.warn(`[Unknown Question Type] Q${currentIndex + 1}: ${question?.type || 'undefined'}`, question);
         return (
           <View style={styles.questionContainer}>
             <View style={styles.questionCard}>
-              <Text style={styles.instruction}>Unknown question type: {question.type}</Text>
-              <Text style={styles.hintText}>Please report this issue</Text>
+              {!!question?.instruction && (
+                <Text style={styles.instruction}>{question.instruction}</Text>
+              )}
+              {!!question?.questionText && (
+                <Text style={styles.questionText}>{question.questionText}</Text>
+              )}
+              <Text style={styles.hintText}>
+                {question?.type ? `คำถามประเภท: ${question.type}` : 'การ์ดนี้เป็นแบบอ่าน ทำความเข้าใจแล้วกด CHECK'}
+              </Text>
+              {Array.isArray(question?.choices) && question.choices.length > 0 && (
+                <View style={styles.choicesContainer}>
+                  {question.choices.map((choice, idx) => (
+                    <TouchableOpacity
+                      key={choice.id || choice.thai || idx}
+                      style={[
+                        styles.choiceButton,
+                        currentAnswer === (choice.thai || choice.text) && styles.choiceSelected,
+                      ]}
+                      onPress={() => handleAnswerSelect(choice.thai || choice.text, choice.speakText || choice.text)}
+                    >
+                      <Text style={styles.choiceText}>
+                        {choice.text || choice.thai || String(choice)}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+              {(!question?.choices || question.choices.length === 0) && (
+                <Text style={[styles.hintText, { marginTop: 20, color: COLORS.gray }]}>
+                  การ์ดนี้ไม่มีตัวเลือก กด CHECK เพื่อไปข้อต่อไป
+                </Text>
+              )}
             </View>
           </View>
         );
@@ -2218,7 +2249,11 @@ const ConsonantStage1Game = ({ navigation, route }) => {
   }
   
   const currentQuestion = questions[currentIndex];
-  const progress = ((currentIndex + 1) / questions.length) * 100;
+  const progress = questions.length > 0 ? ((currentIndex + 1) / questions.length) * 100 : 0;
+  
+  // Check if question has choices (for button enable/disable logic)
+  const hasChoices = Array.isArray(currentQuestion?.choices) && currentQuestion.choices.length > 0;
+  const canCheckAnswer = currentAnswer !== null || !hasChoices; // Enable button if answered OR no choices (learn-type)
   
   // Safety check: if no current question, show loading
   if (!currentQuestion) {
@@ -2351,7 +2386,7 @@ const ConsonantStage1Game = ({ navigation, route }) => {
         <TouchableOpacity
           style={[
             styles.checkButtonEnhanced,
-            currentAnswer === null && styles.checkButtonDisabledEnhanced,
+            !canCheckAnswer && styles.checkButtonDisabledEnhanced,
           ]}
           onPress={() => {
             if (currentFeedback !== null) {
@@ -2363,14 +2398,23 @@ const ConsonantStage1Game = ({ navigation, route }) => {
                 nextQuestion();
               }
             } else {
-              handleCheckAnswer();
+              // For learn-type questions (no choices), auto-mark as correct and advance
+              if (!hasChoices) {
+                setCurrentFeedback('correct');
+                setTimeout(() => {
+                  setCurrentFeedback(null);
+                  nextQuestion();
+                }, 800);
+              } else {
+                handleCheckAnswer();
+              }
             }
           }}
-          disabled={currentAnswer === null}
+          disabled={!canCheckAnswer}
           activeOpacity={0.85}
         >
           <LinearGradient
-            colors={currentAnswer === null ? ['#ddd', '#ccc'] : [COLORS.primary, '#FFA24D']}
+            colors={!canCheckAnswer ? ['#ddd', '#ccc'] : [COLORS.primary, '#FFA24D']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.checkGradientEnhanced}
