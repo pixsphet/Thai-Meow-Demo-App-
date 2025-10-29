@@ -87,9 +87,9 @@ const normalizeGreeting = (doc) => ({
 const getHintText = (type) => {
   switch (type) {
     case QUESTION_TYPES.LISTEN_CHOOSE:
-      return 'แตะปุ่มลำโพงเพื่อฟัง แล้วเลือกคำที่ได้ยิน';
+      return 'Tap the speaker button to listen, then select the word you hear';
     case QUESTION_TYPES.PICTURE_MATCH:
-      return 'ดูภาพแล้วเลือกคำ/วลีให้ตรง';
+      return 'Look at the image and select the matching word/phrase';
     default:
       return '';
   }
@@ -99,8 +99,8 @@ const isThaiText = (text) => /[ก-๙]/.test(String(text || ''));
 
 const getTypeLabel = (type) => {
   switch (type) {
-    case QUESTION_TYPES.LISTEN_CHOOSE: return 'ฟังเสียงเลือกคำ';
-    case QUESTION_TYPES.PICTURE_MATCH: return 'จับคู่จากรูปภาพ';
+    case QUESTION_TYPES.LISTEN_CHOOSE: return 'Listen & Choose';
+    case QUESTION_TYPES.PICTURE_MATCH: return 'Picture Match';
     default: return '';
   }
 };
@@ -115,8 +115,8 @@ const makeListenChoose = (word, pool) => {
   return {
     id: `lc_${word.char}_${uid()}`,
     type: QUESTION_TYPES.LISTEN_CHOOSE,
-    instruction: 'ฟังเสียงแล้วเลือกคำที่ได้ยิน',
-    questionText: 'แตะปุ่มลำโพงเพื่อฟัง',
+    instruction: 'Listen and select the word you hear',
+    questionText: 'Tap the speaker button to listen',
     audioText: word.audioText || word.char,
     correctText: word.char,
     rewardXP: 15,
@@ -144,7 +144,7 @@ const makePictureMatch = (word, pool) => {
   return {
     id: `pm_${word.char}_${uid()}`,
     type: QUESTION_TYPES.PICTURE_MATCH,
-    instruction: 'ดูภาพแล้วเลือกคำ/วลี',
+    instruction: 'Look at the image and select the matching word/phrase',
     imageKey: word.image,
     correctText: correctChoiceId,
     rewardXP: 15,
@@ -436,11 +436,11 @@ const GreetingStage3Game = ({ navigation, route }) => {
       
       if (newHearts === 0) {
         Alert.alert(
-          'หัวใจหมดแล้ว',
-          'ซื้อหัวใจเพิ่มเพื่อเล่นต่อ',
+          'Out of Hearts',
+          'Buy more hearts to continue playing',
           [
-            { text: 'ไปร้านหัวใจ', onPress: () => navigation.navigate('GemShop') },
-            { text: 'ยกเลิก', style: 'cancel' }
+            { text: 'Go to Shop', onPress: () => navigation.navigate('GemShop') },
+            { text: 'Cancel', style: 'cancel' }
           ]
         );
       }
@@ -629,7 +629,7 @@ const GreetingStage3Game = ({ navigation, route }) => {
                   onPress={() => playTTS(currentQuestion.audioText)}
                 >
                   <MaterialIcons name="volume-up" size={32} color={COLORS.primary} />
-                  <Text style={styles.playButtonText}>เล่นเสียง</Text>
+                  <Text style={styles.playButtonText}>Play Sound</Text>
                 </TouchableOpacity>
               </View>
               
@@ -777,7 +777,7 @@ const GreetingStage3Game = ({ navigation, route }) => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>กำลังโหลด...</Text>
+          <Text style={styles.loadingText}>Loading...</Text>
         </View>
       </SafeAreaView>
     );
@@ -794,13 +794,13 @@ const GreetingStage3Game = ({ navigation, route }) => {
               loop
               style={styles.introAnim}
             />
-            <Text style={styles.startTitle}>คำทักทาย</Text>
-            <Text style={styles.startSubtitle}>เรียนรู้คำทักทายภาษาไทย</Text>
+            <Text style={styles.startTitle}>Greetings</Text>
+            <Text style={styles.startSubtitle}>Learn Thai greetings</Text>
           </View>
           
           {resumeData && (
             <TouchableOpacity style={styles.resumeButton} onPress={resumeGame} activeOpacity={0.9}>
-              <Text style={styles.resumeButtonText}>เล่นต่อจากข้อที่ {resumeData.currentIndex + 1}</Text>
+              <Text style={styles.resumeButtonText}>Resume from question {resumeData.currentIndex + 1}</Text>
             </TouchableOpacity>
           )}
           
@@ -811,7 +811,7 @@ const GreetingStage3Game = ({ navigation, route }) => {
               end={{ x: 1, y: 1 }}
               style={styles.startGradient}
             >
-              <Text style={styles.startButtonText}>เริ่มเล่น</Text>
+              <Text style={styles.startButtonText}>Start Game</Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
@@ -936,7 +936,7 @@ const GreetingStage3Game = ({ navigation, route }) => {
               style={{ marginRight: 8 }}
             />
             <Text style={styles.feedbackTextEnhanced}>
-              {currentFeedback === 'correct' ? 'ถูกต้อง! ยอดเยี่ยม' : 'พยายามอีกครั้ง'}
+              {currentFeedback === 'correct' ? 'Correct! Great job!' : 'Try again'}
             </Text>
           </View>
         )}
@@ -974,7 +974,7 @@ const GreetingStage3Game = ({ navigation, route }) => {
               style={{ marginRight: 8 }}
             />
             <Text style={styles.checkButtonTextEnhanced}>
-              {currentFeedback !== null ? (hearts === 0 ? 'จบเกม' : 'ต่อไป') : 'CHECK'}
+              {currentFeedback !== null ? (hearts === 0 ? 'End Game' : 'Next') : 'CHECK'}
             </Text>
           </LinearGradient>
         </TouchableOpacity>
@@ -1105,6 +1105,13 @@ const styles = StyleSheet.create({
   backButton: {
     marginRight: 12,
     padding: 8,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.18)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
   },
   progressContainer: {
     flex: 1,
@@ -1335,7 +1342,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginBottom: 0,
     borderWidth: 3,
-    borderColor: '#FFE8CC',
+    borderColor: '#FFD8A8',
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 100,
@@ -1387,11 +1394,15 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   checkContainerEnhanced: {
-    padding: 18,
+    paddingVertical: 18,
+    paddingHorizontal: 20,
     backgroundColor: COLORS.white,
     borderTopWidth: 1,
     borderTopColor: '#E8E8E8',
     alignItems: 'center',
+    justifyContent: 'center',
+    // keep a consistent bottom padding so button doesn't sit flush on small devices
+    paddingBottom: Math.max(18, 12),
   },
   feedbackBadgeEnhanced: {
     flexDirection: 'row',
@@ -1432,10 +1443,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 12,
     elevation: 8,
-    minWidth: 200,
+    width: 220,
+    alignSelf: 'center',
   },
   checkGradientEnhanced: {
     width: '100%',
+    maxWidth: 220,
     paddingVertical: 18,
     borderRadius: 28,
     alignItems: 'center',

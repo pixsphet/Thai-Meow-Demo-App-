@@ -83,15 +83,15 @@ const normalizeOccupationItem = (doc) => ({
 const getHintText = (type) => {
   switch (type) {
     case QUESTION_TYPES.LEARN_IDIOM:
-      return 'อ่านความหมายและตัวอย่าง แล้วกด NEXT';
+      return 'Read the meaning and examples, then tap NEXT';
     case QUESTION_TYPES.LISTEN_MEANING:
-      return 'แตะปุ่มลำโพงเพื่อฟังซ้ำ แล้วเลือกคำศัพท์ที่ถูกต้อง';
+      return 'Tap the speaker button to listen again, then select the correct word';
     case QUESTION_TYPES.PICTURE_MATCH:
-      return 'ดูภาพอาชีพแล้วเลือกชื่ออาชีพที่ตรงกัน';
+      return 'Look at the occupation image and select the matching name';
     case QUESTION_TYPES.FILL_CONTEXT:
-      return 'เลือกคำที่เหมาะกับบริบท';
+      return 'Select the word that fits the context';
     case QUESTION_TYPES.MATCH_IDIOM_MEANING:
-      return 'แตะเพื่อจับคู่ คำไทย ↔ ความหมายภาษาอังกฤษ';
+      return 'Tap to match Thai words ↔ English meanings';
     default:
       return '';
   }
@@ -99,11 +99,11 @@ const getHintText = (type) => {
 
 const getTypeLabel = (type) => {
   switch (type) {
-    case QUESTION_TYPES.LEARN_IDIOM: return 'การ์ดความรู้';
-    case QUESTION_TYPES.LISTEN_MEANING: return 'ฟังความหมาย';
-    case QUESTION_TYPES.PICTURE_MATCH: return 'ดูภาพ';
-    case QUESTION_TYPES.FILL_CONTEXT: return 'เติมบริบท';
-    case QUESTION_TYPES.MATCH_IDIOM_MEANING: return 'จับคู่ความหมาย';
+    case QUESTION_TYPES.LEARN_IDIOM: return 'Knowledge Card';
+    case QUESTION_TYPES.LISTEN_MEANING: return 'Listen & Choose';
+    case QUESTION_TYPES.PICTURE_MATCH: return 'Picture Match';
+    case QUESTION_TYPES.FILL_CONTEXT: return 'Fill Context';
+    case QUESTION_TYPES.MATCH_IDIOM_MEANING: return 'Match Meaning';
     default: return '';
   }
 };
@@ -374,11 +374,11 @@ const Advanced1OccupationsGame = ({ navigation, route }) => {
       // If hearts are depleted, prompt to buy more
       if (newHearts <= 0) {
         Alert.alert(
-          'หัวใจหมดแล้ว',
-          'ซื้อหัวใจเพิ่มเพื่อเล่นต่อ',
+          'Out of Hearts',
+          'Buy more hearts to continue playing',
           [
-            { text: 'ไปร้านหัวใจ', onPress: () => navigation.navigate('GemShop') },
-            { text: 'ยกเลิก', style: 'cancel' }
+            { text: 'Go to Shop', onPress: () => navigation.navigate('GemShop') },
+            { text: 'Cancel', style: 'cancel' }
           ]
         );
       }
@@ -1057,7 +1057,7 @@ const Advanced1OccupationsGame = ({ navigation, route }) => {
                 <Text style={styles.questionText}>{question.questionText}</Text>
               )}
               <Text style={styles.hintText}>
-                {question?.type ? `คำถามประเภท: ${question.type}` : 'การ์ดนี้เป็นแบบอ่าน ทำความเข้าใจแล้วกด NEXT'}
+                {question?.type ? `Question type: ${question.type}` : 'This is a learning card. Read and understand, then tap NEXT'}
               </Text>
               {Array.isArray(question?.choices) && question.choices.length > 0 && (
                 <View style={styles.choicesContainer}>
@@ -1079,7 +1079,7 @@ const Advanced1OccupationsGame = ({ navigation, route }) => {
               )}
               {(!question?.choices || question.choices.length === 0) && (
                 <Text style={[styles.hintText, { marginTop: 20, color: COLORS.gray }]}>
-                  การ์ดนี้ไม่มีตัวเลือก กด NEXT เพื่อไปข้อต่อไป
+                  This card has no choices. Tap NEXT to continue
                 </Text>
               )}
             </View>
@@ -1093,7 +1093,7 @@ const Advanced1OccupationsGame = ({ navigation, route }) => {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <LottieView source={require('../assets/animations/LoadingCat.json')} autoPlay loop style={{ width: 200, height: 200 }} />
-          <Text style={styles.loadingText}>กำลังโหลด...</Text>
+          <Text style={styles.loadingText}>Loading...</Text>
         </View>
       </SafeAreaView>
     );
@@ -1110,13 +1110,13 @@ const Advanced1OccupationsGame = ({ navigation, route }) => {
               loop
               style={styles.introAnim}
             />
-            <Text style={styles.startTitle}>อาชีพ</Text>
-            <Text style={styles.startSubtitle}>บทเรียน Advanced</Text>
+            <Text style={styles.startTitle}>Occupations</Text>
+            <Text style={styles.startSubtitle}>Advanced Lesson</Text>
           </View>
           
           {resumeData && (
             <TouchableOpacity style={styles.resumeButton} onPress={resumeGame} activeOpacity={0.9}>
-              <Text style={styles.resumeButtonText}>เล่นต่อจากข้อที่ {resumeData.currentIndex + 1}</Text>
+              <Text style={styles.resumeButtonText}>Resume from question {resumeData.currentIndex + 1}</Text>
             </TouchableOpacity>
           )}
           
@@ -1127,7 +1127,7 @@ const Advanced1OccupationsGame = ({ navigation, route }) => {
               end={{ x: 1, y: 1 }}
               style={styles.startGradient}
             >
-              <Text style={styles.startButtonText}>เริ่มเล่น</Text>
+              <Text style={styles.startButtonText}>Start Game</Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
@@ -1247,7 +1247,7 @@ const Advanced1OccupationsGame = ({ navigation, route }) => {
               style={{ marginRight: 8 }}
             />
             <Text style={styles.feedbackTextEnhanced}>
-              {currentFeedback === 'correct' ? 'ถูกต้อง! ยอดเยี่ยม' : 'พยายามอีกครั้ง'}
+              {currentFeedback === 'correct' ? 'Correct! Great job!' : 'Try again'}
             </Text>
           </View>
         )}
@@ -1294,7 +1294,7 @@ const Advanced1OccupationsGame = ({ navigation, route }) => {
                 style={{ marginRight: 8 }}
               />
               <Text style={styles.checkButtonTextEnhanced}>
-                {currentFeedback !== null ? (hearts === 0 ? 'จบเกม' : 'ต่อไป') : (isLearn ? 'NEXT' : 'CHECK')}
+                {currentFeedback !== null ? (hearts === 0 ? 'End Game' : 'Next') : (isLearn ? 'NEXT' : 'CHECK')}
               </Text>
             </View>
           </LinearGradient>
