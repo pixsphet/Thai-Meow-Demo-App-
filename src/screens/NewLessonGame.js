@@ -1372,7 +1372,7 @@ const NewLessonGame = ({ navigation, route }) => {
         }
     };
 
-    // ลบความคืบหน้าของเกม (เมื่อจบเกม)
+    // ลบความคืบหน้าของเกม (เมื่อEnd Game)
     const clearGameProgress = async () => {
         try {
             await clearProgress(currentLessonId);
@@ -1932,7 +1932,7 @@ const NewLessonGame = ({ navigation, route }) => {
                 correct = userAnswer === currentQuestion.correctText;
                 break;
             case 'DRAG_MATCH':
-                // ตรวจสอบการเชื่อมต่อที่ถูกต้องทั้งหมด
+                // CHECKสอบการเชื่อมต่อที่ถูกต้องทั้งหมด
                 if (userAnswer && typeof userAnswer === 'object') {
                     const allCorrect = currentQuestion.leftItems.every(leftItem => {
                         const userAnswerText = userAnswer[leftItem.id];
@@ -1973,9 +1973,9 @@ const NewLessonGame = ({ navigation, route }) => {
         if (currentQuestion.consonantChar) updateLetterMastery(currentQuestion.consonantChar, correct);
         if (currentQuestion.consonantChars) currentQuestion.consonantChars.forEach(ch => updateLetterMastery(ch, correct));
         
-        // ตรวจสอบว่าจบเกมหรือไม่
+        // CHECKสอบว่าEnd Gameหรือไม่
         if (currentQuestIndex === questions.length - 1) {
-            // จบเกม - อัปเดตข้อมูลความคืบหน้าสุดท้าย
+            // End Game - อัปเดตข้อมูลความคืบหน้าสุดท้าย
             setGameProgress(prev => {
                 const finalProgress = {
                     ...prev,
@@ -2320,7 +2320,7 @@ const NewLessonGame = ({ navigation, route }) => {
     const FeedbackBar = ({ isCorrect, onContinue }) => (
         <View style={[styles.feedbackBar, { backgroundColor: isCorrect ? '#58cc02' : '#ff4b4b' }]}>
             <Text style={styles.feedbackText}>
-                {isCorrect ? 'ถูกต้อง!' : 'ผิด!'}
+                {isCorrect ? 'Correct!' : 'Wrong!'}
             </Text>
             <TouchableOpacity style={styles.continueButton} onPress={onContinue}>
                 <Text style={styles.continueButtonText}>CONTINUE</Text>
@@ -2339,7 +2339,7 @@ const NewLessonGame = ({ navigation, route }) => {
                         style={styles.loadingAnimation}
                     />
                     <Text style={styles.loadingText}>
-                        {gameSession.isResumed ? 'กำลังโหลดเกมต่อ...' : 'กำลังโหลด...'}
+                        {gameSession.isResumed ? 'กำลังโหลดเกมต่อ...' : 'Loading...'}
                     </Text>
                 </View>
             </SafeAreaView>
@@ -2366,7 +2366,7 @@ const NewLessonGame = ({ navigation, route }) => {
                     {gameSession.isResumed && (
                         <View style={styles.resumeNotification}>
                             <FontAwesome name="play-circle" size={16} color="#4CAF50" />
-                            <Text style={styles.resumeText}>เล่นต่อจากข้อที่ {currentQuestIndex + 1}</Text>
+                            <Text style={styles.resumeText}>Resume from question {currentQuestIndex + 1}</Text>
                         </View>
                     )}
                     <View style={styles.progressBar}>

@@ -110,11 +110,11 @@ const EMOTIONS = RAW_EMOTIONS.map((item) => ({
 const getHintText = (type) => {
   switch (type) {
     case QUESTION_TYPES.LISTEN_CHOOSE:
-      return 'แตะปุ่มลำโพงเพื่อฟังซ้ำ แล้วเลือกคำอารมณ์ที่ได้ยิน';
+      return 'Tap the speaker button to listen again, then select the emotion word you hear';
     case QUESTION_TYPES.PICTURE_MATCH:
-      return 'ดูภาพอารมณ์ตรงกลาง แล้วเลือกคำที่ตรงกัน';
+      return 'Look at the emotion image in the center, then select the matching word';
     case QUESTION_TYPES.DRAG_MATCH:
-      return 'จับคู่คำไทยกับภาพและคำแปลภาษาอังกฤษ';
+      return 'Match Thai words with images and English translations';
     default:
       return '';
   }
@@ -125,9 +125,9 @@ const isThaiText = (text) => /[ก-๙]/.test(String(text || ''));
 
 const getTypeLabel = (type) => {
   switch (type) {
-    case QUESTION_TYPES.LISTEN_CHOOSE: return 'ฟังเสียงเลือกอารมณ์';
-    case QUESTION_TYPES.PICTURE_MATCH: return 'จับคู่จากภาพ';
-    case QUESTION_TYPES.DRAG_MATCH: return 'จับคู่ไทย ↔ อังกฤษ';
+    case QUESTION_TYPES.LISTEN_CHOOSE: return 'Listen & Choose';
+    case QUESTION_TYPES.PICTURE_MATCH: return 'Picture Match';
+    case QUESTION_TYPES.DRAG_MATCH: return 'Match Thai ↔ English';
     default: return '';
   }
 };
@@ -143,8 +143,8 @@ const makeListenChoose = (word, pool, usedWords = new Set()) => {
   return {
     id: `lc_${word.id}_${uid()}`,
     type: QUESTION_TYPES.LISTEN_CHOOSE,
-    instruction: 'ฟังเสียงแล้วเลือกอารมณ์ที่ได้ยิน',
-    questionText: 'แตะปุ่มลำโพงเพื่อฟัง',
+    instruction: 'Listen and select the emotion you hear',
+    questionText: 'Tap the speaker button to listen',
     audioText: word.audioText,
     correctText: word.thai,
     // Rewards for this question
@@ -172,7 +172,7 @@ const makePictureMatch = (word, pool, usedWords = new Set()) => {
   return {
     id: `pm_${word.id}_${uid()}`,
     type: QUESTION_TYPES.PICTURE_MATCH,
-    instruction: 'ดูภาพแล้วเลือกคำอารมณ์ให้ตรง',
+    instruction: 'Look at the image and select the matching emotion word',
     imageKey: word.imageKey,
     imageSource: emotionImages[word.imageKey] || word.imageSource || null,
     correctText: word.thai,
@@ -553,11 +553,11 @@ const IntermediateEmotionsGame = ({ navigation, route }) => {
       // If hearts are depleted, prompt to buy more
       if (newHearts <= 0) {
         Alert.alert(
-          'หัวใจหมดแล้ว',
-          'ซื้อหัวใจเพิ่มเพื่อเล่นต่อ',
+          'Out of Hearts',
+          'Buy more hearts to continue playing',
           [
-            { text: 'ไปร้านหัวใจ', onPress: () => navigation.navigate('GemShop') },
-            { text: 'ยกเลิก', style: 'cancel' }
+            { text: 'Go to Shop', onPress: () => navigation.navigate('GemShop') },
+            { text: 'Cancel', style: 'cancel' }
           ]
         );
       }
@@ -1113,7 +1113,7 @@ const IntermediateEmotionsGame = ({ navigation, route }) => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>กำลังโหลด...</Text>
+          <Text style={styles.loadingText}>Loading...</Text>
         </View>
       </SafeAreaView>
     );
@@ -1130,8 +1130,8 @@ const IntermediateEmotionsGame = ({ navigation, route }) => {
               loop
               style={styles.introAnim}
             />
-            <Text style={styles.startTitle}>อารมณ์ภาษาไทย</Text>
-            <Text style={styles.startSubtitle}>ฝึกคำศัพท์ความรู้สึกพร้อมภาพประกอบ</Text>
+            <Text style={styles.startTitle}>Thai Emotions</Text>
+            <Text style={styles.startSubtitle}>Practice emotion vocabulary with images</Text>
           </View>
 
           {/* Player Stats Display removed per request */}
@@ -1143,7 +1143,7 @@ const IntermediateEmotionsGame = ({ navigation, route }) => {
               end={{ x: 1, y: 1 }}
               style={styles.startGradient}
             >
-              <Text style={styles.startButtonText}>เริ่มเล่น</Text>
+              <Text style={styles.startButtonText}>Start Game</Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
@@ -1270,7 +1270,7 @@ const IntermediateEmotionsGame = ({ navigation, route }) => {
               style={{ marginRight: 8 }}
             />
             <Text style={styles.feedbackTextEnhanced}>
-              {currentFeedback === 'correct' ? 'ถูกต้อง! ยอดเยี่ยม' : 'พยายามอีกครั้ง'}
+              {currentFeedback === 'correct' ? 'Correct! Great job!' : 'Try again'}
             </Text>
           </View>
         )}
@@ -1309,7 +1309,7 @@ const IntermediateEmotionsGame = ({ navigation, route }) => {
                 style={{ marginRight: 8 }}
               />
               <Text style={styles.checkButtonTextEnhanced}>
-                {currentFeedback !== null ? (hearts === 0 ? 'จบเกม' : 'ต่อไป') : 'CHECK'}
+                {currentFeedback !== null ? (hearts === 0 ? 'End Game' : 'Next') : 'CHECK'}
               </Text>
             </View>
           </LinearGradient>

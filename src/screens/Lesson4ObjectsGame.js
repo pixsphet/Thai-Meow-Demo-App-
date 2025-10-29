@@ -784,7 +784,7 @@ const Lesson4ObjectsGame = ({ navigation, route }) => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>กำลังโหลด...</Text>
+          <Text style={styles.loadingText}>Loading...</Text>
         </View>
       </SafeAreaView>
     );
@@ -807,7 +807,7 @@ const Lesson4ObjectsGame = ({ navigation, route }) => {
           
           {resumeData && (
             <TouchableOpacity style={styles.resumeButton} onPress={resumeGame} activeOpacity={0.9}>
-              <Text style={styles.resumeButtonText}>เล่นต่อจากข้อที่ {resumeData.currentIndex + 1}</Text>
+              <Text style={styles.resumeButtonText}>Resume from question {resumeData.currentIndex + 1}</Text>
             </TouchableOpacity>
           )}
           
@@ -818,7 +818,7 @@ const Lesson4ObjectsGame = ({ navigation, route }) => {
               end={{ x: 1, y: 1 }}
               style={styles.startGradient}
             >
-              <Text style={styles.startButtonText}>เริ่มเล่น</Text>
+              <Text style={styles.startButtonText}>Start Game</Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
@@ -955,7 +955,7 @@ const Lesson4ObjectsGame = ({ navigation, route }) => {
               style={{ marginRight: 10 }}
             />
             <Text style={styles.feedbackTextEnhanced}>
-              {lastCorrect ? 'ถูกต้อง! ยอดเยี่ยม' : 'พยายามอีกครั้ง'}
+              {lastCorrect ? 'Correct! Great job!' : 'Try again'}
             </Text>
           </View>
         )}
@@ -1001,7 +1001,7 @@ const Lesson4ObjectsGame = ({ navigation, route }) => {
               style={{ marginRight: 10 }}
             />
             <Text style={styles.checkButtonTextEnhanced}>
-              {checked ? (hearts === 0 ? 'จบเกม' : 'NEXT') : 'CHECK'}
+              {checked ? (hearts === 0 ? 'End Game' : 'NEXT') : 'CHECK'}
             </Text>
           </LinearGradient>
         </TouchableOpacity>

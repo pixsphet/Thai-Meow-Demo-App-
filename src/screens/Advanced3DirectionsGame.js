@@ -422,7 +422,7 @@ const Advanced3DirectionsGame = ({ navigation, route }) => {
       setStreak(0);
       setCurrentFeedback('wrong');
       if (newHearts === 0) {
-        Alert.alert('หัวใจหมดแล้ว', 'กลับไปหน้าหลัก', [{ text: 'ตกลง', onPress: () => {
+        Alert.alert('Out of Hearts', 'กลับไปหน้าหลัก', [{ text: 'ตกลง', onPress: () => {
           const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
           finishLesson(elapsed);
         }}]);
@@ -605,7 +605,7 @@ const Advanced3DirectionsGame = ({ navigation, route }) => {
                 style={{ marginRight: 8 }}
               />
               <Text style={styles.feedbackTextEnhanced}>
-                {currentFeedback === 'correct' ? 'ถูกต้อง!' : 'ยังไม่ใช่ ลองดูใหม่'}
+                {currentFeedback === 'correct' ? 'Correct!' : 'ยังไม่ใช่ ลองดูใหม่'}
               </Text>
             </View>
           )}
@@ -660,7 +660,7 @@ const Advanced3DirectionsGame = ({ navigation, route }) => {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <LottieView source={require('../assets/animations/LoadingCat.json')} autoPlay loop style={{ width: 200, height: 200 }} />
-          <Text style={styles.loadingText}>กำลังโหลด...</Text>
+          <Text style={styles.loadingText}>Loading...</Text>
         </View>
       </SafeAreaView>
     );
@@ -677,12 +677,12 @@ const Advanced3DirectionsGame = ({ navigation, route }) => {
           </View>
           {resumeData && (
             <TouchableOpacity style={styles.resumeButton} onPress={() => { setGameStarted(true); startTimeRef.current = Date.now(); }}>
-              <Text style={styles.resumeButtonText}>เล่นต่อจากข้อที่ {resumeData.currentIndex + 1}</Text>
+              <Text style={styles.resumeButtonText}>Resume from question {resumeData.currentIndex + 1}</Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity style={styles.startButton} onPress={() => { setGameStarted(true); startTimeRef.current = Date.now(); dailyStreakService.startStreak?.(); }}>
             <LinearGradient colors={[COLORS.primary, '#FFA24D']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.startGradient}>
-              <Text style={styles.startButtonText}>เริ่มเล่น</Text>
+              <Text style={styles.startButtonText}>Start Game</Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
@@ -753,7 +753,7 @@ const Advanced3DirectionsGame = ({ navigation, route }) => {
               style={{ marginRight: 8 }}
             />
             <Text style={styles.feedbackTextEnhanced}>
-              {currentFeedback === 'correct' ? 'ถูกต้อง! เก่งมาก' : 'ยังไม่ถูก ลองข้อถัดไปนะ'}
+              {currentFeedback === 'correct' ? 'Correct! เก่งมาก' : 'ยังไม่ถูก ลองข้อถัดไปนะ'}
             </Text>
           </View>
         )}
@@ -764,7 +764,7 @@ const Advanced3DirectionsGame = ({ navigation, route }) => {
           disabled={!currentFeedback && currentQuestion.type !== QUESTION_TYPES.DRAG_MATCH && currentAnswer === null}
         >
           <LinearGradient colors={[COLORS.primary, '#FFA24D']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.checkGradient}>
-            <Text style={styles.checkButtonText}>{currentFeedback ? 'ต่อไป' : 'CHECK'}</Text>
+            <Text style={styles.checkButtonText}>{currentFeedback ? 'Next' : 'CHECK'}</Text>
           </LinearGradient>
         </TouchableOpacity>
       </View>

@@ -884,7 +884,7 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>กำลังโหลด...</Text>
+          <Text style={styles.loadingText}>Loading...</Text>
         </View>
       </SafeAreaView>
     );
@@ -907,7 +907,7 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
           
           {resumeData && (
             <TouchableOpacity style={styles.resumeButton} onPress={resumeGame} activeOpacity={0.9}>
-              <Text style={styles.resumeButtonText}>เล่นต่อจากข้อที่ {resumeData.currentIndex + 1}</Text>
+              <Text style={styles.resumeButtonText}>Resume from question {resumeData.currentIndex + 1}</Text>
             </TouchableOpacity>
           )}
           
@@ -918,7 +918,7 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
               end={{ x: 1, y: 1 }}
               style={styles.startGradient}
             >
-              <Text style={styles.startButtonText}>เริ่มเล่น</Text>
+              <Text style={styles.startButtonText}>Start Game</Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
@@ -1038,7 +1038,7 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
               style={{ marginRight: 8 }}
             />
             <Text style={styles.feedbackTextEnhanced}>
-              {currentFeedback === 'correct' ? 'ถูกต้อง! ยอดเยี่ยม' : 'พยายามอีกครั้ง'}
+              {currentFeedback === 'correct' ? 'Correct! Great job!' : 'Try again'}
             </Text>
           </View>
         )}
@@ -1080,7 +1080,7 @@ const Intermediate1FoodDrinksGame = ({ navigation, route }) => {
                 style={{ marginRight: 8 }}
               />
               <Text style={styles.checkButtonTextEnhanced}>
-                {currentFeedback !== null ? (hearts === 0 ? 'จบเกม' : 'ต่อไป') : 'CHECK'}
+                {currentFeedback !== null ? (hearts === 0 ? 'End Game' : 'Next') : 'CHECK'}
               </Text>
             </View>
           </LinearGradient>

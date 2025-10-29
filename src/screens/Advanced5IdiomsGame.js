@@ -239,7 +239,7 @@ const generateIdiomsLessonFlow = (pool, n = 6) => {
 const checkAnswer = (question, userAnswer) => {
   switch (question.type) {
     case QUESTION_TYPES.LEARN_IDIOM:
-      return true; // การ์ดความรู้ ไม่มีการตรวจ
+      return true; // การ์ดความรู้ ไม่มีการCHECK
     case QUESTION_TYPES.LISTEN_MEANING:
     case QUESTION_TYPES.LISTEN_USAGE:
     case QUESTION_TYPES.FILL_CONTEXT:
@@ -520,11 +520,11 @@ const Advanced5IdiomsGame = ({ navigation, route }) => {
       // If hearts are depleted, prompt to buy more
       if (newHearts <= 0) {
         Alert.alert(
-          'หัวใจหมดแล้ว',
-          'ซื้อหัวใจเพิ่มเพื่อเล่นต่อ',
+          'Out of Hearts',
+          'Buy more hearts to continue playing',
           [
-            { text: 'ไปร้านหัวใจ', onPress: () => navigation.navigate('GemShop') },
-            { text: 'ยกเลิก', style: 'cancel' }
+            { text: 'Go to Shop', onPress: () => navigation.navigate('GemShop') },
+            { text: 'Cancel', style: 'cancel' }
           ]
         );
       }
@@ -953,7 +953,7 @@ const Advanced5IdiomsGame = ({ navigation, route }) => {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <LottieView source={require('../assets/animations/LoadingCat.json')} autoPlay loop style={{ width: 200, height: 200 }} />
-          <Text style={styles.loadingText}>กำลังโหลด...</Text>
+          <Text style={styles.loadingText}>Loading...</Text>
         </View>
       </SafeAreaView>
     );
@@ -976,7 +976,7 @@ const Advanced5IdiomsGame = ({ navigation, route }) => {
           
           {resumeData && (
             <TouchableOpacity style={styles.resumeButton} onPress={resumeGame} activeOpacity={0.9}>
-              <Text style={styles.resumeButtonText}>เล่นต่อจากข้อที่ {resumeData.currentIndex + 1}</Text>
+              <Text style={styles.resumeButtonText}>Resume from question {resumeData.currentIndex + 1}</Text>
             </TouchableOpacity>
           )}
           
@@ -987,7 +987,7 @@ const Advanced5IdiomsGame = ({ navigation, route }) => {
               end={{ x: 1, y: 1 }}
               style={styles.startGradient}
             >
-              <Text style={styles.startButtonText}>เริ่มเล่น</Text>
+              <Text style={styles.startButtonText}>Start Game</Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
@@ -1098,7 +1098,7 @@ const Advanced5IdiomsGame = ({ navigation, route }) => {
               style={{ marginRight: 8 }}
             />
             <Text style={styles.feedbackTextEnhanced}>
-              {currentFeedback === 'correct' ? 'ถูกต้อง! ยอดเยี่ยม' : 'พยายามอีกครั้ง'}
+              {currentFeedback === 'correct' ? 'Correct! Great job!' : 'Try again'}
             </Text>
           </View>
         )}

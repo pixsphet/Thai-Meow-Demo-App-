@@ -224,11 +224,11 @@ export default function IntermediatePlacesGame({ navigation, route }) {
       updateStats({ hearts: newHearts });
       if (newHearts === 0) {
         Alert.alert(
-          'หัวใจหมดแล้ว',
-          'ซื้อหัวใจเพิ่มเพื่อเล่นต่อ',
+          'Out of Hearts',
+          'Buy more hearts to continue playing',
           [
-            { text: 'ไปร้านหัวใจ', onPress: () => navigation.navigate('GemShop') },
-            { text: 'ยกเลิก', style: 'cancel' }
+            { text: 'Go to Shop', onPress: () => navigation.navigate('GemShop') },
+            { text: 'Cancel', style: 'cancel' }
           ]
         );
       }
@@ -357,7 +357,7 @@ export default function IntermediatePlacesGame({ navigation, route }) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.centerContainer}>
-          <Text style={styles.loadingText}>กำลังโหลด...</Text>
+          <Text style={styles.loadingText}>Loading...</Text>
         </View>
       </SafeAreaView>
     );
@@ -391,7 +391,7 @@ export default function IntermediatePlacesGame({ navigation, route }) {
               end={{ x: 1, y: 1 }}
               style={styles.startGradient}
             >
-              <Text style={styles.startButtonText}>เริ่มเล่น</Text>
+              <Text style={styles.startButtonText}>Start Game</Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
@@ -645,7 +645,7 @@ export default function IntermediatePlacesGame({ navigation, route }) {
               style={{ marginRight: 8 }}
             />
             <Text style={styles.feedbackTextEnhanced}>
-              {currentFeedback === 'correct' ? 'ถูกต้อง! ยอดเยี่ยม' : 'พยายามอีกครั้ง'}
+              {currentFeedback === 'correct' ? 'Correct! Great job!' : 'Try again'}
             </Text>
           </View>
         )}
@@ -684,7 +684,7 @@ export default function IntermediatePlacesGame({ navigation, route }) {
                 style={{ marginRight: 8 }}
               />
               <Text style={styles.checkButtonTextEnhanced}>
-                {currentFeedback !== null ? (hearts === 0 ? 'จบเกม' : 'ต่อไป') : 'CHECK'}
+                {currentFeedback !== null ? (hearts === 0 ? 'End Game' : 'Next') : 'CHECK'}
               </Text>
             </View>
           </LinearGradient>
