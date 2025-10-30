@@ -22,10 +22,10 @@ import userService from "../services/userService";
 import { getLevelRewards, getXpProgress } from "../utils/leveling";
 
 const tabItems = [
-  { name: 'Home', label: 'หน้าแรก', icon: 'home', screen: 'HomeMain' },
-  { name: 'Minigame', label: 'เกม', icon: 'gamepad', screen: 'Minigame' },
-  { name: 'Progress', label: 'ความคืบหน้า', icon: 'trophy', screen: 'Progress' },
-  { name: 'Profile', label: 'โปรไฟล์', icon: 'user', screen: 'Profile' },
+  { name: 'Home', label: 'Home', icon: 'home', screen: 'HomeMain' },
+  { name: 'Minigame', label: 'Games', icon: 'gamepad', screen: 'Minigame' },
+  { name: 'Progress', label: 'Progress', icon: 'trophy', screen: 'Progress' },
+  { name: 'Profile', label: 'Profile', icon: 'user', screen: 'Profile' },
 ];
 
 const CustomTabBar = ({ activeTab, navigation, theme }) => {
@@ -241,17 +241,17 @@ const ProfileScreen = ({ navigation }) => {
   const profileStats = useMemo(() => [
     {
       key: 'hearts',
-      label: 'หัวใจ',
+      label: 'Hearts',
       value: displayHearts,
-      subLabel: 'พร้อมใช้งาน',
+      subLabel: 'Available',
       animation: require('../assets/animations/Heart.json'),
       tint: '#FF4F64',
     },
     {
       key: 'diamonds',
-      label: 'เพชร',
+      label: 'Diamonds',
       value: displayDiamonds,
-      subLabel: 'สะสมทั้งหมด',
+      subLabel: 'Total collected',
       animation: require('../assets/animations/Diamond.json'),
       tint: '#2196F3',
     },
@@ -259,7 +259,7 @@ const ProfileScreen = ({ navigation }) => {
       key: 'streak',
       label: 'Streak',
       value: displayStreak,
-      subLabel: 'วันต่อเนื่อง',
+      subLabel: 'days streak',
       animation: require('../assets/animations/Streak-Fire1.json'),
       tint: '#FF8C00',
     },
@@ -267,35 +267,35 @@ const ProfileScreen = ({ navigation }) => {
       key: 'xp',
       label: 'XP',
       value: xpDisplayWithinLevel,
-      subLabel: `ทั้งหมด ${displayXP.toLocaleString('th-TH')} XP`,
+      subLabel: `Total ${displayXP.toLocaleString('th-TH')} XP`,
       animation: require('../assets/animations/Star.json'),
       tint: '#34A853',
     },
   ], [displayHearts, displayDiamonds, displayStreak, xpDisplayWithinLevel, displayXP]);
 
   const lastPlayedLabel = lastPlayed
-    ? new Date(lastPlayed).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })
+      ? new Date(lastPlayed).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })
     : '-';
 
   const heroHighlights = useMemo(() => [
     {
-      label: 'ระดับ',
+      label: 'Level',
       value: `Lv.${displayLevel}`,
-      helper: `${progressPercent}% ของเลเวลนี้ (${xpStatusLabel})`,
+      helper: `${progressPercent}% of this level (${xpStatusLabel})`,
       animation: require('../assets/animations/Star.json'),
       background: '#FFE9D6',
     },
     {
-      label: 'หัวใจ',
+      label: 'Hearts',
       value: displayHearts,
-      helper: `ของขวัญ Lv.${displayLevel + 1}: ❤️ +${nextLevelRewards.hearts.toLocaleString('th-TH')}`,
+      helper: `Next Lv.${displayLevel + 1} gift: ❤️ +${nextLevelRewards.hearts.toLocaleString('th-TH')}`,
       animation: require('../assets/animations/Heart.json'),
       background: '#FFE8EC',
     },
     {
       label: 'Streak',
-      value: `${displayStreak} วัน`,
-      helper: `เล่นล่าสุด ${lastPlayedLabel}`,
+      value: `${displayStreak} days`,
+      helper: `Last played ${lastPlayedLabel}`,
       animation: require('../assets/animations/Streak-Fire1.json'),
       background: '#FFF4D6',
     },
@@ -305,28 +305,28 @@ const ProfileScreen = ({ navigation }) => {
     {
       key: 'lessons',
       icon: 'book-open-variant',
-      label: 'บทเรียนที่เสร็จ',
+      label: 'Lessons completed',
       value: `${displayCompletedLessons}/${displayTotalLessons}`,
       tint: '#7C4DFF',
     },
     {
       key: 'hours',
       icon: 'timer-sand',
-      label: 'เวลาเรียน',
-      value: `${learningHours} ชั่วโมง`,
+      label: 'Learning time',
+      value: `${learningHours} hrs`,
       tint: '#118AB2',
     },
     {
       key: 'accuracy',
       icon: 'target',
-      label: 'ความแม่นยำเฉลี่ย',
+      label: 'Average accuracy',
       value: `${safeNumber(averageAccuracy, 0)}%`,
       tint: '#06D6A0',
     },
     {
       key: 'sessions',
       icon: 'gamepad-variant',
-      label: 'จำนวนครั้งที่เล่น',
+      label: 'Total plays',
       value: safeNumber(totalSessions, statistics.totalGames || 0),
       tint: '#EF476F',
     },
@@ -367,7 +367,7 @@ const ProfileScreen = ({ navigation }) => {
             style={styles.loadingAnimation}
           />
           <Text style={[styles.loadingText, { color: theme.text }]}>
-            กำลังโหลดข้อมูล...
+            Loading...
           </Text>
         </View>
       </SafeAreaView>
@@ -401,7 +401,7 @@ const ProfileScreen = ({ navigation }) => {
 
               <View style={styles.heroInfo}>
                 <Text style={[styles.heroName, { color: theme.text }]}>
-                  {user?.username || user?.name || "ผู้เรียน"}
+                  {user?.username || user?.name || "Learner"}
                 </Text>
                 <Text style={[styles.heroEmail, { color: theme.textSecondary }]}>
                   {user?.email || "user@example.com"}
@@ -445,7 +445,7 @@ const ProfileScreen = ({ navigation }) => {
                 activeOpacity={0.8}
               >
                 <MaterialCommunityIcons name="pencil" size={16} color={theme.white} />
-                <Text style={[styles.editButtonText, { color: theme.white }]}>แก้ไข</Text>
+                <Text style={[styles.editButtonText, { color: theme.white }]}>Edit</Text>
               </TouchableOpacity>
             </View>
 
@@ -470,10 +470,10 @@ const ProfileScreen = ({ navigation }) => {
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>สรุปสถานะ</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Status Summary</Text>
             <TouchableOpacity onPress={forceRefresh} style={styles.sectionAction}>
               <MaterialCommunityIcons name="refresh" size={16} color={theme.primary} />
-              <Text style={[styles.sectionActionText, { color: theme.primary }]}>รีเฟรช</Text>
+              <Text style={[styles.sectionActionText, { color: theme.primary }]}>Refresh</Text>
             </TouchableOpacity>
           </View>
 
@@ -493,9 +493,9 @@ const ProfileScreen = ({ navigation }) => {
 
         <View style={[styles.sectionCard, { backgroundColor: theme.surface }]}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>ความคืบหน้า</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Progress</Text>
             <Text style={[styles.sectionSubTitle, { color: theme.textSecondary }]}>
-              XP ในเลเวลนี้ {xpDisplayWithinLevel.toLocaleString('th-TH')} / {xpRequirementCurrentLevel.toLocaleString('th-TH')} • ต้องการเพิ่ม {xpToNextLevel.toLocaleString('th-TH')} XP เพื่อเลเวลถัดไป
+              XP this level {xpDisplayWithinLevel.toLocaleString('th-TH')} / {xpRequirementCurrentLevel.toLocaleString('th-TH')} • Need {xpToNextLevel.toLocaleString('th-TH')} XP for next level
             </Text>
           </View>
 
@@ -523,32 +523,32 @@ const ProfileScreen = ({ navigation }) => {
             </View>
           </View>
           <Text style={[styles.progressSubtitle, { color: theme.textSecondary }]}>
-            เหลือ {xpToNextLevel.toLocaleString('th-TH')} XP เพื่อเลเวล {displayLevel + 1}
+            {xpToNextLevel.toLocaleString('th-TH')} XP left to level {displayLevel + 1}
           </Text>
           <Text style={[styles.progressRewardText, { color: theme.text }]}>
-            ของขวัญเลเวลถัดไป: ❤️ +{nextLevelRewards.hearts.toLocaleString('th-TH')} • 💎 +{nextLevelRewards.diamonds.toLocaleString('th-TH')}
+            Next level gifts: ❤️ +{nextLevelRewards.hearts.toLocaleString('th-TH')} • 💎 +{nextLevelRewards.diamonds.toLocaleString('th-TH')}
           </Text>
 
           <View style={styles.progressMetaRow}>
             <View style={styles.progressMetaItem}>
               <Text style={[styles.metaLabel, { color: theme.textSecondary }]}>Streak</Text>
-              <Text style={[styles.metaValue, { color: theme.text }]}>{displayStreak} วัน</Text>
+              <Text style={[styles.metaValue, { color: theme.text }]}>{displayStreak} days</Text>
             </View>
             <View style={styles.progressMetaItem}>
-              <Text style={[styles.metaLabel, { color: theme.textSecondary }]}>เล่นล่าสุด</Text>
+              <Text style={[styles.metaLabel, { color: theme.textSecondary }]}>Last played</Text>
               <Text style={[styles.metaValue, { color: theme.text }]}>
                 {lastPlayed ? new Date(lastPlayed).toLocaleDateString('th-TH') : '-'}
               </Text>
             </View>
             <View style={styles.progressMetaItem}>
-              <Text style={[styles.metaLabel, { color: theme.textSecondary }]}>เวลาเรียน</Text>
-              <Text style={[styles.metaValue, { color: theme.text }]}>{learningHours} ชม.</Text>
+              <Text style={[styles.metaLabel, { color: theme.textSecondary }]}>Learning time</Text>
+              <Text style={[styles.metaValue, { color: theme.text }]}>{learningHours} hrs</Text>
             </View>
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>สถิติหลัก</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Key stats</Text>
           <View style={styles.summaryGrid}>
             {summaryMetrics.map((item) => (
               <View key={item.key} style={[styles.summaryCard, { backgroundColor: theme.surface }]}>
@@ -566,7 +566,7 @@ const ProfileScreen = ({ navigation }) => {
 
         {achievements?.length > 0 && (
           <View style={[styles.sectionCard, { backgroundColor: theme.surface }]}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>ความสำเร็จล่าสุด</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Latest achievements</Text>
             {achievements.slice(0, 4).map((achievement, index) => (
               <View key={index} style={styles.achievementRow}>
                 <MaterialCommunityIcons
@@ -593,21 +593,21 @@ const ProfileScreen = ({ navigation }) => {
         )}
 
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>การจัดการบัญชี</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Account management</Text>
           <View style={styles.actionRow}>
             <TouchableOpacity
               style={[styles.actionButton, { backgroundColor: theme.primary }]}
               onPress={() => navigation.navigate("Settings")}
             >
               <MaterialCommunityIcons name="account-cog" size={20} color={theme.white} />
-              <Text style={[styles.actionButtonText, { color: theme.white }]}>ตั้งค่าโปรไฟล์</Text>
+              <Text style={[styles.actionButtonText, { color: theme.white }]}>Profile settings</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionButton, { backgroundColor: theme.surface, borderColor: theme.primary, borderWidth: 1 }]}
               onPress={() => navigation.navigate("Progress")}
             >
               <MaterialCommunityIcons name="chart-box" size={20} color={theme.primary} />
-              <Text style={[styles.actionButtonText, { color: theme.primary }]}>ดูรายละเอียดสถิติ</Text>
+              <Text style={[styles.actionButtonText, { color: theme.primary }]}>View stats details</Text>
             </TouchableOpacity>
           </View>
         </View>
