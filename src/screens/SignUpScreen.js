@@ -209,15 +209,15 @@ const SignUpScreen = ({ navigation }) => {
     return;
   }
   if (username.length < 3) {
-    showAlert("ชื่อผู้ใช้ไม่ถูกต้อง", "ชื่อผู้ใช้ต้องมีอย่างน้อย 3 ตัวอักษร");
+    showAlert("Invalid username", "Username must be at least 3 characters long");
     return;
   }
   if (password.length < 6) {
-    showAlert("รหัสผ่านไม่ถูกต้อง", "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร");
+    showAlert("Invalid password", "Password must be at least 6 characters");
     return;
   }
   if (password !== confirmPassword) {
-    showAlert("รหัสผ่านไม่ถูกต้อง", "รหัสผ่านไม่ตรงกัน");
+    showAlert("Invalid password", "Passwords do not match");
     return;
   }
   if (!petName.trim()) {
@@ -236,21 +236,21 @@ const SignUpScreen = ({ navigation }) => {
       // Update user context with registration data
       await login(result.user);
       
-      console.log("สมัครสำเร็จ", result.user);
-      showAlert("สำเร็จ", "สมัครสมาชิกเรียบร้อย! ไปเลือกระดับการเรียนรู้กันเลย");
+      console.log("Sign up success", result.user);
+      showAlert("Success", "Registration completed! Let's choose your learning level");
       setTimeout(() => {
         setAlertVisible(false);
         navigation.navigate("MainApp");
       }, 2000);
     } else {
       // Parse error message to show user-friendly message
-      let errorMessage = result.error || "ไม่สามารถสมัครสมาชิกได้";
+      let errorMessage = result.error || "Unable to sign up";
       
       // Handle specific Thai error messages from backend
       if (result.error && result.error.includes("อีเมลนี้มีผู้ใช้งานแล้ว")) {
-        errorMessage = "อีเมลนี้มีผู้ใช้งานแล้ว กรุณาใช้อีเมลอื่น";
+        errorMessage = "This email is already in use. Please use another email";
       } else if (result.error && result.error.includes("ชื่อผู้ใช้นี้มีผู้ใช้งานแล้ว")) {
-        errorMessage = "ชื่อผู้ใช้นี้มีผู้ใช้งานแล้ว กรุณาเลือกชื่ออื่น";
+        errorMessage = "This username is already taken. Please choose another";
       } else if (result.error && result.error.includes("ชื่อสัตว์เลี้ยงนี้มีผู้ใช้งานแล้ว")) {
         errorMessage = "ชื่อสัตว์เลี้ยงนี้มีผู้ใช้งานแล้ว กรุณาเลือกชื่ออื่น";
       } else if (result.error && result.error.includes("กรุณากรอกข้อมูลให้ครบถ้วน")) {
@@ -269,9 +269,9 @@ const SignUpScreen = ({ navigation }) => {
     
     // Handle specific Thai error messages from backend
     if (error.message.includes("อีเมลนี้มีผู้ใช้งานแล้ว")) {
-      errorMessage = "อีเมลนี้มีผู้ใช้งานแล้ว กรุณาใช้อีเมลอื่น";
+      errorMessage = "This email is already in use. Please use another email";
     } else if (error.message.includes("ชื่อผู้ใช้นี้มีผู้ใช้งานแล้ว")) {
-      errorMessage = "ชื่อผู้ใช้นี้มีผู้ใช้งานแล้ว กรุณาเลือกชื่ออื่น";
+      errorMessage = "This username is already taken. Please choose another";
     } else if (error.message.includes("ชื่อสัตว์เลี้ยงนี้มีผู้ใช้งานแล้ว")) {
       errorMessage = "ชื่อสัตว์เลี้ยงนี้มีผู้ใช้งานแล้ว กรุณาเลือกชื่ออื่น";
     } else if (error.message.includes("กรุณากรอกข้อมูลให้ครบถ้วน")) {

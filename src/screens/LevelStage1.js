@@ -839,7 +839,7 @@ const LevelStage1 = ({ navigation }) => {
               ]}
                   onPress={async () => {
                     if (stage.status === 'locked') {
-                      Alert.alert('ยังไม่ปลดล็อก', 'ต้องผ่านด่านก่อนหน้าอย่างน้อย 70% ในการเล่นครั้งแรก เพื่อปลดล็อกด่านนี้');
+                      Alert.alert('Locked', 'Pass the previous stage with at least 70% on first play to unlock this stage.');
                       return;
                     }
                     console.log('Navigating to lesson screen with lessonId:', stage.lesson_id);
@@ -950,7 +950,7 @@ const LevelStage1 = ({ navigation }) => {
                 {stage.title}
               </Text>
               <Text style={styles.stageDescription}>
-                {stage.status === 'current' ? 'เริ่มเรียน' : 
+                {stage.status === 'current' ? 'Start Learning' : 
                  stage.status === 'done' ? 'เสร็จแล้ว' : 
                  stage.status === 'locked' ? 'ยังล็อค' : 'พร้อมเรียน'}
               </Text>

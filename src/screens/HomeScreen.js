@@ -110,7 +110,7 @@ const HomeScreen = ({ navigation }) => {
   const languageLevels = [
     {
       id: 'thai-consonants',
-      level: 'หมวดการเรียน พยัญชนะ สระ และ วรรณยุกต์ เริ่มต้น',
+      level: 'Learning modules: Consonants, Vowels and Tones (Beginner)',
       description: 'สำรวจบทเรียนพื้นฐานสำหรับพยัญชนะ สระ และวรรณยุกต์ พร้อมภาพและเสียงประกอบ',
       color: '#FF8C00', // สีส้มหลัก
       image: require('../assets/images/Grumpy Cat.png'),
@@ -395,7 +395,7 @@ const HomeScreen = ({ navigation }) => {
 
         {/* Language Levels */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>🎯 เลือกระดับการเรียนรู้</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>🎯 Choose your learning level</Text>
           {languageLevels.map((item) => (
             <TouchableOpacity
               key={item.id}
@@ -422,7 +422,7 @@ const HomeScreen = ({ navigation }) => {
                       />
                     </View>
                     <Text style={styles.progressText}>
-                      {item.completedStages} / {item.stageCount} ด่าน
+                      {item.completedStages} / {item.stageCount} stages
                     </Text>
                   </View>
                 </View>

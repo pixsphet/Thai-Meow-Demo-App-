@@ -134,7 +134,7 @@ const SignInScreen = () => {
   const handleLogin = async () => {
     if (!email || !password) {
       setAlertTitle("ข้อมูลไม่ครบ");
-      setAlertMessage("กรุณากรอกอีเมลและรหัสผ่านให้ครบถ้วน");
+      setAlertMessage("Please enter both email and password");
       setAlertImage({
         uri: "https://cdn-icons-png.flaticon.com/512/595/595067.png",
       });
@@ -162,7 +162,7 @@ const SignInScreen = () => {
           console.warn('⚠️ Failed to update streak on login:', streakError?.message);
         }
         
-        setAlertTitle("เข้าสู่ระบบสำเร็จ");
+        setAlertTitle("Signed in successfully");
         setAlertMessage("ยินดีต้อนรับกลับมา!");
         setAlertImage(happyImage);
         setShowAlert(true);
@@ -173,8 +173,8 @@ const SignInScreen = () => {
         }, 2000);
       } else {
         console.log('❌ Login failed:', result.error);
-        setAlertTitle("เข้าสู่ระบบไม่สำเร็จ");
-        setAlertMessage(result.error || "ไม่สามารถเข้าสู่ระบบได้");
+        setAlertTitle("Sign in failed");
+        setAlertMessage(result.error || "Unable to sign in");
         setAlertImage(cryImage);
         setShowAlert(true);
       }
@@ -304,7 +304,7 @@ const SignInScreen = () => {
         visible={showAlert}
         onClose={() => {
           setShowAlert(false);
-          if (alertTitle === "เข้าสู่ระบบสำเร็จ") {
+          if (alertTitle === "Signed in successfully") {
             navigation.navigate("MainApp");
           }
         }}
