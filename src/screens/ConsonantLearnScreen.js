@@ -270,11 +270,11 @@ const LearnCard = ({ item, onSpeak, seen, category }) => {
         )}
       </View>
 
-      <Text style={styles.name}>{item.name}</Text>
-      <Text style={styles.meaning}>{item.meaning}</Text>
+      <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">{item.name}</Text>
+      <Text style={styles.meaning} numberOfLines={1} ellipsizeMode="tail">{item.meaning}</Text>
 
       <View style={styles.footerRow}>
-        <Text style={styles.meta}>{item.roman || '-'}</Text>
+        <Text style={styles.meta} numberOfLines={1} ellipsizeMode="tail">{item.roman || '-'}</Text>
         {seen ? (
           <Text style={[styles.meta, mastered && { color: '#2e7d32', fontWeight: '700' }]}>
             {mastered ? 'Mastered' : `Seen ${seen.correct + seen.wrong}x`}
@@ -660,7 +660,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#FF6B6B',
   },
-  tabText: { color: '#6b7280', fontWeight: '700' },
+  tabText: { color: '#6b7280', fontWeight: '700', fontSize: 13, flexShrink: 1 },
   tabTextActive: { color: '#d9480f' },
   tabCount: { fontSize: 12, color: '#94a3b8', fontWeight: '700' },
 
@@ -750,14 +750,14 @@ const styles = StyleSheet.create({
   charEmoji: { fontSize: 48, fontWeight: '800' },
   
   name: { 
-    fontSize: 16, 
+    fontSize: 15, 
     fontWeight: '700', 
     color: '#2c3e50', 
     textAlign: 'center',
     marginBottom: 4,
   },
   meaning: { 
-    fontSize: 14, 
+    fontSize: 13, 
     color: '#6c757d', 
     textAlign: 'center',
     marginBottom: 8,
