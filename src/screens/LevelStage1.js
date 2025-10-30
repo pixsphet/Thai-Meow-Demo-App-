@@ -25,33 +25,33 @@ const DEBUG_UNLOCK_ALL_STAGES = false; // Set to false for production - enable l
 
 const CUSTOM_STAGE_META = {
   1: {
-    title: 'พยัญชนะพื้นฐาน ก-ฮ',
+    title: 'Basic consonants (ก-ฮ)',
     key: 'lesson_consonants_1',
     category: 'consonants',
   },
   2: {
-    title: 'สระ 32 ตัว',
+    title: '32 vowels',
     key: 'lesson_vowels_32',
     category: 'vowels',
-    description: 'ฝึกครบสระไทยทั้ง 32 ตัว',
+    description: 'Practice all 32 Thai vowels',
   },
   3: {
-    title: 'คำทักทาย',
+    title: 'Greetings',
     key: 'lesson_greetings_3',
     category: 'greetings',
-    description: 'ฝึกคำทักทายพร้อม 5 มินิเกม',
+    description: 'Practice greetings with 5 mini games',
   },
   4: {
-    title: 'สิ่งของรอบตัว',
+    title: 'Objects around you',
     key: 'lesson_objects_4',
     category: 'objects',
-    description: 'ฝึกคำศัพท์สิ่งของรอบตัว 16 คำ',
+    description: 'Practice 16 common object words',
   },
   5: {
-    title: 'ร่างกาย (Body Parts)',
+    title: 'Body Parts',
     key: 'lesson_body_5',
     category: 'body',
-    description: 'ฝึกคำศัพท์ร่างกาย 16 คำ',
+    description: 'Practice 16 body part words',
   },
 };
 

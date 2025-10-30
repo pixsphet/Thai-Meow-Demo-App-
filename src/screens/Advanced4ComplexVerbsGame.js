@@ -85,16 +85,16 @@ const getTypeLabel = (type) => {
 
 const getLinkerFunction = (type) => {
   const functions = {
-    causal: 'เหตุ-ผล',
-    concession: 'ยอมรับ-สวนทาง',
-    condition: 'เงื่อนไข',
-    temporal: 'เวลา/ลำดับ',
-    purpose: 'วัตถุประสงค์',
-    additive: 'เพิ่มเติม',
-    contrast: 'เปรียบเทียบ',
-    correlative: 'เปรียบเทียบแบบ',
+    causal: 'Cause–Effect',
+    concession: 'Concession',
+    condition: 'Condition',
+    temporal: 'Time/Order',
+    purpose: 'Purpose',
+    additive: 'Additive',
+    contrast: 'Contrast',
+    correlative: 'Correlative',
   };
-  return functions[type] || 'อื่นๆ';
+  return functions[type] || 'Other';
 };
 
 const makeListenChoose = (item, pool) => {
@@ -588,7 +588,7 @@ const Advanced4ComplexVerbsGame = ({ navigation, route }) => {
           <Text style={styles.instruction}>{question.instruction}</Text>
           <Text style={styles.hintText}>{getHintText(question.type)}</Text>
           <View style={styles.arrangeContainer}>
-            <Text style={styles.arrangeText}>{currentAnswer && Array.isArray(currentAnswer) ? currentAnswer.join(' ') : 'เรียงคำให้ถูกต้อง'}</Text>
+            <Text style={styles.arrangeText}>{currentAnswer && Array.isArray(currentAnswer) ? currentAnswer.join(' ') : 'Arrange words correctly'}</Text>
           </View>
           <View style={styles.choicesContainer}>
             {question.wordBank.map((part, index) => (
@@ -615,20 +615,20 @@ const Advanced4ComplexVerbsGame = ({ navigation, route }) => {
           <Text style={styles.instruction}>{question.instruction}</Text>
           <Text style={styles.hintText}>{getHintText(question.type)}</Text>
           <View style={styles.transformCard}>
-            <Text style={styles.transformLabel}>ประโยคต้นฉบับ:</Text>
+            <Text style={styles.transformLabel}>Original sentence:</Text>
             <Text style={styles.transformText}>{question.sourceText}</Text>
             <TouchableOpacity onPress={() => playTTS(question.tts)} style={styles.smallSpeaker}>
               <MaterialIcons name="volume-up" size={20} color={COLORS.primary} />
             </TouchableOpacity>
           </View>
           <View style={styles.transformCard}>
-            <Text style={styles.transformLabel}>พิมพ์ประโยคที่แปลง:</Text>
+            <Text style={styles.transformLabel}>Type the transformed sentence:</Text>
             <View style={styles.textInput}>
               <TextInput
                 style={styles.inputField}
                 value={transformInput}
                 onChangeText={setTransformInput}
-                placeholder="พิมพ์ประโยคที่แปลงให้ใช้รูปแบบ"
+                placeholder="Type the sentence using the pattern"
                 multiline
                 textAlignVertical="top"
               />
@@ -665,8 +665,8 @@ const Advanced4ComplexVerbsGame = ({ navigation, route }) => {
         <View style={styles.startContainer}>
           <View style={styles.introCard}>
             <LottieView source={require('../assets/animations/stage_start.json')} autoPlay loop style={styles.introAnim} />
-            <Text style={styles.startTitle}>กริยาซับซ้อน</Text>
-            <Text style={styles.startSubtitle}>บทเรียน Advanced</Text>
+            <Text style={styles.startTitle}>Complex Verbs</Text>
+            <Text style={styles.startSubtitle}>Advanced lesson</Text>
           </View>
           {resumeData && (
             <TouchableOpacity style={styles.resumeButton} onPress={resumeGame}>
@@ -743,7 +743,7 @@ const Advanced4ComplexVerbsGame = ({ navigation, route }) => {
               style={{ marginRight: 8 }}
             />
             <Text style={styles.feedbackTextEnhanced}>
-              {currentFeedback === 'correct' ? 'Correct! เก่งมาก' : 'ยังไม่ถูก ลองข้อถัดไปนะ'}
+              {currentFeedback === 'correct' ? 'Correct! Great job' : 'Not yet, try the next one'}
             </Text>
           </View>
         )}

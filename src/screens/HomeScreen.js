@@ -95,9 +95,9 @@ const HomeScreen = ({ navigation }) => {
           console.warn('Failed to update stats with rewards:', err?.message);
         } finally {
           Alert.alert(
-            'เลเวลอัพ!',
-            `ได้รับหัวใจ +${heartsGained.toLocaleString('th-TH')} ดวง และเพชร +${totalDiamondsReward.toLocaleString('th-TH')} เม็ด`,
-            [{ text: 'เยี่ยม!' }]
+            'Great!',
+            `You gained ${heartsGained.toLocaleString('th-TH')} hearts and ${totalDiamondsReward.toLocaleString('th-TH')} diamonds`,
+            ['Great!']
           );
         }
       })();
@@ -111,21 +111,21 @@ const HomeScreen = ({ navigation }) => {
     {
       id: 'thai-consonants',
       level: 'Learning modules: Consonants, Vowels and Tones (Beginner)',
-      description: 'สำรวจบทเรียนพื้นฐานสำหรับพยัญชนะ สระ และวรรณยุกต์ พร้อมภาพและเสียงประกอบ',
+      description: 'Explore basics: consonants, vowels and tones with images and audio',
       color: '#FF8C00', // สีส้มหลัก
       image: require('../assets/images/Grumpy Cat.png'),
     },
     {
       id: 'beginner',
       level: 'Level 1 - Beginner',
-      description: 'เรียนรู้คำศัพท์พื้นฐาน การออกเสียง และประโยคง่ายๆ',
+      description: 'Learn basic vocabulary, pronunciation and simple sentences',
       color: '#FFA500', // สีส้มอ่อน
       image: require('../assets/images/Catsmile.png'),
     },
     {
       id: 'intermediate',
       level: 'Level 2 - Intermediate',
-      description: 'พัฒนาทักษะการพูด ฟัง อ่าน เขียน สำหรับการใช้ในชีวิตประจำวัน',
+      description: 'Improve speaking, listening, reading and writing for daily life',
       color: '#FF6B35', // สีส้มแดง
       image: require('../assets/images/Catsmile1.png'),
 
@@ -133,7 +133,7 @@ const HomeScreen = ({ navigation }) => {
     {
       id: 'advanced',
       level: 'Level 3 - Advanced',
-      description: 'สำหรับผู้เชี่ยวชาญในสำนวน ไวยากรณ์ และการสนทนาที่ซับซ้อน',
+      description: 'For advanced idioms, grammar and complex conversations',
       color: '#E67300', // สีส้มเข้ม
       image: require('../assets/images/happy.png'),
     },
@@ -149,7 +149,7 @@ const HomeScreen = ({ navigation }) => {
             lessonId: 1,
             category: 'thai-consonants',
             level: 'Beginner',
-            stageTitle: 'พยัญชนะพื้นฐาน ก-ฮ',
+            stageTitle: 'Basic consonants (ก-ฮ)',
           });
           break;
         case 'beginner':
@@ -225,25 +225,25 @@ const HomeScreen = ({ navigation }) => {
     const tabItems = [
       {
         name: 'Home',
-        label: 'หน้าแรก',
+        label: 'Home',
         icon: 'home',
         screen: 'HomeMain',
       },
       {
         name: 'Minigame',
-        label: 'เกม',
+        label: 'Games',
         icon: 'gamepad',
         screen: 'Minigame',
       },
       {
         name: 'Progress',
-        label: 'ความคืบหน้า',
+        label: 'Progress',
         icon: 'trophy',
         screen: 'Progress',
       },
       {
         name: 'Profile',
-        label: 'โปรไฟล์',
+        label: 'Profile',
         icon: 'user',
         screen: 'Profile',
       },
@@ -299,12 +299,8 @@ const HomeScreen = ({ navigation }) => {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerContent}>
-            <Text style={[styles.greeting, { color: theme.text }]}>
-              สวัสดี, {user?.username || 'ผู้เรียน'}!
-            </Text>
-            <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-              พร้อมเรียนภาษาไทยกันไหม?
-            </Text>
+            <Text style={[styles.greeting, { color: theme.text }]}>Hello, {user?.username || 'Learner'}!</Text>
+            <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Ready to learn Thai?</Text>
           </View>
           {/* Right: Status badges */}
           <View style={styles.headerStatusRight}>
@@ -365,7 +361,7 @@ const HomeScreen = ({ navigation }) => {
                 style={styles.statAnimation}
               />
               <Text style={styles.statValue}>{statsLoading ? '...' : (streak || 0)}</Text>
-              <Text style={styles.statLabel}>วันต่อเนื่อง</Text>
+              <Text style={styles.statLabel}>Days streak</Text>
             </View>
 
 
@@ -455,7 +451,7 @@ const HomeScreen = ({ navigation }) => {
                   Mini Games
                 </Text>
                 <Text style={[styles.minigameSubtitle, { color: theme.textSecondary }]}>
-                  เล่นเกมสนุก ๆ เพื่อฝึกภาษาไทย
+                  Play fun games to practice Thai
                 </Text>
                 <View style={styles.minigameFeatures}>
                   <Text style={[styles.minigameFeature, { color: theme.textSecondary }]}>
@@ -474,33 +470,27 @@ const HomeScreen = ({ navigation }) => {
 
         {/* Learning Tips */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>💡 เคล็ดลับการเรียนรู้</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>💡 Learning tips</Text>
           <View style={[styles.tipsCard, { backgroundColor: theme.card }]}>
             <View style={styles.tipItem}>
               <MaterialCommunityIcons name="lightbulb-on" size={24} color="#FFD93D" />
               <View style={styles.tipContent}>
-                <Text style={[styles.tipTitle, { color: theme.text }]}>เรียนทุกวัน</Text>
-                <Text style={[styles.tipDescription, { color: theme.textSecondary }]}>
-                  เรียน 15-30 นาทีต่อวันจะช่วยให้จำได้ดีขึ้น
-                </Text>
+                <Text style={[styles.tipTitle, { color: theme.text }]}>Study daily</Text>
+                <Text style={[styles.tipDescription, { color: theme.textSecondary }]}>Study 15–30 minutes a day for better retention</Text>
               </View>
             </View>
             <View style={styles.tipItem}>
               <MaterialCommunityIcons name="volume-high" size={24} color="#4ECDC4" />
               <View style={styles.tipContent}>
-                <Text style={[styles.tipTitle, { color: theme.text }]}>ฟังเสียง</Text>
-                <Text style={[styles.tipDescription, { color: theme.textSecondary }]}>
-                  ฟังการออกเสียงจะช่วยให้จำได้แม่นยำ
-                </Text>
+                <Text style={[styles.tipTitle, { color: theme.text }]}>Listen</Text>
+                <Text style={[styles.tipDescription, { color: theme.textSecondary }]}>Listening to pronunciation improves accuracy</Text>
               </View>
             </View>
             <View style={styles.tipItem}>
               <MaterialCommunityIcons name="repeat" size={24} color="#FF6B6B" />
               <View style={styles.tipContent}>
-                <Text style={[styles.tipTitle, { color: theme.text }]}>ทบทวน</Text>
-                <Text style={[styles.tipDescription, { color: theme.textSecondary }]}>
-                  ทบทวนบทเรียนเก่าเป็นประจำ
-                </Text>
+                <Text style={[styles.tipTitle, { color: theme.text }]}>Review</Text>
+                <Text style={[styles.tipDescription, { color: theme.textSecondary }]}>Review previous lessons regularly</Text>
               </View>
             </View>
           </View>

@@ -168,12 +168,12 @@ const makeTrueFalseDef = (item, pool) => {
   return {
     id: `tf_${item.id}_${uid()}`,
     type: QUESTION_TYPES.TRUE_FALSE_DEF,
-    instruction: 'ตัดสินว่าความหมายนี้ถูกหรือผิด',
+    instruction: 'Decide whether the meaning is True or False',
     statement: `"${item.thai}" = ${statementEN}`,
-    correctText: isTrue ? 'ถูก' : 'ผิด',
+    correctText: isTrue ? 'True' : 'False',
     choices: [
-      { id: 1, text: 'ถูก', isCorrect: isTrue },
-      { id: 2, text: 'ผิด', isCorrect: !isTrue },
+      { id: 1, text: 'True', isCorrect: isTrue },
+      { id: 2, text: 'False', isCorrect: !isTrue },
     ],
     rewardXP: 15,
     rewardDiamond: 1,
@@ -209,7 +209,7 @@ const makeClozeDefinition = (item) => {
   return {
     id: `cz_${item.id}_${uid()}`,
     type: QUESTION_TYPES.CLOZE_DEFINITION,
-    instruction: 'เลือกคำที่หายไปให้ตรงกับนิยาม',
+    instruction: 'Select the missing word that fits the definition',
     template,
     correctText: correct,
     choices: choices.map((text, i) => ({ id: i + 1, text, isCorrect: text === correct })),
@@ -605,7 +605,7 @@ const Advanced3DirectionsGame = ({ navigation, route }) => {
                 style={{ marginRight: 8 }}
               />
               <Text style={styles.feedbackTextEnhanced}>
-                {currentFeedback === 'correct' ? 'Correct!' : 'ยังไม่ใช่ ลองดูใหม่'}
+                {currentFeedback === 'correct' ? 'Correct!' : 'Not yet, try again'}
               </Text>
             </View>
           )}
@@ -620,7 +620,7 @@ const Advanced3DirectionsGame = ({ navigation, route }) => {
           <Text style={styles.instruction}>{q.instruction}</Text>
           <Text style={styles.hintText}>{getHintText(q.type)}</Text>
           <View style={styles.arrangeContainer}>
-            <Text style={styles.arrangeText}>{currentAnswer ? currentAnswer.join(' ') : 'เรียงคำให้ถูกต้อง'}</Text>
+            <Text style={styles.arrangeText}>{currentAnswer ? currentAnswer.join(' ') : 'Arrange words correctly'}</Text>
           </View>
           <View style={styles.choicesContainer}>
             {q.allParts.map((part, index) => {
@@ -672,8 +672,8 @@ const Advanced3DirectionsGame = ({ navigation, route }) => {
         <View style={styles.startContainer}>
           <View style={styles.introCard}>
             <LottieView source={require('../assets/animations/stage_start.json')} autoPlay loop style={styles.introAnim} />
-            <Text style={styles.startTitle}>ทิศทาง</Text>
-            <Text style={styles.startSubtitle}>บทเรียน Advanced (เข้าใจง่าย)</Text>
+            <Text style={styles.startTitle}>Directions</Text>
+            <Text style={styles.startSubtitle}>Advanced lesson (easy to follow)</Text>
           </View>
           {resumeData && (
             <TouchableOpacity style={styles.resumeButton} onPress={() => { setGameStarted(true); startTimeRef.current = Date.now(); }}>
