@@ -560,10 +560,10 @@ const LevelStage3 = ({ navigation }) => {
               style={styles.loadingAnimation}
             />
             <Text style={styles.loadingText}>
-              กำลังโหลดข้อมูล...
+              Loading...
             </Text>
             <Text style={styles.loadingSubtext}>
-              กรุณารอสักครู่
+              Please wait
             </Text>
           </View>
         </SafeAreaView>
@@ -636,7 +636,7 @@ const LevelStage3 = ({ navigation }) => {
           {/* Header badges row */}
           <View style={styles.headerBadgesRow}>
             <View style={[styles.badgePill, { backgroundColor: 'rgba(255, 255, 255, 0.25)', borderColor: '#FFD54F' }]}>
-              <Text style={styles.badgePillText}>⭐ {xp?.toLocaleString?.('th-TH') || xp || 0} XP</Text>
+              <Text style={styles.badgePillText}>⭐ {xp?.toLocaleString?.('en-US') || xp || 0} XP</Text>
             </View>
             <View style={[styles.badgePill, { backgroundColor: 'rgba(255, 255, 255, 0.25)', borderColor: '#FF6B6B' }]}>
               <Text style={styles.badgePillText}>🔥 {streak || 0} days streak</Text>
@@ -650,7 +650,7 @@ const LevelStage3 = ({ navigation }) => {
         <ScrollView contentContainerStyle={styles.stageList} showsVerticalScrollIndicator={false}>
           {loading ? (
             <View style={styles.loadingContainer}>
-              <Text style={styles.loadingText}>กำลังโหลดข้อมูล...</Text>
+              <Text style={styles.loadingText}>Loading...</Text>
             </View>
           ) : (
             stages.map((stage, idx) => (
@@ -790,8 +790,8 @@ const LevelStage3 = ({ navigation }) => {
               </Text>
               <Text style={styles.stageDescription}>
                 {stage.status === 'current' ? 'Start Learning' : 
-                 stage.status === 'done' ? 'เสร็จแล้ว' : 
-                 stage.status === 'locked' ? 'ยังล็อค' : 'พร้อมเรียน'}
+                 stage.status === 'done' ? 'Completed' : 
+                 stage.status === 'locked' ? 'Locked' : 'Ready to learn'}
               </Text>
 
               {/* Stage info chips */}

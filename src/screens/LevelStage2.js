@@ -27,47 +27,47 @@ const CUSTOM_STAGE_META = {
   // Intermediate level stages can be added here if needed
   1: {
     lesson_id: 1,
-    title: 'อาหารและเครื่องดื่ม (Food & Drinks)',
+    title: 'Food & Drinks (อาหารและเครื่องดื่ม)',
     key: 'intermediate1_food_drinks',
     category: 'thai-food-drinks',
     level: 'Intermediate',
-    description: 'เรียนรู้คำศัพท์อาหาร เครื่องดื่ม และวลีใช้ในร้านอาหาร',
+    description: 'Learn Thai words for food, drinks, and common restaurant phrases',
     gameScreen: 'Intermediate1FoodDrinksGame',
   },
   2: {
     lesson_id: 2,
-    title: 'ความรู้สึกและอารมณ์ (Emotions & Feelings)',
+    title: 'Emotions & Feelings (ความรู้สึกและอารมณ์)',
     key: 'intermediate_2_emotions',
     category: 'thai-emotions',
     level: 'Intermediate',
-    description: 'บอกอารมณ์ ถามความรู้สึก และปลอบโยกแบบไทย',
+    description: 'Express emotions, ask feelings, and respond the Thai way',
     gameScreen: 'IntermediateEmotionsGame',
   },
   3: {
     lesson_id: 3,
-    title: 'สถานที่ (Places & Location)',
+    title: 'Places & Location (สถานที่)',
     key: 'intermediate_3_places',
     category: 'thai-places',
     level: 'Intermediate',
-    description: 'เรียนรู้คำศัพท์สถานที่และตำแหน่ง/ทิศทาง',
+    description: 'Learn place vocabulary and basic positions/directions',
     gameScreen: 'IntermediatePlacesGame',
   },
   4: {
     lesson_id: 4,
-    title: 'กิจวัตรประจำวัน (Daily Routines)',
+    title: 'Daily Routines (กิจวัตรประจำวัน)',
     key: 'intermediate_4_routines',
     category: 'thai-daily-routines',
     level: 'Intermediate',
-    description: 'เรียนรู้คำกริยา วลีเวลา และความถี่ในชีวิตประจำวัน',
+    description: 'Learn common verbs, time expressions, and frequencies',
     gameScreen: 'IntermediateRoutinesGame',
   },
   5: {
     lesson_id: 5,
-    title: 'การเดินทาง (Transportation & Movement)',
+    title: 'Transportation & Movement (การเดินทาง)',
     key: 'intermediate_5_transport',
     category: 'thai-transport',
     level: 'Intermediate',
-    description: 'เรียนรู้ยานพาหนะ กริยาการเดินทาง และวลีที่เกี่ยวข้อง',
+    description: 'Learn vehicles, travel verbs, and useful travel phrases',
     gameScreen: 'IntermediateTransportGame',
   },
 };
@@ -566,10 +566,10 @@ const LevelStage2 = ({ navigation }) => {
               style={styles.loadingAnimation}
             />
             <Text style={styles.loadingText}>
-              กำลังโหลดข้อมูล...
+              Loading...
             </Text>
             <Text style={styles.loadingSubtext}>
-              กรุณารอสักครู่
+              Please wait
             </Text>
           </View>
         </SafeAreaView>
@@ -648,13 +648,13 @@ const LevelStage2 = ({ navigation }) => {
           {/* Header badges row */}
           <View style={styles.headerBadgesRow}>
             <View style={[styles.badgePill, { backgroundColor: 'rgba(255, 255, 255, 0.25)', borderColor: '#FFD54F' }]}>
-              <Text style={[styles.badgePillText, { color: theme.colors?.white || '#FFFFFF' }]}>⭐ {xp?.toLocaleString?.('th-TH') || xp || 0} XP</Text>
+              <Text style={[styles.badgePillText, { color: theme.colors?.white || '#FFFFFF' }]}>⭐ {xp?.toLocaleString?.('en-US') || xp || 0} XP</Text>
             </View>
             <View style={[styles.badgePill, { backgroundColor: 'rgba(255, 255, 255, 0.25)', borderColor: '#FF6B6B' }]}>
-              <Text style={[styles.badgePillText, { color: theme.colors?.white || '#FFFFFF' }]}>🔥 {streak || 0} วันต่อเนื่อง</Text>
+              <Text style={[styles.badgePillText, { color: theme.colors?.white || '#FFFFFF' }]}>🔥 {streak || 0} days streak</Text>
             </View>
             <View style={[styles.badgePill, { backgroundColor: 'rgba(255, 255, 255, 0.25)', borderColor: '#90CAF9' }]}>
-              <Text style={[styles.badgePillText, { color: theme.colors?.white || '#FFFFFF' }]}>🎯 เลเวล {level || (userStats?.level || 1)}</Text>
+              <Text style={[styles.badgePillText, { color: theme.colors?.white || '#FFFFFF' }]}>🎯 Level {level || (userStats?.level || 1)}</Text>
             </View>
           </View>
         </Animated.View>
@@ -662,7 +662,7 @@ const LevelStage2 = ({ navigation }) => {
         <ScrollView contentContainerStyle={styles.stageList} showsVerticalScrollIndicator={false}>
           {loading ? (
             <View style={styles.loadingContainer}>
-              <Text style={styles.loadingText}>กำลังโหลดข้อมูล...</Text>
+              <Text style={styles.loadingText}>Loading...</Text>
             </View>
           ) : (
             stages.map((stage, idx) => (
@@ -801,18 +801,18 @@ const LevelStage2 = ({ navigation }) => {
               </Text>
               <Text style={styles.stageDescription}>
                 {stage.status === 'current' ? 'Start Learning' : 
-                 stage.status === 'done' ? 'เสร็จแล้ว' : 
-                 stage.status === 'locked' ? 'ยังล็อค' : 'พร้อมเรียน'}
+                 stage.status === 'done' ? 'Completed' : 
+                 stage.status === 'locked' ? 'Locked' : 'Ready to learn'}
               </Text>
 
               {/* Stage info chips */}
               <View style={styles.stageChipsRow}>
                 <View style={[styles.stageChip, { borderColor: '#A5D6A7' }]}>
-                  <Text style={styles.stageChipText}>📈 ความคืบหน้า {Math.round(Math.max(0, Math.min(1, stage.progress || 0)) * 100)}%</Text>
+                  <Text style={styles.stageChipText}>📈 Progress {Math.round(Math.max(0, Math.min(1, stage.progress || 0)) * 100)}%</Text>
                 </View>
                 {Number.isFinite(stage.accuracy) && (
                   <View style={[styles.stageChip, { borderColor: stage.accuracy >= 70 ? '#4CAF50' : '#81C784' }]}>
-                    <Text style={styles.stageChipText}>🎯 แม่นยำ {Math.round(stage.accuracy)}%</Text>
+                    <Text style={styles.stageChipText}>🎯 Accuracy {Math.round(stage.accuracy)}%</Text>
                   </View>
                 )}
               </View>
