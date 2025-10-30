@@ -90,35 +90,35 @@ const ChangePasswordScreen = () => {
     const handleChangePassword = async () => {
         // Validation
         if (!currentPassword.trim()) {
-            Alert.alert('ข้อผิดพลาด', 'กรุณากรอกรหัสผ่านปัจจุบัน');
+            Alert.alert('Error', 'Please enter current password');
             return;
         }
 
         if (!newPassword.trim()) {
-            Alert.alert('ข้อผิดพลาด', 'กรุณากรอกรหัสผ่านใหม่');
+            Alert.alert('Error', 'Please enter new password');
             return;
         }
 
         if (!confirmPassword.trim()) {
-            Alert.alert('ข้อผิดพลาด', 'กรุณากรอกการยืนยันรหัสผ่าน');
+            Alert.alert('Error', 'Please confirm new password');
             return;
         }
 
         if (!validatePassword(newPassword)) {
             Alert.alert(
-                'รหัสผ่านไม่ถูกต้อง',
-                'รหัสผ่านต้องมี:\n• ตัวอักษรตัวเล็ก (a-z)\n• ตัวอักษรตัวใหญ่ (A-Z)\n• ตัวเลข (0-9)\n• อย่างน้อย 6 ตัวอักษร'
+                'Password not valid',
+                'Password must be:\n• Lowercase letters (a-z)\n• Uppercase letters (A-Z)\n• Numbers (0-9)\n• At least 6 characters'
             );
             return;
         }
 
         if (newPassword !== confirmPassword) {
-            Alert.alert('ข้อผิดพลาด', 'รหัสผ่านใหม่ไม่ตรงกัน');
+            Alert.alert('Error', 'New password does not match');
             return;
         }
 
         if (currentPassword === newPassword) {
-            Alert.alert('ข้อผิดพลาด', 'รหัสผ่านใหม่ต้องไม่เหมือนเดิม');
+            Alert.alert('Error', 'New password must be different from current');
             return;
         }
 
@@ -137,11 +137,11 @@ const ChangePasswordScreen = () => {
                 handleNewPasswordChange('');
                 handleConfirmPasswordChange('');
             } else {
-                Alert.alert('ข้อผิดพลาด', result.message || 'ไม่สามารถเปลี่ยนรหัสผ่านได้');
+                Alert.alert('Error', result.message || 'Failed to change password');
             }
         } catch (error) {
             console.error('Change password error:', error);
-            Alert.alert('ข้อผิดพลาด', error.message || 'เกิดข้อผิดพลาดในการเปลี่ยนรหัสผ่าน');
+            Alert.alert('Error', error.message || 'An error occurred while changing password');
         } finally {
             setLoading(false);
         }
@@ -245,21 +245,15 @@ const ChangePasswordScreen = () => {
                             >
                                 <Icon name="arrow-back" size={24} color={theme.text} />
                             </TouchableOpacity>
-                            <Text style={[styles.headerTitle, { color: theme.text }]}>
-                                เปลี่ยนรหัสผ่าน
-                            </Text>
+                            <Text style={[styles.headerTitle, { color: theme.text }]}>Change Password</Text>
                             <View style={styles.headerSpacer} />
                         </View>
 
                         {/* Info */}
                         <View style={styles.infoContainer}>
                             <Icon name="lock-reset" size={60} color={theme.primary} />
-                            <Text style={[styles.infoTitle, { color: theme.text }]}>
-                                เปลี่ยนรหัสผ่าน
-                            </Text>
-                            <Text style={[styles.infoSubtitle, { color: theme.textSecondary }]}>
-                                อัปเดตรหัสผ่านของคุณเพื่อความปลอดภัยที่ดีขึ้น
-                            </Text>
+                            <Text style={[styles.infoTitle, { color: theme.text }]}>Change Password</Text>
+                            <Text style={[styles.infoSubtitle, { color: theme.textSecondary }]}>Update your password for better security</Text>
                             {user?.email && (
                                 <Text style={[styles.emailText, { color: theme.primary }]}>
                                     {user.email}
@@ -272,41 +266,34 @@ const ChangePasswordScreen = () => {
                             <PasswordInput
                                 value={currentPassword}
                                 onChangeText={handleCurrentPasswordChange}
-                                placeholder="กรอกรหัสผ่านปัจจุบัน"
+                                placeholder="Enter current password"
                                 showPassword={showCurrentPassword}
                                 onToggleShow={handleShowCurrentPassword}
-                                label="รหัสผ่านปัจจุบัน"
+                                label="Current Password"
                             />
 
                             <PasswordInput
                                 value={newPassword}
                                 onChangeText={handleNewPasswordChange}
-                                placeholder="กรอกรหัสผ่านใหม่"
+                                placeholder="Enter new password"
                                 showPassword={showNewPassword}
                                 onToggleShow={handleShowNewPassword}
-                                label="รหัสผ่านใหม่"
+                                label="New Password"
                             />
 
                             <PasswordInput
                                 value={confirmPassword}
                                 onChangeText={handleConfirmPasswordChange}
-                                placeholder="ยืนยันรหัสผ่านใหม่"
+                                placeholder="Confirm new password"
                                 showPassword={showConfirmPassword}
                                 onToggleShow={handleShowConfirmPassword}
-                                label="ยืนยันรหัสผ่าน"
+                                label="Confirm Password"
                             />
 
                             {/* Password Requirements */}
                             <View style={styles.validationContainer}>
-                                <Text style={[styles.validationTitle, { color: theme.text }]}>
-                                    ✓ ต้องการเงื่อนไขรหัสผ่าน:
-                                </Text>
-                                <Text style={[styles.validationText, { color: theme.textSecondary }]}>
-                                    • ตัวอักษรตัวเล็ก (a-z){'\n'}
-                                    • ตัวอักษรตัวใหญ่ (A-Z){'\n'}
-                                    • ตัวเลข (0-9){'\n'}
-                                    • อย่างน้อย 6 ตัวอักษร
-                                </Text>
+                                <Text style={[styles.validationTitle, { color: theme.text }]}>✓ Password requirements:</Text>
+                                <Text style={[styles.validationText, { color: theme.textSecondary }]}>Password must be at least 6 characters</Text>
                             </View>
                         </View>
 
@@ -330,7 +317,7 @@ const ChangePasswordScreen = () => {
                                     <ActivityIndicator size="small" color="#fff" />
                                 ) : (
                                     <Text style={styles.continueText}>
-                                        เปลี่ยนรหัสผ่าน
+                                        Change Password
                                     </Text>
                                 )}
                             </TouchableOpacity>
@@ -341,9 +328,7 @@ const ChangePasswordScreen = () => {
                             style={styles.backToLoginButton}
                             onPress={() => navigation.goBack()}
                         >
-                            <Text style={[styles.backToLoginText, { color: theme.primary }]}>
-                                ยกเลิก
-                            </Text>
+                            <Text style={[styles.backToLoginText, { color: theme.primary }]}>Cancel</Text>
                         </TouchableOpacity>
                     </Animated.View>
                 </ScrollView>
@@ -361,15 +346,13 @@ const ChangePasswordScreen = () => {
                         <View style={styles.successIconContainer}>
                             <Icon name="check-circle" size={60} color="#4CAF50" />
                         </View>
-                        <Text style={[styles.modalTitle, { color: theme.text }]}>สำเร็จ!</Text>
-                        <Text style={[styles.modalMessage, { color: theme.text }]}>
-                            เปลี่ยนรหัสผ่านเรียบร้อยแล้ว
-                        </Text>
+                        <Text style={[styles.modalTitle, { color: theme.text }]}>Success!</Text>
+                        <Text style={[styles.modalMessage, { color: theme.text }]}>Password changed successfully</Text>
                         <TouchableOpacity
                             style={[styles.modalButton, { backgroundColor: theme.primary }]}
                             onPress={handleSuccessClose}
                         >
-                            <Text style={styles.modalButtonText}>ตกลง</Text>
+                            <Text style={styles.modalButtonText}>OK</Text>
                         </TouchableOpacity>
                     </View>
                 </View>

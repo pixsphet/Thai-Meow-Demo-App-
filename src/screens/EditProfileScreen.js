@@ -86,28 +86,28 @@ const EditProfileScreen = ({ navigation }) => {
   const validateForm = () => {
     let isValid = true;
     if (!formData.username.trim()) {
-      setErrors(prev => ({ ...prev, username: 'กรุณากรอกชื่อผู้ใช้' }));
+      setErrors(prev => ({ ...prev, username: 'Please enter a username' }));
       isValid = false;
     } else if (formData.username.trim() !== user?.username && formData.username.length < 3) {
-      setErrors(prev => ({ ...prev, username: 'ชื่อผู้ใช้ต้องมีอย่างน้อย 3 ตัวอักษร' }));
+      setErrors(prev => ({ ...prev, username: 'Username must be at least 3 characters' }));
       isValid = false;
     } else {
       setErrors(prev => ({ ...prev, username: '' }));
     }
     if (!formData.email.trim()) {
-      setErrors(prev => ({ ...prev, email: 'กรุณากรอกอีเมล' }));
+      setErrors(prev => ({ ...prev, email: 'Please enter an email' }));
       isValid = false;
     } else if (!validateEmail(formData.email)) {
-      setErrors(prev => ({ ...prev, email: 'กรุณากรอกอีเมลที่ถูกต้อง' }));
+      setErrors(prev => ({ ...prev, email: 'Please enter a valid email' }));
       isValid = false;
     } else {
       setErrors(prev => ({ ...prev, email: '' }));
     }
     if (!formData.petName.trim()) {
-      setErrors(prev => ({ ...prev, petName: 'กรุณากรอกชื่อสัตว์เลี้ยง' }));
+      setErrors(prev => ({ ...prev, petName: 'Please enter your pet name' }));
       isValid = false;
     } else if (formData.petName.trim().length < 2) {
-      setErrors(prev => ({ ...prev, petName: 'ชื่อสัตว์เลี้ยงต้องมีอย่างน้อย 2 ตัวอักษร' }));
+      setErrors(prev => ({ ...prev, petName: 'Pet name must be at least 2 characters' }));
       isValid = false;
     } else {
       setErrors(prev => ({ ...prev, petName: '' }));
@@ -138,23 +138,23 @@ const EditProfileScreen = ({ navigation }) => {
         });
 
         Alert.alert(
-          'สำเร็จ',
-          'อัพเดทโปรไฟล์เรียบร้อยแล้ว',
+          'Success',
+          'Profile updated successfully',
           [
             {
-              text: 'ตกลง',
+              text: 'OK',
               onPress: () => navigation.goBack()
             }
           ]
         );
       } else {
         // Display server error message
-        const errorMessage = response.message || response.error || 'ไม่สามารถอัพเดทโปรไฟล์ได้';
-        Alert.alert('ข้อผิดพลาด', errorMessage);
+        const errorMessage = response.message || response.error || 'Unable to update profile';
+        Alert.alert('Error', errorMessage);
       }
     } catch (error) {
       console.error('Error updating profile:', error);
-      Alert.alert('ข้อผิดพลาด', error.message || 'เกิดข้อผิดพลาดในการอัพเดทโปรไฟล์');
+      Alert.alert('Error', error.message || 'An error occurred while updating profile');
     } finally {
       setLoading(false);
     }
@@ -162,11 +162,11 @@ const EditProfileScreen = ({ navigation }) => {
 
   const handleCancel = () => {
     Alert.alert(
-      'ยกเลิกการแก้ไข',
-      'คุณต้องการยกเลิกการแก้ไขโปรไฟล์หรือไม่?',
+      'Cancel editing',
+      'Do you want to discard profile changes?',
       [
-        { text: 'ไม่', style: 'cancel' },
-        { text: 'ใช่', onPress: () => navigation.goBack() }
+        { text: 'No', style: 'cancel' },
+        { text: 'Yes', onPress: () => navigation.goBack() }
       ]
     );
   };
@@ -190,7 +190,7 @@ const EditProfileScreen = ({ navigation }) => {
         <View style={styles.headerTitleContainer}>
           <MaterialCommunityIcons name="pencil-box" size={28} color={theme.white} />
           <Text style={[styles.headerTitle, { color: theme.white }]}>
-            แก้ไขโปรไฟล์
+            Edit Profile
           </Text>
         </View>
         
@@ -218,7 +218,7 @@ const EditProfileScreen = ({ navigation }) => {
             </View>
             <View style={styles.previewInfo}>
               <Text style={[styles.previewName, { color: theme.text }]}>
-                {formData.username || 'ผู้เรียน'}
+                {formData.username || 'Learner'}
               </Text>
               <Text style={[styles.previewEmail, { color: theme.textSecondary }]}>
                 {formData.email || 'user@example.com'}
@@ -229,7 +229,7 @@ const EditProfileScreen = ({ navigation }) => {
                 </Text>
               ) : (
                 <Text style={[styles.previewPet, { color: theme.textSecondary }]}>
-                  เพิ่มชื่อสัตว์เลี้ยงสำหรับโปรไฟล์ของคุณ
+                  Add a pet name for your profile
                 </Text>
               )}
             </View>
@@ -238,7 +238,7 @@ const EditProfileScreen = ({ navigation }) => {
 
         <View style={styles.formSection}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>
-            ข้อมูลบัญชี
+            Account Information
           </Text>
 
           {/* Username Input */}
@@ -246,7 +246,7 @@ const EditProfileScreen = ({ navigation }) => {
             <View style={styles.inputLabelRow}>
               <MaterialCommunityIcons name="account" size={18} color={theme.primary} />
               <Text style={[styles.label, { color: theme.text, marginLeft: 8 }]}>
-                ชื่อผู้ใช้
+                Username
               </Text>
             </View>
             <TextInput
@@ -262,7 +262,7 @@ const EditProfileScreen = ({ navigation }) => {
               value={formData.username}
               ref={usernameRef}
               onChangeText={(value) => handleInputChange('username', value)}
-              placeholder="กรอกชื่อผู้ใช้"
+              placeholder="Enter username"
               placeholderTextColor={theme.textSecondary}
               maxLength={20}
             />
@@ -276,11 +276,11 @@ const EditProfileScreen = ({ navigation }) => {
             <View style={styles.inputLabelRow}>
               <MaterialCommunityIcons name="email" size={18} color={theme.primary} />
               <Text style={[styles.label, { color: theme.text, marginLeft: 8 }]}>
-                อีเมล
+                Email
               </Text>
               <View style={{ marginLeft: 'auto', flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <MaterialCommunityIcons name="lock" size={14} color="#FF9500" />
-                <Text style={{ fontSize: 11, color: '#FF9500', fontWeight: '600' }}>ล็อก</Text>
+                <Text style={{ fontSize: 11, color: '#FF9500', fontWeight: '600' }}>Locked</Text>
               </View>
             </View>
             <TextInput
@@ -297,14 +297,14 @@ const EditProfileScreen = ({ navigation }) => {
               value={formData.email}
               ref={emailRef}
               onChangeText={handleEmailChange}
-              placeholder="กรอกอีเมล"
+              placeholder="Enter email"
               placeholderTextColor={theme.textSecondary}
               keyboardType="email-address"
               autoCapitalize="none"
               editable={false}
             />
             <Text style={[styles.hintText, { color: theme.textSecondary, marginTop: 6 }]}>
-              💡 ไม่สามารถเปลี่ยนอีเมลได้ เพื่อความปลอดภัย
+              💡 Email cannot be changed for security reasons
             </Text>
             {errors.email && (
               <Text style={[styles.errorText, { color: '#EF4444' }]}>{errors.email}</Text>
@@ -316,11 +316,11 @@ const EditProfileScreen = ({ navigation }) => {
             <View style={styles.inputLabelRow}>
               <MaterialCommunityIcons name="cat" size={18} color={theme.primary} />
               <Text style={[styles.label, { color: theme.text, marginLeft: 8 }]}>
-                ชื่อสัตว์เลี้ยง
+                Pet Name
               </Text>
               <View style={{ marginLeft: 'auto', flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <MaterialCommunityIcons name="lock" size={14} color="#FF9500" />
-                <Text style={{ fontSize: 11, color: '#FF9500', fontWeight: '600' }}>ล็อก</Text>
+                <Text style={{ fontSize: 11, color: '#FF9500', fontWeight: '600' }}>Locked</Text>
               </View>
             </View>
             <TextInput
@@ -337,11 +337,11 @@ const EditProfileScreen = ({ navigation }) => {
               value={formData.petName}
               ref={petNameRef}
               editable={false}
-              placeholder="ชื่อสัตว์เลี้ยงของคุณ"
+              placeholder="Your pet name"
               placeholderTextColor={theme.textSecondary}
             />
             <Text style={[styles.hintText, { color: theme.textSecondary, marginTop: 6 }]}>
-              💡 ชื่อสัตว์เลี้ยงไม่สามารถเปลี่ยนได้ เพื่อใช้ในการลืมรหัสผ่าน
+              💡 Pet name cannot be changed; it is used for password recovery
             </Text>
           </View>
         </View>
@@ -355,7 +355,7 @@ const EditProfileScreen = ({ navigation }) => {
           >
             <MaterialCommunityIcons name="close" size={18} color={theme.primary} style={{ marginRight: 4 }} />
             <Text style={[styles.buttonText, { color: theme.primary }]}>
-              ยกเลิก
+              Cancel
             </Text>
           </TouchableOpacity>
 
@@ -376,7 +376,7 @@ const EditProfileScreen = ({ navigation }) => {
                 <>
                   <MaterialCommunityIcons name="check" size={18} color={theme.white} style={{ marginRight: 4 }} />
                   <Text style={[styles.buttonText, { color: theme.white }]}>
-                    บันทึก
+                    Save
                   </Text>
                 </>
               )}
