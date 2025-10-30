@@ -92,11 +92,11 @@ const NetworkStatusSimple = () => {
           color="white" 
         />
         <Text style={styles.text}>
-          {isOnline ? 'เชื่อมต่อแล้ว' : 'ออฟไลน์'}
+          {isOnline ? 'Online' : 'Offline'}
         </Text>
         {!isOnline && pendingActions > 0 && (
           <Text style={styles.pendingText}>
-            ({pendingActions} รอซิงค์)
+            ({pendingActions} pending sync)
           </Text>
         )}
       </View>

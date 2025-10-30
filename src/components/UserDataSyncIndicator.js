@@ -13,10 +13,10 @@ const UserDataSyncIndicator = ({ syncStatus, onPress }) => {
   };
 
   const getStatusText = () => {
-    if (syncInProgress) return 'กำลังซิงค์...';
-    if (!isOnline) return 'ออฟไลน์';
-    if (queueLength > 0) return `รอซิงค์ ${queueLength} รายการ`;
-    return 'ซิงค์แล้ว';
+    if (syncInProgress) return 'Syncing...';
+    if (!isOnline) return 'Offline';
+    if (queueLength > 0) return `Waiting to sync ${queueLength} items`;
+    return 'Synced';
   };
 
   const getStatusIcon = () => {

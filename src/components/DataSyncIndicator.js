@@ -38,26 +38,26 @@ const DataSyncIndicator = ({ onPress }) => {
   };
 
   const getStatusText = () => {
-    if (syncStatus.syncInProgress) return 'กำลังซิงค์...';
-    if (syncStatus.isOnline) return 'ออนไลน์';
-    return 'ออฟไลน์';
+    if (syncStatus.syncInProgress) return 'Syncing...';
+    if (syncStatus.isOnline) return 'Online';
+    return 'Offline';
   };
 
   const formatLastSync = () => {
-    if (!syncStatus.lastSyncTime) return 'ยังไม่เคยซิงค์';
+    if (!syncStatus.lastSyncTime) return 'Never synced';
     
     const lastSync = new Date(syncStatus.lastSyncTime);
     const now = new Date();
     const diffMinutes = Math.floor((now - lastSync) / (1000 * 60));
     
-    if (diffMinutes < 1) return 'เพิ่งซิงค์';
-    if (diffMinutes < 60) return `ซิงค์เมื่อ ${diffMinutes} นาทีที่แล้ว`;
+    if (diffMinutes < 1) return 'Just synced';
+    if (diffMinutes < 60) return `Synced ${diffMinutes} minutes ago`;
     
     const diffHours = Math.floor(diffMinutes / 60);
-    if (diffHours < 24) return `ซิงค์เมื่อ ${diffHours} ชั่วโมงที่แล้ว`;
+    if (diffHours < 24) return `Synced ${diffHours} hours ago`;
     
     const diffDays = Math.floor(diffHours / 24);
-    return `ซิงค์เมื่อ ${diffDays} วันที่แล้ว`;
+    return `Synced ${diffDays} days ago`;
   };
 
   return (

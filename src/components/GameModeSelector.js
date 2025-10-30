@@ -20,43 +20,43 @@ const GameModeSelector = ({ navigation, route }) => {
   const gameModes = [
     {
       id: 'matching',
-      title: 'จับคู่',
-      description: 'จับคู่คำศัพท์กับความหมาย',
+      title: 'Match',
+      description: 'Match vocabulary with meanings',
       icon: 'puzzle',
       colors: ['#FF6B6B', '#FF8E8E'],
-      difficulty: 'ง่าย',
+      difficulty: 'Easy',
     },
     {
       id: 'multiple-choice',
-      title: 'เลือกคำตอบ',
-      description: 'เลือกคำตอบที่ถูกต้องจากตัวเลือก',
+      title: 'Choose Answer',
+      description: 'Select the correct answer from the choices',
       icon: 'format-list-bulleted',
       colors: ['#4ECDC4', '#6BCF7F'],
-      difficulty: 'ปานกลาง',
+      difficulty: 'Medium',
     },
     {
       id: 'fill-blank',
-      title: 'เติมคำ',
-      description: 'เติมคำที่หายไปในประโยค',
+      title: 'Fill Blank',
+      description: 'Fill the missing word in the sentence',
       icon: 'pencil',
       colors: ['#FFD93D', '#FFA726'],
-      difficulty: 'ยาก',
+      difficulty: 'Hard',
     },
     {
       id: 'order',
-      title: 'เรียงลำดับ',
-      description: 'เรียงลำดับคำหรือประโยคให้ถูกต้อง',
+      title: 'Order',
+      description: 'Order words or sentences correctly',
       icon: 'sort',
       colors: ['#9C27B0', '#BA68C8'],
-      difficulty: 'ปานกลาง',
+      difficulty: 'Medium',
     },
     {
       id: 'quiz',
-      title: 'แบบทดสอบ',
-      description: 'ตอบคำถามเกี่ยวกับภาษาไทย',
+      title: 'Quiz',
+      description: 'Answer questions about Thai',
       icon: 'help-circle',
       colors: ['#607D8B', '#90A4AE'],
-      difficulty: 'ยาก',
+      difficulty: 'Hard',
     },
   ];
 
@@ -100,7 +100,7 @@ const GameModeSelector = ({ navigation, route }) => {
         
         <View style={styles.gameModeFooter}>
           <MaterialCommunityIcons name="play" size={20} color="white" />
-          <Text style={styles.playText}>เริ่มเล่น</Text>
+          <Text style={styles.playText}>Start</Text>
         </View>
       </LinearGradient>
     </TouchableOpacity>
@@ -110,10 +110,8 @@ const GameModeSelector = ({ navigation, route }) => {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={[styles.title, { color: theme.text }]}>เลือกโหมดเกม</Text>
-          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-            เลือกโหมดเกมที่คุณต้องการเล่น
-          </Text>
+          <Text style={[styles.title, { color: theme.text }]}>Choose game mode</Text>
+          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Select the game mode you want to play</Text>
         </View>
 
         <View style={styles.gameModes}>
@@ -128,7 +126,7 @@ const GameModeSelector = ({ navigation, route }) => {
             onPress={() => navigation.goBack()}
           >
             <MaterialCommunityIcons name="arrow-left" size={20} color="#666" />
-            <Text style={styles.backButtonText}>กลับ</Text>
+            <Text style={styles.backButtonText}>Back</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
