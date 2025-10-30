@@ -180,7 +180,7 @@ const VocabLearnCard = ({ item, onSpeak, seen }) => {
 
       {/* English translation - always visible */}
       <View style={styles.englishContainer}>
-        <Text style={styles.englishText}>{item.english || ''}</Text>
+        <Text style={styles.englishText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>{item.english || ''}</Text>
       </View>
 
       {/* Description Toggle Button */}
@@ -192,8 +192,8 @@ const VocabLearnCard = ({ item, onSpeak, seen }) => {
         }}
         activeOpacity={0.8}
       >
-        <Text style={styles.descriptionButtonText}>
-          {showDescription ? 'ซ่อนคำอธิบาย' : 'ดูคำอธิบาย'}
+        <Text style={styles.descriptionButtonText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
+          {showDescription ? 'Hide description' : 'Show description'}
         </Text>
       </TouchableOpacity>
 
@@ -201,7 +201,7 @@ const VocabLearnCard = ({ item, onSpeak, seen }) => {
       {showDescription && (
         <View style={styles.descriptionContainer}>
           <View style={styles.backSection}>
-            <Text style={styles.backLabel}>🇹🇭 คำอธิบาย</Text>
+            <Text style={styles.backLabel}>🇹🇭 คำอธิบาย (Thai)</Text>
             <Text style={styles.backTextThai}>{item.descriptionTH}</Text>
           </View>
           
@@ -961,7 +961,7 @@ const styles = StyleSheet.create({
     borderColor: '#FFD700',
   },
   englishText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
     color: '#FF8000',
     textAlign: 'center',
@@ -979,7 +979,7 @@ const styles = StyleSheet.create({
   },
   descriptionButtonText: {
     color: '#fff',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
   },
   
