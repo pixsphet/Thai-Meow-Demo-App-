@@ -518,7 +518,7 @@ const ProgressScreen = ({ navigation }) => {
             <View style={[styles.emptyState, { backgroundColor: theme.card }]}> 
               <MaterialCommunityIcons name="trophy" size={48} color="#ccc" />
               <Text style={[styles.emptyStateText, { color: theme.textSecondary }]}> 
-                ยังไม่มีความสำเร็จ
+                No achievements yet
               </Text>
             </View>
           )}
