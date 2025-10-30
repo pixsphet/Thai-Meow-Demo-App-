@@ -173,25 +173,25 @@ const ProgressScreen = ({ navigation }) => {
     {
       key: 'lessons',
       icon: require('../assets/animations/book_lesson.json'),
-      label: 'บทเรียนที่เสร็จ',
+      label: 'Lessons completed',
       value: `${stats?.completedLessons ?? 0}/${stats?.totalLessons ?? 0}`,
     },
     {
       key: 'hours',
       icon: require('../assets/animations/speaking.json'),
-      label: 'เวลาเรียน',
-      value: `${stats?.timeSpentHours ?? 0} ชั่วโมง`,
+      label: 'Learning time',
+      value: `${stats?.timeSpentHours ?? 0} hrs`,
     },
     {
       key: 'accuracy',
       icon: require('../assets/animations/Star.json'),
-      label: 'ความแม่นยำเฉลี่ย',
+      label: 'Average accuracy',
       value: `${safeNumber(stats?.averageAccuracy ?? stats?.accuracy, 0)}%`,
     },
     {
       key: 'sessions',
       icon: require('../assets/animations/Trophy.json'),
-      label: 'จำนวนครั้งที่เล่น',
+      label: 'Total plays',
       value: safeNumber(stats?.totalGames, 0),
     },
   ], [stats]);
@@ -199,8 +199,8 @@ const ProgressScreen = ({ navigation }) => {
   const formattedRecentGames = useMemo(() => {
     return (recentGames || []).map(game => ({
       id: game.id || Math.random().toString(36).slice(2),
-      title: game.title || 'บทเรียน',
-      description: game.description || 'กิจกรรม',
+      title: game.title || 'Lesson',
+      description: game.description || 'Activity',
       icon: game.icon || 'gamepad-variant',
       color: game.color || '#FF8C00',
       score: safeNumber(game.score, 0),
@@ -240,8 +240,8 @@ const ProgressScreen = ({ navigation }) => {
           {achievement.description}
         </Text>
         {achievement.unlocked && (
-          <Text style={styles.achievementUnlocked}>
-            ปลดล็อกแล้ว: {new Date(achievement.unlockedAt).toLocaleDateString('th-TH')}
+            <Text style={styles.achievementUnlocked}>
+            Unlocked: {new Date(achievement.unlockedAt).toLocaleDateString('en-US')}
           </Text>
         )}
       </View>
@@ -259,12 +259,12 @@ const ProgressScreen = ({ navigation }) => {
           {game.description}
         </Text>
         <Text style={styles.recentGameTime}>
-          {new Date(game.completedAt).toLocaleDateString('th-TH')}
+          {new Date(game.completedAt).toLocaleDateString('en-US')}
         </Text>
       </View>
       <View style={styles.recentGameScore}>
         <Text style={styles.recentGameScoreText}>{game.score}</Text>
-        <Text style={styles.recentGameScoreLabel}>คะแนน</Text>
+        <Text style={styles.recentGameScoreLabel}>Score</Text>
       </View>
     </View>
   );
@@ -315,25 +315,25 @@ const ProgressScreen = ({ navigation }) => {
     const tabItems = [
       {
         name: 'Home',
-        label: 'หน้าแรก',
+        label: 'Home',
         icon: 'home',
         screen: 'HomeMain',
       },
       {
         name: 'Minigame',
-        label: 'เกม',
+        label: 'Games',
         icon: 'gamepad',
         screen: 'Minigame',
       },
       {
         name: 'Progress',
-        label: 'ความคืบหน้า',
+        label: 'Progress',
         icon: 'trophy',
         screen: 'Progress',
       },
       {
         name: 'Profile',
-        label: 'โปรไฟล์',
+        label: 'Profile',
         icon: 'user',
         screen: 'Profile',
       },
@@ -388,10 +388,8 @@ const ProgressScreen = ({ navigation }) => {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerContent}>
-            <Text style={[styles.title, { color: theme.text }]}>ความคืบหน้าของคุณ</Text>
-            <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-              สวัสดี, {user?.username || 'ผู้เรียน'}!
-            </Text>
+          <Text style={[styles.title, { color: theme.text }]}>Your Progress</Text>
+            <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Hello, {user?.username || 'Learner'}!</Text>
           </View>
         </View>
 
@@ -421,16 +419,16 @@ const ProgressScreen = ({ navigation }) => {
             />
           </View>
           <Text style={[styles.progressText, { color: theme.textSecondary }]}>
-            {stats.levelProgressPercent}% ไปยัง Level {(stats.currentLevel || 1) + 1}
+            {stats.levelProgressPercent}% to Level {(stats.currentLevel || 1) + 1}
           </Text>
           <Text style={[styles.progressSubtext, { color: theme.textSecondary }]}>
-            ต้องการอีก {stats.xpToNext} XP เพื่อเลเวลถัดไป
+            {stats.xpToNext} XP left to next level
           </Text>
         </View>
 
         {/* User Stats Summary */}
         <View style={[styles.userStatsSummary, { backgroundColor: theme.card }]}>
-          <Text style={[styles.summaryTitle, { color: theme.text }]}>📊 สถิติรวมของคุณ</Text>
+          <Text style={[styles.summaryTitle, { color: theme.text }]}>📊 Your overall stats</Text>
           <View style={styles.summaryStats}>
             <View style={styles.summaryStatItem}>
               <LottieView
@@ -440,7 +438,7 @@ const ProgressScreen = ({ navigation }) => {
                 style={styles.summaryStatAnimation}
               />
               <Text style={styles.summaryStatValue}>{stats.currentStreak}</Text>
-              <Text style={styles.summaryStatLabel}>วันต่อเนื่อง</Text>
+              <Text style={styles.summaryStatLabel}>Days streak</Text>
             </View>
             <View style={styles.summaryStatItem}>
               <LottieView
@@ -450,7 +448,7 @@ const ProgressScreen = ({ navigation }) => {
                 style={styles.summaryStatAnimation}
               />
               <Text style={styles.summaryStatValue}>{stats.hearts}</Text>
-              <Text style={styles.summaryStatLabel}>หัวใจ</Text>
+              <Text style={styles.summaryStatLabel}>Hearts</Text>
             </View>
             <View style={styles.summaryStatItem}>
               <LottieView
@@ -460,7 +458,7 @@ const ProgressScreen = ({ navigation }) => {
                 style={styles.summaryStatAnimation}
               />
               <Text style={styles.summaryStatValue}>{stats.diamonds}</Text>
-              <Text style={styles.summaryStatLabel}>เพชร</Text>
+              <Text style={styles.summaryStatLabel}>Diamonds</Text>
             </View>
             <View style={styles.summaryStatItem}>
               <LottieView
@@ -477,7 +475,7 @@ const ProgressScreen = ({ navigation }) => {
 
         {/* Learning Overview */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>ภาพรวมการเรียนรู้</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Learning overview</Text>
           <View style={styles.metricsGrid}>
             {learningMetrics.map(metric => (
               <MetricCard key={metric.key} metric={metric} />
@@ -487,7 +485,7 @@ const ProgressScreen = ({ navigation }) => {
 
         {/* Recent Games */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>เกมล่าสุด</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Recent games</Text>
           {formattedRecentGames.length > 0 ? (
             formattedRecentGames.map((game) => (
               <RecentGameCard key={game.id} game={game} />
@@ -496,7 +494,7 @@ const ProgressScreen = ({ navigation }) => {
             <View style={[styles.emptyState, { backgroundColor: theme.card }]}> 
               <MaterialCommunityIcons name="gamepad-variant" size={48} color="#ccc" />
               <Text style={[styles.emptyStateText, { color: theme.textSecondary }]}> 
-                ยังไม่มีเกมที่เล่น
+                No games played yet
               </Text>
             </View>
           )}
@@ -504,7 +502,7 @@ const ProgressScreen = ({ navigation }) => {
 
         {/* Achievements */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>ความสำเร็จ</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Achievements</Text>
           {statsLoading ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="small" color={theme.primary} />
