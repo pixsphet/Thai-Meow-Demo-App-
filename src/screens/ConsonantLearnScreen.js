@@ -376,8 +376,8 @@ const ConsonantLearnScreen = ({ navigation }) => {
     <View style={styles.header}>
       <ThemedBackButton style={styles.backButton} onPress={() => navigation.goBack()} />
       <View style={styles.headerContent}>
-        <Text style={styles.title}>เรียนภาษาไทย</Text>
-        <Text style={styles.subtitle}>พยัญชนะ • สระ • วรรณยุกต์</Text>
+        <Text style={styles.title}>Learn Thai</Text>
+        <Text style={styles.subtitle}>Consonants • Vowels • Tones</Text>
       </View>
       <View style={styles.headerSpacer} />
     </View>
@@ -396,7 +396,7 @@ const ConsonantLearnScreen = ({ navigation }) => {
     <View style={styles.section}>
       <View style={[styles.sectionHeader, { backgroundColor: color }]}>
         <Text style={styles.sectionTitle}>{title}</Text>
-        <Text style={styles.sectionCount}>{data.length} ตัว</Text>
+        <Text style={styles.sectionCount}>{data.length}</Text>
       </View>
       <FlatList
         data={data}
@@ -455,8 +455,8 @@ const ConsonantLearnScreen = ({ navigation }) => {
     return (
     <View style={styles.section}>
       <View style={[styles.sectionHeader, { backgroundColor: '#45B7D1' }]}> 
-        <Text style={styles.sectionTitle}>วรรณยุกต์</Text>
-        <Text style={styles.sectionCount}>{toneItems.length} เสียง</Text>
+        <Text style={styles.sectionTitle}>Tones</Text>
+        <Text style={styles.sectionCount}>{toneItems.length}</Text>
       </View>
       <View style={styles.tonesContainer}>
         <View style={styles.tonesGridImages}>
@@ -496,7 +496,7 @@ const ConsonantLearnScreen = ({ navigation }) => {
           onPress={() => setActiveTab('consonants')}
           activeOpacity={0.8}
         >
-          <Text style={[styles.tabText, activeTab === 'consonants' && styles.tabTextActive]}>พยัญชนะ</Text>
+          <Text style={[styles.tabText, activeTab === 'consonants' && styles.tabTextActive]}>Consonants</Text>
           <Text style={[styles.tabCount, activeTab === 'consonants' && styles.tabTextActive]}>{consonants.length}</Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -504,7 +504,7 @@ const ConsonantLearnScreen = ({ navigation }) => {
           onPress={() => setActiveTab('vowels')}
           activeOpacity={0.8}
         >
-          <Text style={[styles.tabText, activeTab === 'vowels' && styles.tabTextActive]}>สระ</Text>
+          <Text style={[styles.tabText, activeTab === 'vowels' && styles.tabTextActive]}>Vowels</Text>
           <Text style={[styles.tabCount, activeTab === 'vowels' && styles.tabTextActive]}>{vowels.length}</Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -512,7 +512,7 @@ const ConsonantLearnScreen = ({ navigation }) => {
           onPress={() => setActiveTab('tones')}
           activeOpacity={0.8}
         >
-          <Text style={[styles.tabText, activeTab === 'tones' && styles.tabTextActive]}>วรรณยุกต์</Text>
+          <Text style={[styles.tabText, activeTab === 'tones' && styles.tabTextActive]}>Tones</Text>
           <Text style={[styles.tabCount, activeTab === 'tones' && styles.tabTextActive]}>4</Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -520,7 +520,7 @@ const ConsonantLearnScreen = ({ navigation }) => {
           onPress={() => setActiveTab('vocab')}
           activeOpacity={0.8}
         >
-          <Text style={[styles.tabText, activeTab === 'vocab' && styles.tabTextActive]}>คำศัพท์</Text>
+          <Text style={[styles.tabText, activeTab === 'vocab' && styles.tabTextActive]}>Vocabulary</Text>
           <Text style={[styles.tabCount, activeTab === 'vocab' && styles.tabTextActive]}>273</Text>
         </TouchableOpacity>
       </View>
@@ -530,8 +530,8 @@ const ConsonantLearnScreen = ({ navigation }) => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {activeTab === 'consonants' && renderSection('พยัญชนะไทย', consonants, 'thai-consonants', '#FF8C00')}
-        {activeTab === 'vowels' && renderSection('สระไทย', vowels, 'thai-vowels', '#FFA500')}
+        {activeTab === 'consonants' && renderSection('Thai Consonants', consonants, 'thai-consonants', '#FF8C00')}
+        {activeTab === 'vowels' && renderSection('Thai Vowels', vowels, 'thai-vowels', '#FFA500')}
         {activeTab === 'tones' && renderTonesSection()}
         
         {activeTab === 'vocab' && (
@@ -556,7 +556,7 @@ const ConsonantLearnScreen = ({ navigation }) => {
               <View style={styles.vocabSection}>
                 <Text style={styles.vocabSectionTitle}>{activeVocabCategory}</Text>
                 <Text style={styles.vocabSectionSubtitle}>
-                  {vocabCategories[activeVocabCategory].length} คำศัพท์
+                  {vocabCategories[activeVocabCategory].length} words
                 </Text>
                 <FlatList
                   data={vocabCategories[activeVocabCategory]}
