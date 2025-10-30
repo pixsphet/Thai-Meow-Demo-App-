@@ -422,7 +422,7 @@ const Advanced3DirectionsGame = ({ navigation, route }) => {
       setStreak(0);
       setCurrentFeedback('wrong');
       if (newHearts === 0) {
-        Alert.alert('Out of Hearts', 'กลับไปหน้าหลัก', [{ text: 'ตกลง', onPress: () => {
+        Alert.alert('Out of Hearts', 'Back to Home', [{ text: 'OK', onPress: () => {
           const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
           finishLesson(elapsed);
         }}]);

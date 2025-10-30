@@ -270,8 +270,8 @@ const ForgotPasswordScreen = () => {
                         >
                             <Icon name="arrow-back" size={24} color={theme.text} />
                         </TouchableOpacity>
-                        <Text style={[styles.headerTitle, { color: theme.text }]}>
-                            {step === 1 ? 'ลืมรหัสผ่าน' : 'รีเซ็ตรหัสผ่าน'}
+                        <Text style={[styles.headerTitle, { color: theme.text }]}> 
+                            {step === 1 ? 'Forgot Password' : 'Reset Password'}
                         </Text>
                         <View style={styles.headerSpacer} />
                     </View>
@@ -282,9 +282,9 @@ const ForgotPasswordScreen = () => {
                     {/* Info */}
                     <View style={styles.infoContainer}>
                         <Icon name="lock-reset" size={60} color={theme.primary} />
-                        <Text style={[styles.infoTitle, { color: theme.text }]}>รีเซ็ตรหัสผ่าน</Text>
+                        <Text style={[styles.infoTitle, { color: theme.text }]}>Reset Password</Text>
                         <Text style={[styles.infoSubtitle, { color: theme.textSecondary }]}>
-                            กรอกอีเมลของคุณเพื่อรีเซ็ตรหัสผ่านด้วยชื่อสัตว์เลี้ยง
+                            Enter your email to reset password using your pet name
                         </Text>
                     </View>
                         </>
@@ -294,9 +294,9 @@ const ForgotPasswordScreen = () => {
                             {/* Info */}
                             <View style={styles.infoContainer}>
                                 <Icon name="pets" size={60} color={theme.primary} />
-                                <Text style={[styles.infoTitle, { color: theme.text }]}>ยืนยันตัวตนด้วยชื่อสัตว์เลี้ยง</Text>
+                                <Text style={[styles.infoTitle, { color: theme.text }]}>Verify identity with pet name</Text>
                                 <Text style={[styles.infoSubtitle, { color: theme.textSecondary }]}>
-                                    กรอกชื่อสัตว์เลี้ยงที่คุณตั้งไว้ตอนสมัครสมาชิก
+                                    Enter the pet name you set during signup
                                 </Text>
                                 <Text style={[styles.emailText, { color: theme.primary }]}>{email}</Text>
                             </View>
@@ -308,7 +308,7 @@ const ForgotPasswordScreen = () => {
                         {step === 1 ? (
                             // Step 1: Email Input
                         <View style={styles.inputContainer}>
-                            <Text style={[styles.inputLabel, { color: theme.text }]}>อีเมล</Text>
+                            <Text style={[styles.inputLabel, { color: theme.text }]}>Email</Text>
                             <View style={[styles.inputWrapper, { 
                                 backgroundColor: theme.surface,
                                 borderColor: theme.border,
@@ -318,7 +318,7 @@ const ForgotPasswordScreen = () => {
                                     style={[styles.input, { color: theme.text }]}
                                     value={email}
                                     onChangeText={setEmail}
-                                    placeholder="กรอกอีเมลของคุณ"
+                                    placeholder="Enter your email"
                                     placeholderTextColor={theme.textSecondary}
                                     keyboardType="email-address"
                                     autoCapitalize="none"
@@ -337,27 +337,27 @@ const ForgotPasswordScreen = () => {
                                 <SimpleInput
                                     value={petName}
                                     onChangeText={setPetName}
-                                    placeholder="ชื่อสัตว์เลี้ยงตัวแรกของคุณ"
-                                    label="ชื่อสัตว์เลี้ยง"
+                                    placeholder="Your pet name"
+                                    label="Pet Name"
                                     icon={<Icon name="pets" size={24} color={theme.textSecondary} />}
                                 />
 
                                 <PasswordInput
                                     value={newPassword}
                                     onChangeText={setNewPassword}
-                                    placeholder="รหัสผ่านใหม่"
+                                    placeholder="New password"
                                     showPassword={showNewPassword}
                                     onToggleShow={() => setShowNewPassword(!showNewPassword)}
-                                    label="รหัสผ่านใหม่"
+                                    label="New Password"
                                 />
 
                                 <PasswordInput
                                     value={confirmPassword}
                                     onChangeText={setConfirmPassword}
-                                    placeholder="ยืนยันรหัสผ่านใหม่"
+                                    placeholder="Confirm new password"
                                     showPassword={showConfirmPassword}
                                     onToggleShow={() => setShowConfirmPassword(!showConfirmPassword)}
-                                    label="ยืนยันรหัสผ่าน"
+                                    label="Confirm Password"
                                 />
                             </>
                         )}
@@ -381,11 +381,11 @@ const ForgotPasswordScreen = () => {
                         >
                             {loading ? (
                                 <Text style={styles.continueText}>
-                                    {step === 1 ? 'กำลังตรวจสอบ...' : 'กำลังรีเซ็ตรหัสผ่าน...'}
+                                    {step === 1 ? 'Checking...' : 'Resetting password...'}
                                 </Text>
                             ) : (
                                 <Text style={styles.continueText}>
-                                    {step === 1 ? 'ต่อไป' : 'รีเซ็ตรหัสผ่าน'}
+                                    {step === 1 ? 'Continue' : 'Reset Password'}
                                 </Text>
                             )}
                         </TouchableOpacity>
@@ -397,7 +397,7 @@ const ForgotPasswordScreen = () => {
                         onPress={() => navigation.navigate('SignIn')}
                     >
                         <Text style={[styles.backToLoginText, { color: theme.primary }]}>
-                            กลับไปเข้าสู่ระบบ
+                            Back to Sign In
                         </Text>
                     </TouchableOpacity>
                 </Animated.View>
@@ -416,15 +416,15 @@ const ForgotPasswordScreen = () => {
                         <View style={styles.successIconContainer}>
                             <Icon name="check-circle" size={60} color="#4CAF50" />
                         </View>
-                        <Text style={[styles.modalTitle, { color: theme.text }]}>สำเร็จ!</Text>
+                        <Text style={[styles.modalTitle, { color: theme.text }]}>Success!</Text>
                         <Text style={[styles.modalMessage, { color: theme.text }]}>
-                            รหัสผ่านของคุณได้รับการรีเซ็ตเรียบร้อยแล้ว
+                            Your password has been reset successfully
                         </Text>
                         <TouchableOpacity
                             style={[styles.modalButton, { backgroundColor: theme.primary }]}
                             onPress={handleSuccessClose}
                         >
-                            <Text style={styles.modalButtonText}>เข้าสู่ระบบ</Text>
+                            <Text style={styles.modalButtonText}>Sign In</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
