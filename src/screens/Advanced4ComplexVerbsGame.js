@@ -63,22 +63,22 @@ const normalizeLinker = (doc) => ({
 
 const getHintText = (type) => {
   const hints = {
-    [QUESTION_TYPES.LISTEN_CHOOSE]: 'แตะปุ่มลำโพงเพื่อฟังประโยค แล้วเลือกคำเชื่อม',
-    [QUESTION_TYPES.DRAG_MATCH]: 'แตะเพื่อจับคู่ รูปแบบ ↔ หน้าที่',
-    [QUESTION_TYPES.FILL_BLANK]: 'เลือกคำเชื่อมเพื่อเติมช่องว่าง',
-    [QUESTION_TYPES.ARRANGE_SENTENCE]: 'เรียงคำให้เป็นประโยคที่ถูกต้อง',
-    [QUESTION_TYPES.TRANSFORM_PARAPHRASE]: 'แปลงประโยคให้ใช้รูปแบบที่ต้องการ',
+    [QUESTION_TYPES.LISTEN_CHOOSE]: 'Tap the speaker button to listen, then select the correct linker',
+    [QUESTION_TYPES.DRAG_MATCH]: 'Tap to match Pattern ↔ Function',
+    [QUESTION_TYPES.FILL_BLANK]: 'Select the linker to fill the blank',
+    [QUESTION_TYPES.ARRANGE_SENTENCE]: 'Tap words in the correct order to form a sentence',
+    [QUESTION_TYPES.TRANSFORM_PARAPHRASE]: 'Transform the sentence using the required pattern',
   };
   return hints[type] || '';
 };
 
 const getTypeLabel = (type) => {
   const labels = {
-    [QUESTION_TYPES.LISTEN_CHOOSE]: 'ฟังแล้วเลือก',
-    [QUESTION_TYPES.DRAG_MATCH]: 'จับคู่รูปแบบ',
-    [QUESTION_TYPES.FILL_BLANK]: 'เติมคำเชื่อม',
-    [QUESTION_TYPES.ARRANGE_SENTENCE]: 'เรียงประโยค',
-    [QUESTION_TYPES.TRANSFORM_PARAPHRASE]: 'แปลงประโยค',
+    [QUESTION_TYPES.LISTEN_CHOOSE]: 'Listen & Choose',
+    [QUESTION_TYPES.DRAG_MATCH]: 'Match Pattern',
+    [QUESTION_TYPES.FILL_BLANK]: 'Fill Linker',
+    [QUESTION_TYPES.ARRANGE_SENTENCE]: 'Arrange Sentence',
+    [QUESTION_TYPES.TRANSFORM_PARAPHRASE]: 'Transform Sentence',
   };
   return labels[type] || '';
 };
@@ -103,8 +103,8 @@ const makeListenChoose = (item, pool) => {
   return {
     id: `lc_${item.id}_${uid()}`,
     type: QUESTION_TYPES.LISTEN_CHOOSE,
-    instruction: 'ฟังประโยคแล้วเลือกคำเชื่อมที่ถูกต้อง',
-    questionText: 'แตะลำโพงเพื่อฟัง',
+    instruction: 'Listen and select the correct linker',
+    questionText: 'Tap the speaker button to listen',
     audioText: item.tts,
     correctText: item.thai,
     choices: choices.map((c, i) => ({ id: i + 1, text: c.thai, isCorrect: c.id === item.id })),
@@ -118,7 +118,7 @@ const makeDragMatch = (pool) => {
   const batch = shuffle(pool).slice(0, 4);
   const leftItems = batch.map((item, idx) => ({ id: `left_${idx + 1}`, text: item.thai, correctMatch: getLinkerFunction(item.type) }));
   const rightItems = shuffle(batch.map(item => getLinkerFunction(item.type))).map((text, idx) => ({ id: `right_${idx + 1}`, text }));
-  return { id: `dm_${uid()}`, type: QUESTION_TYPES.DRAG_MATCH, instruction: 'จับคู่รูปแบบกับหน้าที่ของคำเชื่อม', leftItems, rightItems };
+  return { id: `dm_${uid()}`, type: QUESTION_TYPES.DRAG_MATCH, instruction: 'Match patterns with linker functions', leftItems, rightItems };
 };
 
 const makeFillBlank = (item, pool) => {
@@ -127,8 +127,8 @@ const makeFillBlank = (item, pool) => {
   return {
     id: `fb_${item.id}_${uid()}`,
     type: QUESTION_TYPES.FILL_BLANK,
-    instruction: 'เลือกคำเชื่อมให้ถูกต้อง',
-    questionText: item.clozeTH || '___ (เติมคำเชื่อมให้เหมาะสม)',
+    instruction: 'Select the correct linker',
+    questionText: item.clozeTH || '___ (fill with the appropriate linker)',
     correctText: item.thai,
     choices: choices.map((c, i) => ({
       id: i + 1,
@@ -147,8 +147,8 @@ const makeArrangeSentence = (item) => {
   return {
     id: `arr_${item.id}_${uid()}`,
     type: QUESTION_TYPES.ARRANGE_SENTENCE,
-    instruction: 'เรียงคำให้เป็นประโยคที่ถูกต้อง',
-    questionText: 'เรียงคำจากด้านล่าง',
+    instruction: 'Arrange words to form the correct sentence',
+    questionText: 'Arrange the words below',
     correctOrder: tokens,
     wordBank: shuffle([...tokens, ...shuffle(fillers).slice(0, 1)]).map(t => ({ id: uid(), text: t })),
     tts: item.tts,

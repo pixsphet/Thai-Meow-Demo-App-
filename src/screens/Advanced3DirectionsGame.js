@@ -62,24 +62,24 @@ const normalizeDirection = (doc) => ({
 
 const getHintText = (type) => {
   const hints = {
-    [QUESTION_TYPES.LISTEN_CHOOSE]: 'แตะปุ่มลำโพงเพื่อฟังซ้ำ แล้วเลือกคำที่ได้ยิน',
-    [QUESTION_TYPES.DRAG_MATCH]: 'แตะเพื่อจับคู่ ไทย ↔ อังกฤษ (3 คู่)',
-    [QUESTION_TYPES.FILL_DIALOG]: 'เลือกคำที่เหมาะสมเพื่อเติมบทสนทนา',
-    [QUESTION_TYPES.ARRANGE_SENTENCE]: 'แตะคำเรียงตามลำดับให้ถูกต้อง',
-    [QUESTION_TYPES.TRUE_FALSE_DEF]: 'ตัดสินว่าความหมายนี้ถูกหรือผิด',
-    [QUESTION_TYPES.CLOZE_DEFINITION]: 'เลือกคำที่หายไปให้ตรงกับนิยาม',
+    [QUESTION_TYPES.LISTEN_CHOOSE]: 'Tap the speaker button to listen again, then select the word you hear',
+    [QUESTION_TYPES.DRAG_MATCH]: 'Tap to match Thai ↔ English (3 pairs)',
+    [QUESTION_TYPES.FILL_DIALOG]: 'Select the best word to complete the dialog',
+    [QUESTION_TYPES.ARRANGE_SENTENCE]: 'Tap words in the correct order',
+    [QUESTION_TYPES.TRUE_FALSE_DEF]: 'Decide whether the meaning is True or False',
+    [QUESTION_TYPES.CLOZE_DEFINITION]: 'Select the missing word that fits the definition',
   };
   return hints[type] || '';
 };
 
 const getTypeLabel = (type) => {
   const labels = {
-    [QUESTION_TYPES.LISTEN_CHOOSE]: 'ฟังแล้วเลือก',
-    [QUESTION_TYPES.DRAG_MATCH]: 'จับคู่ไทย-อังกฤษ',
-    [QUESTION_TYPES.FILL_DIALOG]: 'เติมบทสนทนา',
-    [QUESTION_TYPES.ARRANGE_SENTENCE]: 'เรียงประโยค',
-    [QUESTION_TYPES.TRUE_FALSE_DEF]: 'ถูก/ผิด (ความหมาย)',
-    [QUESTION_TYPES.CLOZE_DEFINITION]: 'ปิดคำในนิยาม',
+    [QUESTION_TYPES.LISTEN_CHOOSE]: 'Listen & Choose',
+    [QUESTION_TYPES.DRAG_MATCH]: 'Match Thai-English',
+    [QUESTION_TYPES.FILL_DIALOG]: 'Fill Dialog',
+    [QUESTION_TYPES.ARRANGE_SENTENCE]: 'Arrange Sentence',
+    [QUESTION_TYPES.TRUE_FALSE_DEF]: 'True/False (Meaning)',
+    [QUESTION_TYPES.CLOZE_DEFINITION]: 'Cloze Definition',
   };
   return labels[type] || '';
 };
@@ -92,8 +92,8 @@ const makeListenChoose = (item, pool) => {
   return {
     id: `lc_${item.id}_${uid()}`,
     type: QUESTION_TYPES.LISTEN_CHOOSE,
-    instruction: 'ฟังเสียงแล้วเลือกคำที่ได้ยิน',
-    questionText: 'แตะปุ่มลำโพงเพื่อฟัง',
+    instruction: 'Listen and select the word you hear',
+    questionText: 'Tap the speaker button to listen',
     audioText: item.audioText,
     correctText: item.thai,
     choices: choices.map((c, i) => ({ id: i + 1, text: c.thai, isCorrect: c.id === item.id })),
@@ -110,7 +110,7 @@ const makeDragMatch = (pool) => {
   return { 
     id: `dm_${uid()}`, 
     type: QUESTION_TYPES.DRAG_MATCH, 
-    instruction: 'จับคู่คำไทยกับคำอังกฤษ', 
+    instruction: 'Match Thai words with English words', 
     leftItems, 
     rightItems,
     rewardXP: 15,
@@ -130,7 +130,7 @@ const makeDialogFill = (pool) => {
   return {
     id: `fb_${item.id}_${uid()}`,
     type: QUESTION_TYPES.FILL_DIALOG,
-    instruction: 'เลือกคำที่เหมาะสมเพื่อเติมบทสนทนา',
+    instruction: 'Select the best word to complete the dialog',
     dialogQuestion: dialog.q,
     template: dialog.a,
     correctText: dialog.choices[0],
@@ -152,7 +152,7 @@ const makeArrangeSentence = (item) => {
   return {
     id: `arr_${item.id}_${uid()}`,
     type: QUESTION_TYPES.ARRANGE_SENTENCE,
-    instruction: 'เรียงคำให้เป็นประโยคที่ถูกต้อง',
+    instruction: 'Arrange words to form the correct sentence',
     correctOrder: sentence,
     allParts: shuffle([...sentence, filler]), // +1 ตัวหลอก
     rewardXP: 15,
