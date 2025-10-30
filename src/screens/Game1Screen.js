@@ -23,6 +23,66 @@ const consonants =
 const vowels = ["ะ", "า", "ิ", "ี", "ึ", "ื", "ุ", "ู", "เ", "แ", "โ", "ใ", "ไ", ""];
 const tones = ["", "่", "้", "๊", "๋"];
 
+// Rough English subtitle for Thai hints (keyword-based)
+const translateHintToEnglish = (thai) => {
+  if (!thai) return '';
+  const map = [
+    [/คำทักทาย|เจอกัน/, 'greeting when meeting'],
+    [/ถามอาการ|ความเป็นอยู่/, 'ask how someone is doing'],
+    [/ขอบใจ|ขอบคุณ/, 'say thank you'],
+    [/ขอโทษ|ขออภัย/, 'say sorry'],
+    [/ลาก่อน|จากกัน/, 'say goodbye'],
+    [/จำนวน\s*1/, 'number 1'],
+    [/จำนวน\s*3/, 'number 3'],
+    [/จำนวน\s*5/, 'number 5'],
+    [/จำนวน\s*6/, 'number 6'],
+    [/จำนวน\s*8/, 'number 8'],
+    [/วันที่2ของสัปดาห์/, 'the second day of the week (Tuesday)'],
+    [/เมื่อวาน/, 'yesterday'],
+    [/พรุ่งนี้/, 'tomorrow'],
+    [/เดือนที่\s*6|มิถุนายน/, 'June (month 6)'],
+    [/กี่โมง|ถามเวลา/, 'ask what time it is'],
+    [/พี่สาวของพ่อหรือแม่/, 'aunt (older sister of father or mother)'],
+    [/ผู้ให้กำเนิดเรา|แม่/, 'mother'],
+    [/พี่ผู้ชาย/, 'older brother'],
+    [/น้องผู้หญิง/, 'younger sister'],
+    [/ครอบครัว/, 'family'],
+    [/อาหารหลัก/, 'staple food'],
+    [/นม|เครื่องดื่มจากวัว/, 'milk (a drink from cows)'],
+    [/กาแฟ/, 'coffee (hot/cold, with caffeine)'],
+    [/ขนม/, 'snacks or sweets'],
+    [/ผลไม้/, 'fruit'],
+    [/สีเหมือนเลือด|แดง/, 'red color'],
+    [/สีของท้องฟ้า|ฟ้า/, 'blue color (sky)'],
+    [/เหลือง/, 'yellow color'],
+    [/เขียว/, 'green color'],
+    [/ชมพู/, 'pink color'],
+    [/กิน|รับประทานอาหาร/, 'to eat'],
+    [/ฟัง|ใช้หูรับเสียง/, 'to listen'],
+    [/นอน|พักผ่อน/, 'to sleep'],
+    [/เดิน|เคลื่อนที่ด้วยขา/, 'to walk'],
+    [/อ่าน/, 'to read'],
+    [/ที่อยู่อาศัย|บ้าน/, 'home/house'],
+    [/โรงเรียน/, 'school'],
+    [/สนามบิน/, 'airport'],
+    [/ร้านค้า/, 'shop/store'],
+    [/วัด/, 'temple'],
+    [/อากาศสูง|ร้อน/, 'hot (high temperature)'],
+    [/น้ำตกจากฟ้า|ฝน/, 'rain'],
+    [/หนาว|อากาศเย็น/, 'cold (low temperature)'],
+    [/ลม|การเคลื่อนตัวของอากาศ/, 'wind (moving air)'],
+    [/ฤดูหนาว/, 'winter'],
+    [/รถไฟ/, 'train (on rails)'],
+    [/รถบัส/, 'bus (public transport)'],
+    [/เรือ/, 'boat/ship'],
+    [/ตั๋ว/, 'ticket'],
+  ];
+  for (const [re, en] of map) {
+    if (re.test(thai)) return en;
+  }
+  return 'hint';
+};
+
 // แยกคำไทยเป็นหน่วยตัวอักษร (พยัญชนะ + สระ + วรรณยุกต์)
 const splitThaiWordForGrid = (word) => {
   const clusters = [];
@@ -491,6 +551,9 @@ const Game1Screen = () => {
                   <Text style={[styles.hintText, isFound && styles.hintTextFound]}>
                     {item.hint}
                   </Text>
+                  <Text style={[styles.hintSubEN, isFound && styles.hintTextFound]}>
+                    {translateHintToEnglish(item.hint)}
+                  </Text>
 
                   {!isFound && (
                     <View style={styles.wordBoxesContainer}>
@@ -898,6 +961,11 @@ gridContainer: {
   hintTextFound: { 
     textDecorationLine: "line-through", 
     color: "#999",
+  },
+  hintSubEN: {
+    fontSize: 13,
+    color: '#6b7280',
+    marginTop: 2,
   },
   wordBoxesContainer: {
     flexDirection: "row",

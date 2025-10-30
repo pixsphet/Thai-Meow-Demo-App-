@@ -64,6 +64,33 @@ const SpeedTypingScreen = () => {
     { word: 'ดอกไม้', hint: 'สวยงามและมีกลิ่นหอม' },
     { word: 'ต้นไม้', hint: 'ให้ร่มเงาและออกซิเจน' },
   ];
+  const translateHintToEnglish = (thai) => {
+    if (!thai) return '';
+    const dict = [
+      [/ที่อยู่อาศัย/, 'a place to live (home)'],
+      [/สถานที่เรียนหนังสือ/, 'a place to study (school)'],
+      [/ที่ซื้อขายของ|ตลาด/, 'market (buy/sell)'],
+      [/น้ำตกจากฟ้า|ฝน/, 'rain'],
+      [/อากาศสูง|ร้อน/, 'hot'],
+      [/อากาศเย็น|หนาว/, 'cold'],
+      [/สีแห่งความรัก|แดง/, 'red color'],
+      [/ท้องฟ้า|ฟ้า/, 'sky blue'],
+      [/ต้นไม้|เขียว/, 'green (trees)'],
+      [/ผู้ดูแลลูก|พ่อ/, 'father'],
+      [/ผู้ให้กำเนิด|แม่/, 'mother'],
+      [/อาหารหลัก|ข้าว/, 'rice (staple food)'],
+      [/ดื่มทุกวัน|น้ำ/, 'water (drink)'],
+      [/เดินทางในน้ำ|เรือ/, 'boat'],
+      [/บินบนท้องฟ้า|เครื่องบิน/, 'airplane'],
+      [/ยานพาหนะบนถนน|รถ/, 'car/vehicle'],
+      [/สัตว์เลี้ยงที่ซื่อสัตย์|หมา/, 'dog (loyal pet)'],
+      [/สัตว์เลี้ยงที่น่ารัก|แมว/, 'cat (cute pet)'],
+      [/ดอกไม้/, 'flower'],
+      [/ต้นไม้/, 'tree'],
+    ];
+    for (const [re, en] of dict) { if (re.test(thai)) return en; }
+    return 'hint';
+  };
 
   const currentWord = wordList[currentWordIndex];
   const totalWords = wordList.length;
@@ -245,6 +272,7 @@ const SpeedTypingScreen = () => {
           <Text style={styles.wordLabel}>Word to type:</Text>
           <Text style={styles.targetWord}>{currentWord.word}</Text>
           <Text style={styles.wordHint}>💡 {currentWord.hint}</Text>
+          <Text style={[styles.wordHint, { fontSize: 14, color: '#6b7280', marginTop: 2 }]}>({translateHintToEnglish(currentWord.hint)})</Text>
         </Animated.View>
 
         {/* Input Area */}

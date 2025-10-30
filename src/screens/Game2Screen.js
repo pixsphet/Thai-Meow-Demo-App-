@@ -16,6 +16,30 @@ import { useUnifiedStats } from '../contexts/UnifiedStatsContext';
 import LottieView from 'lottie-react-native';
 import { getByCategory } from '../services/gameVocabService';
 import { resolveImage } from '../utils/imageResolver';
+// Rough English subtitle for Thai hints
+const translateHintToEnglish = (thai) => {
+  if (!thai) return '';
+  const dict = [
+    [/ที่อยู่อาศัย/, 'a place to live (home)'],
+    [/สถานที่เรียนหนังสือ/, 'a place to study (school)'],
+    [/ที่รักษาคนป่วย|โรงพยาบาล/, 'hospital (treat the sick)'],
+    [/ที่ซื้อขายของ|ตลาด/, 'market (buy/sell things)'],
+    [/น้ำตกจากฟ้า|ฝน/, 'rain'],
+    [/อากาศสูง|ร้อน/, 'hot (high temperature)'],
+    [/อากาศเย็น|หนาว/, 'cold'],
+    [/บินขึ้นฟ้า|เครื่องบิน/, 'airplane'],
+    [/แม่น้ำ|ทะเล|เรือ/, 'boat/ship'],
+    [/สีแห่งความรัก|แดง/, 'red color'],
+    [/ท้องฟ้า|ฟ้า/, 'sky blue color'],
+    [/ต้นไม้|เขียว/, 'green color'],
+    [/พ่อ/, 'father'],
+    [/แม่/, 'mother'],
+    [/อาหารหลัก|ข้าว/, 'rice (staple food)'],
+    [/ดื่ม|น้ำ/, 'water (drink)'],
+  ];
+  for (const [re, en] of dict) { if (re.test(thai)) return en; }
+  return 'hint';
+};
 
 const LEVELS = [
   { id: 1, word: "บ้าน", hint: "ที่อยู่อาศัยของคน", image: require("../add/picture/house.png") },
@@ -209,6 +233,9 @@ const Game2Screen = ({ route }) => {
         <View style={styles.hintBox}>
           <Text style={styles.hintIcon}>💡</Text>
           <Text style={styles.hint}>{currentLevel.hint}</Text>
+          <Text style={[styles.hint, { fontSize: 14, color: '#6b7280', marginTop: 2 }]}>
+            {translateHintToEnglish(currentLevel.hint)}
+          </Text>
         </View>
 
         {/* กล่องคำตอบ */}
