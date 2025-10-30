@@ -395,8 +395,8 @@ const ConsonantLearnScreen = ({ navigation }) => {
   const renderSection = (title, data, category, color) => (
     <View style={styles.section}>
       <View style={[styles.sectionHeader, { backgroundColor: color }]}>
-        <Text style={styles.sectionTitle}>{title}</Text>
-        <Text style={styles.sectionCount}>{data.length}</Text>
+        <Text style={styles.sectionTitle} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>{title}</Text>
+        <Text style={styles.sectionCount} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>{data.length}</Text>
       </View>
       <FlatList
         data={data}
@@ -455,8 +455,8 @@ const ConsonantLearnScreen = ({ navigation }) => {
     return (
     <View style={styles.section}>
       <View style={[styles.sectionHeader, { backgroundColor: '#45B7D1' }]}> 
-        <Text style={styles.sectionTitle}>Tones</Text>
-        <Text style={styles.sectionCount}>{toneItems.length}</Text>
+        <Text style={styles.sectionTitle} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>Tones</Text>
+        <Text style={styles.sectionCount} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>{toneItems.length}</Text>
       </View>
       <View style={styles.tonesContainer}>
         <View style={styles.tonesGridImages}>
@@ -496,32 +496,32 @@ const ConsonantLearnScreen = ({ navigation }) => {
           onPress={() => setActiveTab('consonants')}
           activeOpacity={0.8}
         >
-          <Text style={[styles.tabText, activeTab === 'consonants' && styles.tabTextActive]}>Consonants</Text>
-          <Text style={[styles.tabCount, activeTab === 'consonants' && styles.tabTextActive]}>{consonants.length}</Text>
+          <Text style={[styles.tabText, activeTab === 'consonants' && styles.tabTextActive]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>Consonants</Text>
+          <Text style={[styles.tabCount, activeTab === 'consonants' && styles.tabTextActive]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>{consonants.length}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tabButton, activeTab === 'vowels' && styles.tabActive]}
           onPress={() => setActiveTab('vowels')}
           activeOpacity={0.8}
         >
-          <Text style={[styles.tabText, activeTab === 'vowels' && styles.tabTextActive]}>Vowels</Text>
-          <Text style={[styles.tabCount, activeTab === 'vowels' && styles.tabTextActive]}>{vowels.length}</Text>
+          <Text style={[styles.tabText, activeTab === 'vowels' && styles.tabTextActive]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>Vowels</Text>
+          <Text style={[styles.tabCount, activeTab === 'vowels' && styles.tabTextActive]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>{vowels.length}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tabButton, activeTab === 'tones' && styles.tabActive]}
           onPress={() => setActiveTab('tones')}
           activeOpacity={0.8}
         >
-          <Text style={[styles.tabText, activeTab === 'tones' && styles.tabTextActive]}>Tones</Text>
-          <Text style={[styles.tabCount, activeTab === 'tones' && styles.tabTextActive]}>4</Text>
+          <Text style={[styles.tabText, activeTab === 'tones' && styles.tabTextActive]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>Tones</Text>
+          <Text style={[styles.tabCount, activeTab === 'tones' && styles.tabTextActive]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>4</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tabButton, activeTab === 'vocab' && styles.tabActive]}
           onPress={() => setActiveTab('vocab')}
           activeOpacity={0.8}
         >
-          <Text style={[styles.tabText, activeTab === 'vocab' && styles.tabTextActive]}>Vocabulary</Text>
-          <Text style={[styles.tabCount, activeTab === 'vocab' && styles.tabTextActive]}>273</Text>
+          <Text style={[styles.tabText, activeTab === 'vocab' && styles.tabTextActive]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>Vocabulary</Text>
+          <Text style={[styles.tabCount, activeTab === 'vocab' && styles.tabTextActive]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>273</Text>
         </TouchableOpacity>
       </View>
 
