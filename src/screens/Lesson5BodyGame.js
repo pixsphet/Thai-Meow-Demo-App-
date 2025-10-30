@@ -75,11 +75,11 @@ const normalizeBody = (doc) => ({
 const getHintText = (type) => {
   switch (type) {
     case QUESTION_TYPES.LISTEN_CHOOSE:
-      return 'แตะปุ่มลำโพงเพื่อฟังซ้ำ แล้วเลือกคำที่ได้ยิน';
+      return 'Tap the speaker button to listen again, then select the word you hear';
     case QUESTION_TYPES.DRAG_MATCH:
-      return 'แตะเพื่อจับคู่ ชื่อภาษาไทย ↔ ความหมายภาษาอังกฤษ';
+      return 'Tap to match Thai words ↔ English meanings';
     case QUESTION_TYPES.FILL_BLANK:
-      return 'แตะตัวเลือกเพื่อเติมคำให้ถูกต้อง';
+      return 'Tap an option to fill in the word correctly';
     default:
       return '';
   }
@@ -93,9 +93,9 @@ const SHOW_ROMAN = false;
 
 const getTypeLabel = (type) => {
   switch (type) {
-    case QUESTION_TYPES.LISTEN_CHOOSE: return 'ฟังเสียงเลือกคำ';
-    case QUESTION_TYPES.DRAG_MATCH: return 'จับคู่ไทย ↔ อังกฤษ';
-    case QUESTION_TYPES.FILL_BLANK: return 'เติมคำให้ถูก';
+    case QUESTION_TYPES.LISTEN_CHOOSE: return 'Listen & Choose';
+    case QUESTION_TYPES.DRAG_MATCH: return 'Match Thai ↔ English';
+    case QUESTION_TYPES.FILL_BLANK: return 'Fill Blank';
     default: return '';
   }
 };
@@ -110,8 +110,8 @@ const makeListenChoose = (word, pool) => {
   return {
     id: `lc_${word.char}_${uid()}`,
     type: QUESTION_TYPES.LISTEN_CHOOSE,
-    instruction: 'ฟังเสียงแล้วเลือกคำที่ได้ยิน',
-    questionText: 'แตะปุ่มลำโพงเพื่อฟัง',
+    instruction: 'Listen and select the word you hear',
+    questionText: 'Tap the speaker button to listen',
     audioText: word.audioText,
     correctText: word.char,
     choices: choices.map((c, i) => ({
@@ -145,7 +145,7 @@ const makeDragMatch = (word, pool) => {
   return {
     id: `dm_${word.char}_${uid()}`,
     type: QUESTION_TYPES.DRAG_MATCH,
-    instruction: 'จับคู่คำไทยกับความหมายภาษาอังกฤษ',
+    instruction: 'Match Thai words with English meanings',
     leftItems,
     rightItems,
   };
@@ -153,9 +153,9 @@ const makeDragMatch = (word, pool) => {
 
 const makeFillBlank = (word, pool) => {
   const templates = [
-    `ส่วนร่างกาย ____ ใช้ในการมองเห็น`,
-    `____ เป็นส่วนสำคัญของร่างกายที่อยู่บนสุด`,
-    `เราใช้ ____ ในการฟังเสียง`,
+    `The body part ____ is used to see`,
+    `____ is the topmost important part of the body`,
+    `We use ____ to hear sounds`,
   ];
   
   const template = pick(templates);
@@ -169,7 +169,7 @@ const makeFillBlank = (word, pool) => {
   return {
     id: `fb_${word.char}_${uid()}`,
     type: QUESTION_TYPES.FILL_BLANK,
-    instruction: 'เติมคำในช่องว่าง',
+    instruction: 'Fill in the blank',
     questionText: template,
     correctText: displayText,
     choices: choices.map((c, i) => ({

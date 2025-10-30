@@ -116,15 +116,15 @@ const normalizeVowel = (doc) => ({
 const getHintText = (type) => {
   switch (type) {
     case QUESTION_TYPES.LISTEN_CHOOSE:
-      return 'แตะปุ่มลำโพงเพื่อฟังซ้ำ แล้วเลือกสระที่ได้ยิน';
+      return 'Tap the speaker button to listen again, then select the vowel you hear';
     case QUESTION_TYPES.PICTURE_MATCH:
-      return 'ดูภาพสระตรงกลาง แล้วเลือกสระที่ตรงกัน';
+      return 'Look at the vowel image in the center, then select the matching vowel';
     case QUESTION_TYPES.DRAG_MATCH:
-      return 'แตะเพื่อจับคู่ ชื่อเสียง ↔ สระไทย';
+      return 'Tap to match sound name ↔ Thai vowel';
     case QUESTION_TYPES.FILL_BLANK:
-      return 'แตะตัวเลือกเพื่อเติมคำให้ถูกต้อง';
+      return 'Tap an option to fill in the word correctly';
     case QUESTION_TYPES.ARRANGE_SENTENCE:
-      return 'แตะคำเรียงตามลำดับให้ถูกต้อง';
+      return 'Tap words in the correct order';
     default:
       return '';
   }
@@ -135,11 +135,11 @@ const SHOW_ROMAN = false;
 
 const getTypeLabel = (type) => {
   switch (type) {
-    case QUESTION_TYPES.LISTEN_CHOOSE: return 'ฟังเสียงเลือกสระ';
-    case QUESTION_TYPES.PICTURE_MATCH: return 'จับคู่จากรูปภาพ';
-    case QUESTION_TYPES.DRAG_MATCH: return 'จับคู่เสียง ↔ สระ';
-    case QUESTION_TYPES.FILL_BLANK: return 'เติมคำให้ถูก';
-    case QUESTION_TYPES.ARRANGE_SENTENCE: return 'เรียงคำ';
+    case QUESTION_TYPES.LISTEN_CHOOSE: return 'Listen & Choose';
+    case QUESTION_TYPES.PICTURE_MATCH: return 'Picture Match';
+    case QUESTION_TYPES.DRAG_MATCH: return 'Match Sound ↔ Vowel';
+    case QUESTION_TYPES.FILL_BLANK: return 'Fill Blank';
+    case QUESTION_TYPES.ARRANGE_SENTENCE: return 'Arrange Sentence';
     default: return '';
   }
 };
@@ -154,8 +154,8 @@ const makeListenChoose = (word, pool) => {
   return {
     id: `lc_${word.char}_${uid()}`,
     type: QUESTION_TYPES.LISTEN_CHOOSE,
-    instruction: 'ฟังเสียงแล้วเลือกสระที่ได้ยิน',
-    questionText: 'แตะปุ่มลำโพงเพื่อฟังเสียง',
+    instruction: 'Listen and select the vowel you hear',
+    questionText: 'Tap the speaker button to listen',
     audioText: word.audioText,
     correctText: word.char,
     // Rewards for this question
@@ -180,7 +180,7 @@ const makePictureMatch = (word, pool) => {
   return {
     id: `pm_${word.char}_${uid()}`,
     type: QUESTION_TYPES.PICTURE_MATCH,
-    instruction: 'ดูภาพแล้วเลือกสระให้ถูกต้อง',
+    instruction: 'Look at the image and select the correct vowel',
     imageKey: word.image,
     correctText: word.char,
     // Rewards for this question

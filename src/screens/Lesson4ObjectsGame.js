@@ -101,11 +101,11 @@ const normalizeObject = (doc) => ({
 const getHintText = (type) => {
   switch (type) {
     case QUESTION_TYPES.LISTEN_CHOOSE:
-      return 'แตะปุ่มลำโพงเพื่อฟังซ้ำ แล้วเลือกคำที่ได้ยิน';
+      return 'Tap the speaker button to listen again, then select the word you hear';
     case QUESTION_TYPES.PICTURE_MATCH:
-      return 'ดูภาพตรงกลาง แล้วเลือกคำที่ตรงกัน';
+      return 'Look at the image in the center, then select the matching word';
     case QUESTION_TYPES.FILL_BLANK:
-      return 'แตะตัวเลือกเพื่อเติมคำให้ถูกต้อง';
+      return 'Tap an option to fill in the sentence correctly';
     default:
       return '';
   }
@@ -116,9 +116,9 @@ const SHOW_ROMAN = true;
 
 const getTypeLabel = (type) => {
   switch (type) {
-    case QUESTION_TYPES.LISTEN_CHOOSE: return 'ฟังเสียงเลือกคำ';
-    case QUESTION_TYPES.PICTURE_MATCH: return 'จับคู่จากรูปภาพ';
-    case QUESTION_TYPES.FILL_BLANK: return 'เติมคำ';
+    case QUESTION_TYPES.LISTEN_CHOOSE: return 'Listen & Choose';
+    case QUESTION_TYPES.PICTURE_MATCH: return 'Picture Match';
+    case QUESTION_TYPES.FILL_BLANK: return 'Fill Blank';
     default: return '';
   }
 };
@@ -133,8 +133,8 @@ const makeListenChoose = (word, pool) => {
   return {
     id: `lc_${word.char}_${uid()}`,
     type: QUESTION_TYPES.LISTEN_CHOOSE,
-    instruction: 'ฟังเสียงแล้วเลือกคำที่ได้ยิน',
-    questionText: 'แตะปุ่มลำโพงเพื่อฟังคำศัพท์',
+    instruction: 'Listen and select the word you hear',
+    questionText: 'Tap the speaker button to listen',
     audioText: word.audioText,
     correctText: word.char,
     choices: choices.map((c, i) => ({
@@ -155,7 +155,7 @@ const makePictureMatch = (word, pool) => {
   return {
     id: `pm_${word.char}_${uid()}`,
     type: QUESTION_TYPES.PICTURE_MATCH,
-    instruction: 'ดูภาพแล้วเลือกคำให้ตรง',
+    instruction: 'Look at the image and select the matching word',
     imageKey: word.image,
     imagePath: word.imagePath,
     correctText: word.char,
@@ -170,9 +170,9 @@ const makePictureMatch = (word, pool) => {
 
 const makeFillBlank = (word, pool) => {
   const templates = [
-    `ฉันมี ____ ในกระเป๋า`,
-    `นี่คือ ____`,
-    `ฉันใช้ ____`,
+    `I have ____ in my bag`,
+    `This is ____`,
+    `I use ____`,
   ];
   
   const template = pick(templates);
@@ -184,7 +184,7 @@ const makeFillBlank = (word, pool) => {
   return {
     id: `fb_${word.char}_${uid()}`,
     type: QUESTION_TYPES.FILL_BLANK,
-    instruction: 'เลือกคำมาเติมประโยคให้ถูกต้อง',
+    instruction: 'Select a word to complete the sentence',
     questionText: template,
     imageSource: word.imageSource,
     correctText: word.char,
