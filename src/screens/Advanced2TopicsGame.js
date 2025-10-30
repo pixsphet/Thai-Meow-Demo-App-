@@ -51,17 +51,17 @@ const { width, height } = Dimensions.get('window');
 const getHintText = (type) => {
   switch (type) {
     case ADVANCED_TOPICS_QUESTION_TYPES.LEARN_TOPIC:
-      return 'อ่านข้อมูลหัวข้อแล้วกด NEXT';
+      return 'Read the topic info, then tap NEXT';
     case ADVANCED_TOPICS_QUESTION_TYPES.LISTEN_CHOOSE:
-      return 'แตะปุ่มลำโพงเพื่อฟังซ้ำ แล้วเลือกคำตอบที่ถูกต้อง';
+      return 'Tap the speaker button to listen again, then select the correct answer';
     case ADVANCED_TOPICS_QUESTION_TYPES.PICTURE_MATCH:
-      return 'ดูภาพหัวข้อแล้วเลือกคำที่ตรงกัน';
+      return 'Look at the topic image and select the matching word';
     case ADVANCED_TOPICS_QUESTION_TYPES.TRANSLATE_MATCH:
-      return 'แตะเพื่อจับคู่ ไทย ↔ อังกฤษ';
+      return 'Tap to match Thai ↔ English';
     case ADVANCED_TOPICS_QUESTION_TYPES.ARRANGE_SENTENCE:
-      return 'แตะคำเรียงตามลำดับให้ถูกต้อง';
+      return 'Tap words in the correct order';
     case ADVANCED_TOPICS_QUESTION_TYPES.FILL_BLANK_DIALOG:
-      return 'เลือกคำมาเติมให้สอดคล้องกับบริบท';
+      return 'Select a word that fits the context';
     default:
       return '';
   }
@@ -69,12 +69,12 @@ const getHintText = (type) => {
 
 const getTypeLabel = (type) => {
   switch (type) {
-    case ADVANCED_TOPICS_QUESTION_TYPES.LEARN_TOPIC: return 'การ์ดความรู้';
-    case ADVANCED_TOPICS_QUESTION_TYPES.LISTEN_CHOOSE: return 'ฟังแล้วเลือก';
-    case ADVANCED_TOPICS_QUESTION_TYPES.PICTURE_MATCH: return 'ดูภาพ';
-    case ADVANCED_TOPICS_QUESTION_TYPES.TRANSLATE_MATCH: return 'จับคู่แปล';
-    case ADVANCED_TOPICS_QUESTION_TYPES.ARRANGE_SENTENCE: return 'เรียงประโยค';
-    case ADVANCED_TOPICS_QUESTION_TYPES.FILL_BLANK_DIALOG: return 'เติมบทสนทนา';
+    case ADVANCED_TOPICS_QUESTION_TYPES.LEARN_TOPIC: return 'Knowledge Card';
+    case ADVANCED_TOPICS_QUESTION_TYPES.LISTEN_CHOOSE: return 'Listen & Choose';
+    case ADVANCED_TOPICS_QUESTION_TYPES.PICTURE_MATCH: return 'Picture Match';
+    case ADVANCED_TOPICS_QUESTION_TYPES.TRANSLATE_MATCH: return 'Match Translation';
+    case ADVANCED_TOPICS_QUESTION_TYPES.ARRANGE_SENTENCE: return 'Arrange Sentence';
+    case ADVANCED_TOPICS_QUESTION_TYPES.FILL_BLANK_DIALOG: return 'Fill Dialog';
     default: return '';
   }
 };

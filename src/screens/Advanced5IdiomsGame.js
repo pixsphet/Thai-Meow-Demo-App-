@@ -82,21 +82,21 @@ const normalizeIdiom = (doc) => ({
 const getHintText = (type) => {
   switch (type) {
     case QUESTION_TYPES.LEARN_IDIOM:
-      return 'อ่านความหมายและตัวอย่าง แล้วกด NEXT';
+      return 'Read the meaning and examples, then tap NEXT';
     case QUESTION_TYPES.LISTEN_MEANING:
-      return 'แตะปุ่มลำโพงเพื่อฟังซ้ำ แล้วเลือกความหมายที่ถูกต้อง';
+      return 'Tap the speaker button to listen again, then select the correct meaning';
     case QUESTION_TYPES.LISTEN_USAGE:
-      return 'ฟังประโยคตัวอย่าง แล้วเลือกสำนวนที่เหมาะสม';
+      return 'Listen to the example sentence and select the appropriate idiom';
     case QUESTION_TYPES.MATCH_IDIOM_MEANING:
-      return 'แตะเพื่อจับคู่ สำนวน ↔ ความหมาย';
+      return 'Tap to match idioms ↔ meanings';
     case QUESTION_TYPES.FILL_CONTEXT:
-      return 'เลือกสำนวนที่เหมาะกับบริบท';
+      return 'Select the idiom that best fits the context';
     case QUESTION_TYPES.ARRANGE_IDIOM:
-      return 'เรียงคำให้เป็นสำนวนที่ถูกต้อง';
+      return 'Arrange words to form the correct idiom';
     case QUESTION_TYPES.PARAPHRASE_SELECT:
-      return 'เลือกถอดความที่แม่นยำที่สุด';
+      return 'Choose the most accurate paraphrase';
     case QUESTION_TYPES.TRUE_FALSE_EXPLANATION:
-      return 'ตัดสินว่าข้อความถูกหรือผิด';
+      return 'Decide whether the statement is True or False';
     default:
       return '';
   }
@@ -104,14 +104,14 @@ const getHintText = (type) => {
 
 const getTypeLabel = (type) => {
   switch (type) {
-    case QUESTION_TYPES.LEARN_IDIOM: return 'การ์ดความรู้';
-    case QUESTION_TYPES.LISTEN_MEANING: return 'ฟังความหมาย';
-    case QUESTION_TYPES.LISTEN_USAGE: return 'ฟังการใช้';
-    case QUESTION_TYPES.MATCH_IDIOM_MEANING: return 'จับคู่ความหมาย';
-    case QUESTION_TYPES.FILL_CONTEXT: return 'เติมบริบท';
-    case QUESTION_TYPES.ARRANGE_IDIOM: return 'เรียงสำนวน';
-    case QUESTION_TYPES.PARAPHRASE_SELECT: return 'เลือกถอดความ';
-    case QUESTION_TYPES.TRUE_FALSE_EXPLANATION: return 'ถูก/ผิด';
+    case QUESTION_TYPES.LEARN_IDIOM: return 'Knowledge Card';
+    case QUESTION_TYPES.LISTEN_MEANING: return 'Listen & Meaning';
+    case QUESTION_TYPES.LISTEN_USAGE: return 'Listen & Usage';
+    case QUESTION_TYPES.MATCH_IDIOM_MEANING: return 'Match Meaning';
+    case QUESTION_TYPES.FILL_CONTEXT: return 'Fill Context';
+    case QUESTION_TYPES.ARRANGE_IDIOM: return 'Arrange Idiom';
+    case QUESTION_TYPES.PARAPHRASE_SELECT: return 'Paraphrase Select';
+    case QUESTION_TYPES.TRUE_FALSE_EXPLANATION: return 'True/False';
     default: return '';
   }
 };
@@ -120,14 +120,14 @@ const getTypeLabel = (type) => {
 const buildLearnCard = (idiom) => ({
   id: `learn_${idiom.id}_${uid()}`,
   type: QUESTION_TYPES.LEARN_IDIOM,
-  instruction: 'สำนวนใหม่',
+  instruction: 'New idiom',
   thai: idiom.thai,
   meaningTH: idiom.meaningTH,
   meaningEN: idiom.meaningEN,
   exampleTH: idiom.exampleTH,
   exampleEN: idiom.exampleEN,
   audioText: idiom.audioText || idiom.thai,
-  tips: 'อ่านแล้วกด NEXT เพื่อทำข้อถัดไป',
+  tips: 'Read and tap NEXT to continue',
   rewardXP: 0,
   rewardDiamond: 0,
   penaltyHeart: 0,
@@ -141,8 +141,8 @@ const buildListenMeaning = (idiom, pool) => {
   return {
     id: `lm_${idiom.id}_${uid()}`,
     type: QUESTION_TYPES.LISTEN_MEANING,
-    instruction: 'ฟังแล้วเลือกความหมายที่ถูกต้อง',
-    questionText: 'แตะปุ่มลำโพงเพื่อฟัง',
+    instruction: 'Listen and select the correct meaning',
+    questionText: 'Tap the speaker button to listen',
     audioText: idiom.audioText || idiom.thai,
     correctText: idiom.meaningTH,
     choices: choices.map((t, i) => ({ id: i + 1, text: t })),
