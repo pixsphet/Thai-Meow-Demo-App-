@@ -60,12 +60,12 @@ const ForgotPasswordScreen = () => {
         if (step === 1) {
             // Email validation step
         if (!email.trim()) {
-            Alert.alert('ข้อผิดพลาด', 'กรุณากรอกอีเมล');
+            Alert.alert('Error', 'Please enter your email');
             return;
         }
 
         if (!validateEmail(email)) {
-            Alert.alert('ข้อผิดพลาด', 'รูปแบบอีเมลไม่ถูกต้อง');
+            Alert.alert('Error', 'Invalid email format');
             return;
         }
 
@@ -80,22 +80,22 @@ const ForgotPasswordScreen = () => {
     const handleResetPassword = async () => {
         // Validation
         if (!petName || !newPassword || !confirmPassword) {
-            Alert.alert('ข้อผิดพลาด', 'กรุณากรอกข้อมูลให้ครบถ้วน');
+            Alert.alert('Error', 'Please complete all fields');
             return;
         }
 
         if (newPassword !== confirmPassword) {
-            Alert.alert('ข้อผิดพลาด', 'รหัสผ่านใหม่ไม่ตรงกัน');
+            Alert.alert('Error', 'New passwords do not match');
             return;
         }
 
         if (!validatePassword(newPassword)) {
-            Alert.alert('รหัสผ่านไม่ถูกต้อง', 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร');
+            Alert.alert('Invalid password', 'Password must be at least 6 characters');
             return;
         }
 
         if (!petName.trim()) {
-            Alert.alert('ข้อผิดพลาด', 'กรุณากรอกชื่อสัตว์เลี้ยง');
+            Alert.alert('Error', 'Please enter your pet name');
             return;
         }
 
@@ -112,21 +112,21 @@ const ForgotPasswordScreen = () => {
                 setConfirmPassword('');
             } else {
                 // Show user-friendly error messages
-                let errorMessage = result.error || 'ไม่สามารถรีเซ็ตรหัสผ่านได้';
+                let errorMessage = result.error || 'Unable to reset password';
                 
                 if (result.error && result.error.includes('ไม่พบผู้ใช้ในระบบ')) {
-                    errorMessage = 'ไม่พบผู้ใช้ในระบบ กรุณาตรวจสอบอีเมล';
+                    errorMessage = 'User not found. Please check your email';
                 } else if (result.error && result.error.includes('ชื่อสัตว์เลี้ยงไม่ถูกต้อง')) {
-                    errorMessage = 'ชื่อสัตว์เลี้ยงไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง';
+                    errorMessage = 'Incorrect pet name. Please try again';
                 } else if (result.error && result.error.includes('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้')) {
-                    errorMessage = 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้ กรุณาตรวจสอบการเชื่อมต่อ';
+                    errorMessage = 'Cannot connect to server. Please check your connection';
                 }
                 
-                Alert.alert('ข้อผิดพลาด', errorMessage);
+                Alert.alert('Error', errorMessage);
             }
         } catch (error) {
             console.error('Reset password error:', error);
-            Alert.alert('ข้อผิดพลาด', 'เกิดข้อผิดพลาดในการรีเซ็ตรหัสผ่าน กรุณาลองใหม่อีกครั้ง');
+            Alert.alert('Error', 'Something went wrong. Please try again');
         } finally {
             setLoading(false);
         }
@@ -238,9 +238,7 @@ const ForgotPasswordScreen = () => {
                     </TouchableOpacity>
                 </View>
                 <View style={styles.validationContainer}>
-                    <Text style={[styles.validationText, { color: '#666' }]}>
-                        รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร
-                    </Text>
+                    <Text style={[styles.validationText, { color: '#666' }]}>Password must be at least 6 characters</Text>
                 </View>
             </View>
         );
