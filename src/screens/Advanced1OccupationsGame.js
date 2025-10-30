@@ -188,6 +188,22 @@ const Advanced1OccupationsGame = ({ navigation, route }) => {
         // Try to restore progress
         const savedProgress = await restoreProgress(lessonId);
         if (savedProgress && savedProgress.questionsSnapshot) {
+          // Validate that the restored snapshot actually belongs to the Occupations mode
+          const validTypes = new Set([
+            QUESTION_TYPES.LEARN_IDIOM,
+            QUESTION_TYPES.LISTEN_MEANING,
+            QUESTION_TYPES.PICTURE_MATCH,
+            QUESTION_TYPES.FILL_CONTEXT,
+            QUESTION_TYPES.MATCH_IDIOM_MEANING,
+          ]);
+          const snapshotLooksLikeOccupations = (savedProgress.questionsSnapshot || []).every(
+            (q) => q && validTypes.has(q.type)
+          );
+
+          if (!snapshotLooksLikeOccupations) {
+            // Ignore stale/incorrect snapshot from another game (e.g., consonant game)
+            console.warn('[Advanced1] Ignoring non-occupations snapshot');
+          } else {
           const sanitizedSnapshot = (savedProgress.questionsSnapshot || []).filter(
             (q) => q && !SENTENCE_ORDER_TYPES.has(q.type)
           );
@@ -206,6 +222,7 @@ const Advanced1OccupationsGame = ({ navigation, route }) => {
 
           if (sanitizedSnapshot.length > 0) {
             setQuestions(sanitizedSnapshot);
+          }
           }
         }
         
