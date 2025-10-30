@@ -124,9 +124,9 @@ const SettingsScreen = () => {
   }, []);
 
   const contactActions = useMemo(() => ([
-    { icon: 'phone', label: 'โทรหาเรา', action: () => Linking.openURL('tel:020000000') },
+    { icon: 'phone', label: 'Call us', action: () => Linking.openURL('tel:020000000') },
     { icon: 'facebook', label: 'Facebook', action: () => Linking.openURL('https://facebook.com') },
-    { icon: 'email', label: 'อีเมล', action: () => Linking.openURL('mailto:hello@thaimeow.app') },
+    { icon: 'email', label: 'Email', action: () => Linking.openURL('mailto:hello@thaimeow.app') },
     { icon: 'book-information-variant', label: 'Help Center', action: () => Linking.openURL('https://thaimeow.help') },
   ]), []);
 
@@ -145,8 +145,8 @@ const SettingsScreen = () => {
             <MaterialCommunityIcons name="arrow-left" size={22} color="#fff" />
           </TouchableOpacity>
           <View style={styles.heroContent}>
-            <Text style={styles.heroTitle}>ตั้งค่า</Text>
-            <Text style={styles.heroSubtitle}>จัดการประสบการณ์การเรียนรู้ของคุณ</Text>
+            <Text style={styles.heroTitle}>Settings</Text>
+            <Text style={styles.heroSubtitle}>Manage your learning experience</Text>
           </View>
         </LinearGradient>
       </View>
@@ -156,17 +156,17 @@ const SettingsScreen = () => {
         contentContainerStyle={{ paddingBottom: 80 }}
         showsVerticalScrollIndicator={false}
       >
-        <SectionCard title="บัญชีผู้ใช้" theme={flatTheme} isDark={isDarkMode}>
+        <SectionCard title="Account" theme={flatTheme} isDark={isDarkMode}>
           <SettingsRow
             icon="account-circle"
-            label="โปรไฟล์"
+            label="Profile"
             value={<MaterialCommunityIcons name="chevron-right" size={22} color="#B0BEC5" />}
             onPress={() => navigation.navigate('Profile')}
             theme={flatTheme}
           />
           <SettingsRow
             icon="key"
-            label="ความปลอดภัย"
+            label="Security"
             value={<MaterialCommunityIcons name="chevron-right" size={22} color="#B0BEC5" />}
             onPress={() => navigation.navigate('ChangePassword')}
             theme={flatTheme}
@@ -174,10 +174,10 @@ const SettingsScreen = () => {
           />
         </SectionCard>
 
-        <SectionCard title="ติดต่อและข้อมูลเพิ่มเติม" theme={flatTheme} isDark={isDarkMode}>
+        <SectionCard title="Contact & More" theme={flatTheme} isDark={isDarkMode}>
           <SettingsRow
             icon="headset"
-            label="ช่องทางติดต่อ"
+            label="Contact channels"
             value={(
               <MaterialCommunityIcons
                 name={contactExpanded ? 'chevron-up' : 'chevron-right'}
@@ -209,25 +209,25 @@ const SettingsScreen = () => {
           )}
         </SectionCard>
 
-        <SectionCard title="ข้อมูลแอป" theme={flatTheme} isDark={isDarkMode}>
+        <SectionCard title="App Information" theme={flatTheme} isDark={isDarkMode}>
         <View style={styles.infoRow}>
           <MaterialCommunityIcons name="alpha-t-circle" size={22} color="#FF8C00" />
-          <Text style={[styles.infoText, { color: flatTheme.textSecondary }]}>Thai Meow เวอร์ชัน 2.0.0</Text>
+          <Text style={[styles.infoText, { color: flatTheme.textSecondary }]}>Thai Meow version 2.0.0</Text>
         </View>
         <View style={styles.infoRow}>
           <MaterialCommunityIcons name="shield-check" size={22} color="#FF8C00" />
-          <Text style={[styles.infoText, { color: flatTheme.textSecondary }]}>นโยบายความเป็นส่วนตัว</Text>
+          <Text style={[styles.infoText, { color: flatTheme.textSecondary }]}>Privacy Policy</Text>
         </View>
         <View style={styles.infoRow}>
           <MaterialCommunityIcons name="file-document" size={22} color="#FF8C00" />
-          <Text style={[styles.infoText, { color: flatTheme.textSecondary }]}>ข้อกำหนดการใช้งาน</Text>
+          <Text style={[styles.infoText, { color: flatTheme.textSecondary }]}>Terms of Use</Text>
         </View>
         </SectionCard>
 
         <TouchableOpacity activeOpacity={0.85} onPress={() => navigation.navigate('SignIn')}>
           <LinearGradient colors={['#FF512F', '#F09819']} style={styles.logoutGradient}>
             <MaterialCommunityIcons name="logout" size={20} color="#fff" style={{ marginRight: 8 }} />
-            <Text style={styles.logoutLabel}>ออกจากระบบ</Text>
+            <Text style={styles.logoutLabel}>Log out</Text>
           </LinearGradient>
         </TouchableOpacity>
       </ScrollView>

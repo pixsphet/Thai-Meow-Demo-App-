@@ -354,7 +354,7 @@ const LessonCompleteScreen = ({ navigation, route }) => {
     ? canGoNextStage
       ? 'ไปด่านถัดไป'
       : 'ปลดล็อกเพื่อเล่นด่านถัดไป'
-    : 'กลับหน้าเลือกด่าน';
+    : 'Back to stage selection';
   const primaryButtonColors = primaryButtonDisabled
     ? ['#D4D4D4', '#BDBDBD']
     : ['#FF8C00', '#FF6B35'];
@@ -406,9 +406,9 @@ const LessonCompleteScreen = ({ navigation, route }) => {
               {stageTitle ? (
                 <Text style={styles.lessonTitle}>{stageTitle}</Text>
               ) : null}
-              <Text style={styles.title}>ยอดเยี่ยมมาก! 🎉</Text>
+              <Text style={styles.title}>Great job! 🎉</Text>
               <Text style={styles.subtitle}>
-                คุณตอบถูก {resolvedCorrectAnswers} จาก {totalQuestions} ข้อ
+                You answered {resolvedCorrectAnswers} out of {totalQuestions} correctly
               </Text>
             </View>
 
@@ -416,17 +416,17 @@ const LessonCompleteScreen = ({ navigation, route }) => {
             <View style={styles.statsRow}>
               <StatBadge
                 icon={<FontAwesome6 name="bullseye" size={18} color="#FF7A00" />}
-                label="ความแม่นยำ"
+                label="Accuracy"
                 value={`${calculatedAccuracy}%`}
               />
               <StatBadge
                 icon={<FontAwesome6 name="clock" size={18} color="#4ECDC4" />}
-                label="เวลาที่ใช้"
+                label="Time spent"
                 value={formatTime(timeSpent)}
               />
               <StatBadge
                 icon={<FontAwesome6 name="heart" size={18} color="#FF4F64" />}
-                label="หัวใจคงเหลือ"
+                label="Hearts remaining"
                 value={Number.isFinite(heartsRemaining) ? heartsRemaining : '-'}
               />
             </View>
@@ -434,17 +434,17 @@ const LessonCompleteScreen = ({ navigation, route }) => {
             {/* Rewards Block */}
             {showRewards && (
               <View style={styles.rewardsBlock}>
-                <Text style={styles.sectionTitle}>ของรางวัล</Text>
+                <Text style={styles.sectionTitle}>Rewards</Text>
                 <View style={styles.rewardRow}>
                   <RewardChip
                     icon={<LottieView source={require('../assets/animations/Star.json')} autoPlay loop style={styles.rewardAnimation} />}
-                    label="ประสบการณ์ (XP)"
+                    label="Experience (XP)"
                     value={`+${rewards.xp}`}
                     colors={['#FFF7C2', '#FFE082']}
                   />
                   <RewardChip
                     icon={<LottieView source={require('../assets/animations/Diamond.json')} autoPlay loop style={styles.rewardAnimation} />}
-                    label="เพชร"
+                    label="Diamonds"
                     value={`+${rewards.diamonds}`}
                     colors={['#E0F4FF', '#B0E5FF']}
                   />
@@ -453,7 +453,7 @@ const LessonCompleteScreen = ({ navigation, route }) => {
                   <View style={styles.rewardRow}>
                     <RewardChip
                       icon={<LottieView source={require('../assets/animations/Heart.json')} autoPlay loop style={styles.rewardAnimation} />}
-                      label="หัวใจ"
+                      label="Hearts"
                       value={`+${rewards.hearts}`}
                       colors={['#FFE1E8', '#FFB2C7']}
                     />
@@ -471,8 +471,8 @@ const LessonCompleteScreen = ({ navigation, route }) => {
                   loop={false}
                   style={styles.trophyAnimation}
                 />
-                <Text style={styles.levelUpTitle}>ขึ้นสู่เลเวล {newLevel}</Text>
-                <Text style={styles.levelUpSubtitle}>เก็บ XP ต่อเนื่องเพื่อปลดล็อกของรางวัลพิเศษ!</Text>
+                <Text style={styles.levelUpTitle}>Level up to {newLevel}</Text>
+                <Text style={styles.levelUpSubtitle}>Keep earning XP to unlock special rewards!</Text>
               </View>
             )}
 
@@ -486,12 +486,12 @@ const LessonCompleteScreen = ({ navigation, route }) => {
                   style={styles.unlockAnimation}
                 />
                 <View style={styles.unlockInfo}>
-                  <Text style={styles.unlockTitle}>🎉 ปลดล็อกด่านถัดไป!</Text>
+                  <Text style={styles.unlockTitle}>🎉 Next stage unlocked!</Text>
                   <Text style={styles.unlockText}>
-                    ความแม่นยำ {calculatedAccuracy}% - ผ่านเกณฑ์ 70%
+                    Accuracy {calculatedAccuracy}% - Passed the 70% threshold
                   </Text>
                   <Text style={styles.unlockSubtext}>
-                    ตอนนี้คุณสามารถเล่นด่านต่อไปได้แล้ว
+                    You can now play the next stage
                   </Text>
                 </View>
               </View>
@@ -501,12 +501,12 @@ const LessonCompleteScreen = ({ navigation, route }) => {
               <View style={styles.lockContainer}>
                 <FontAwesome6 name="lock" size={24} color="#999" />
                 <View style={styles.lockInfo}>
-                  <Text style={styles.lockTitle}>ยังไม่ผ่านเกณฑ์</Text>
+                  <Text style={styles.lockTitle}>Not enough accuracy</Text>
                   <Text style={styles.lockText}>
-                    ความแม่นยำ {calculatedAccuracy}% - ต้องได้ 70% ขึ้นไป
+                    Accuracy {calculatedAccuracy}% - Need at least 70%
                   </Text>
                   <Text style={styles.lockSubtext}>
-                    ลองเล่นอีกครั้งเพื่อปลดล็อกด่านถัดไป
+                    Try again to unlock the next stage
                   </Text>
                 </View>
               </View>
@@ -522,7 +522,7 @@ const LessonCompleteScreen = ({ navigation, route }) => {
                   </View>
                   <View style={styles.levelSummaryStats}>
                     <Text style={styles.levelSummaryXP}>{levelSummary.totalXp.toLocaleString('th-TH')} XP</Text>
-                    <Text style={styles.levelSummaryLabel}>XP สะสมทั้งหมด</Text>
+                    <Text style={styles.levelSummaryLabel}>Total XP</Text>
                   </View>
                 </View>
 
@@ -541,14 +541,14 @@ const LessonCompleteScreen = ({ navigation, route }) => {
                     {levelSummary.after.requirement.toLocaleString('th-TH')} XP
                   </Text>
                   <Text style={styles.levelProgressHint}>
-                    เหลือ {levelSummary.after.toNext.toLocaleString('th-TH')} XP ถึง Lv.
+                    {levelSummary.after.toNext.toLocaleString('th-TH')} XP left to next level
                     {levelSummary.after.level + 1}
                   </Text>
                 </View>
 
                 {nextRewards && (
                   <View style={styles.nextRewardsRow}>
-                    <Text style={styles.nextRewardsLabel}>ของขวัญเลเวลถัดไป</Text>
+                    <Text style={styles.nextRewardsLabel}>Next level rewards</Text>
                     <View style={styles.nextRewardsChips}>
                       <View style={[styles.nextRewardChip, styles.nextRewardHeart]}>
                         <LottieView source={require('../assets/animations/Heart.json')} autoPlay loop style={styles.nextRewardIcon} />
@@ -567,7 +567,7 @@ const LessonCompleteScreen = ({ navigation, route }) => {
             {/* Achievements */}
             {achievements.length > 0 && (
               <View style={styles.achievementBlock}>
-                <Text style={styles.sectionTitle}>ความสำเร็จรอบนี้</Text>
+                <Text style={styles.sectionTitle}>Achievements this round</Text>
                 {achievements.map((achievement) => (
                   <View
                     key={achievement.id}
@@ -613,11 +613,11 @@ const LessonCompleteScreen = ({ navigation, route }) => {
               <View style={styles.buttonRow}>
                 <TouchableOpacity style={styles.secondaryButton} onPress={handleStageSelect} activeOpacity={0.85}>
                   <FontAwesome6 name="list-ul" size={18} color="#FF7A00" />
-                  <Text style={styles.secondaryButtonText}>เลือกด่าน</Text>
+                  <Text style={styles.secondaryButtonText}>Choose stage</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.secondaryButton} onPress={handleReplay} activeOpacity={0.85}>
                   <FontAwesome6 name="rotate-right" size={18} color="#FF7A00" />
-                  <Text style={styles.secondaryButtonText}>เล่นอีกครั้ง</Text>
+                  <Text style={styles.secondaryButtonText}>Play again</Text>
                 </TouchableOpacity>
               </View>
             </View>
