@@ -574,12 +574,28 @@ const Advanced1OccupationsGame = ({ navigation, route }) => {
       });
     }
     
+    const computeInstruction = (qType) => {
+      switch (qType) {
+        case QUESTION_TYPES.PICTURE_MATCH:
+          return 'Look at the occupation image and select the matching name';
+        case QUESTION_TYPES.LISTEN_MEANING:
+          return 'Tap the speaker button to listen, then select the correct word';
+        case QUESTION_TYPES.FILL_CONTEXT:
+          return 'Choose the word that fits the context';
+        case QUESTION_TYPES.MATCH_IDIOM_MEANING:
+          return 'Tap to match Thai words ↔ English meanings';
+        case QUESTION_TYPES.LEARN_IDIOM:
+        default:
+          return question.instruction || '';
+      }
+    };
+
     switch (question.type) {
       case QUESTION_TYPES.LEARN_IDIOM:
         return (
           <View style={styles.questionContainer}>
             <View style={styles.questionCard}>
-              <Text style={styles.instruction}>{question.instruction}</Text>
+              <Text style={styles.instruction}>{computeInstruction(question.type)}</Text>
               
               {/* Show image if available */}
               {question.imageKey && (
@@ -653,7 +669,7 @@ const Advanced1OccupationsGame = ({ navigation, route }) => {
         return (
           <View style={styles.questionContainer}>
             <View style={styles.questionCard}>
-              <Text style={styles.instruction}>{question.instruction}</Text>
+              <Text style={styles.instruction}>{computeInstruction(question.type)}</Text>
               <Text style={styles.hintText}>{getHintText(question.type)}</Text>
               
               <View style={styles.imageContainer}>
@@ -693,7 +709,7 @@ const Advanced1OccupationsGame = ({ navigation, route }) => {
         return (
           <View style={styles.questionContainer}>
             <View style={styles.questionCard}>
-              <Text style={styles.instruction}>{question.instruction}</Text>
+              <Text style={styles.instruction}>{computeInstruction(question.type)}</Text>
               {question.instructionEN && (
                 <Text style={[styles.instruction, { fontSize: 14, color: COLORS.gray, marginTop: -8 }]}>
                   {question.instructionEN}
@@ -772,7 +788,7 @@ const Advanced1OccupationsGame = ({ navigation, route }) => {
         
         return (
           <View style={styles.questionContainer}>
-            <Text style={styles.instruction}>{question.instruction}</Text>
+            <Text style={styles.instruction}>{computeInstruction(question.type)}</Text>
             {!!question.questionText && <Text style={styles.questionText}>{question.questionText}</Text>}
             
             <View style={styles.dragMatchContainer}>
@@ -1051,7 +1067,7 @@ const Advanced1OccupationsGame = ({ navigation, route }) => {
           <View style={styles.questionContainer}>
             <View style={styles.questionCard}>
               {!!question?.instruction && (
-                <Text style={styles.instruction}>{question.instruction}</Text>
+                <Text style={styles.instruction}>{computeInstruction(question.type)}</Text>
               )}
               {!!question?.questionText && (
                 <Text style={styles.questionText}>{question.questionText}</Text>

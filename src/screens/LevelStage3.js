@@ -639,10 +639,10 @@ const LevelStage3 = ({ navigation }) => {
               <Text style={styles.badgePillText}>⭐ {xp?.toLocaleString?.('th-TH') || xp || 0} XP</Text>
             </View>
             <View style={[styles.badgePill, { backgroundColor: 'rgba(255, 255, 255, 0.25)', borderColor: '#FF6B6B' }]}>
-              <Text style={styles.badgePillText}>🔥 {streak || 0} วันต่อเนื่อง</Text>
+              <Text style={styles.badgePillText}>🔥 {streak || 0} days streak</Text>
             </View>
             <View style={[styles.badgePill, { backgroundColor: 'rgba(255, 255, 255, 0.25)', borderColor: '#90CAF9' }]}>
-              <Text style={styles.badgePillText}>🎯 เลเวล {level || (userStats?.level || 1)}</Text>
+              <Text style={styles.badgePillText}>🎯 Level {level || (userStats?.level || 1)}</Text>
             </View>
           </View>
         </Animated.View>
@@ -797,11 +797,11 @@ const LevelStage3 = ({ navigation }) => {
               {/* Stage info chips */}
               <View style={styles.stageChipsRow}>
                 <View style={[styles.stageChip, { borderColor: '#CE93D8' }]}>
-                  <Text style={styles.stageChipText}>📈 ความคืบหน้า {Math.round(Math.max(0, Math.min(1, stage.progress || 0)) * 100)}%</Text>
+                  <Text style={styles.stageChipText}>📈 Progress {Math.round(Math.max(0, Math.min(1, stage.progress || 0)) * 100)}%</Text>
                 </View>
                 {Number.isFinite(stage.accuracy) && (
                   <View style={[styles.stageChip, { borderColor: stage.accuracy >= 70 ? '#4CAF50' : '#BA68C8' }]}>
-                    <Text style={styles.stageChipText}>🎯 แม่นยำ {Math.round(stage.accuracy)}%</Text>
+                    <Text style={styles.stageChipText}>🎯 Accuracy {Math.round(stage.accuracy)}%</Text>
                   </View>
                 )}
               </View>
