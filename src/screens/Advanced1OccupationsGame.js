@@ -634,6 +634,12 @@ const Advanced1OccupationsGame = ({ navigation, route }) => {
               <Text style={[styles.questionText, {fontSize: 22, fontWeight: '800', color: COLORS.dark, marginTop: question.imageKey ? 0 : 10}]}>
                 {question.thai}
               </Text>
+              {!!question.meaningEN && (
+                <Text style={[styles.hintText, { marginTop: 2 }]}>{question.meaningEN}</Text>
+              )}
+              {!!question.roman && (
+                <Text style={[styles.hintText, { marginTop: 2, fontStyle: 'italic' }]}>{question.roman}</Text>
+              )}
               <Text style={[styles.hintText, {marginBottom: 10}]}>
                 {getHintText(question.type)}
               </Text>
@@ -713,7 +719,10 @@ const Advanced1OccupationsGame = ({ navigation, route }) => {
                     ]}
                     onPress={() => handleAnswerSelect(choice.text, choice.speakText)}
                   >
-                    <Text style={styles.choiceText}>{choice.text}</Text>
+                    <Text style={styles.choiceThai}>{choice.text}</Text>
+                    {!!choice.roman && (
+                      <Text style={styles.choiceRoman}>{choice.roman}</Text>
+                    )}
                   </TouchableOpacity>
                 ))}
               </View>
@@ -759,7 +768,10 @@ const Advanced1OccupationsGame = ({ navigation, route }) => {
                     ]}
                     onPress={() => handleAnswerSelect(choice.text, choice.speakText)}
                   >
-                    <Text style={styles.choiceText}>{choice.text}</Text>
+                    <Text style={styles.choiceThai}>{choice.text}</Text>
+                    {!!choice.roman && (
+                      <Text style={styles.choiceRoman}>{choice.roman}</Text>
+                    )}
                   </TouchableOpacity>
                 ))}
                 {(!question.choices || question.choices.length === 0) && (
@@ -1609,6 +1621,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: COLORS.dark,
+  },
+  choiceThai: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.dark,
+    textAlign: 'center'
+  },
+  choiceRoman: {
+    fontSize: 12,
+    color: '#888',
+    marginTop: 2,
+    textAlign: 'center'
   },
   dragMatchContainer: {
     flexDirection: 'row',

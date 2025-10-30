@@ -91,6 +91,7 @@ const makeListenMeaning = (item, pool) => {
     choices: choices.map((c, i) => ({
       id: i + 1,
       text: c.thai || '',
+      roman: c.roman || '',
       speakText: c.thai || '', // Add speakText for TTS
       isCorrect: c.id === item.id,
     })),
@@ -112,6 +113,7 @@ const makePictureMatch = (item, pool) => {
     choices: choices.map((c, i) => ({
       id: i + 1,
       text: c.thai || '',
+      roman: c.roman || '',
       speakText: c.thai || '', // Add speakText for TTS
       isCorrect: c.id === item.id,
     })),
@@ -198,6 +200,7 @@ const makeFillContext = (item, pool) => {
     choices: allChoices.map((text, i) => ({
       id: i + 1,
       text,
+      roman: (pool.find(p => p.thai === text) || {}).roman || '',
       speakText: text,
       isCorrect: text === item.thai,
     })),
