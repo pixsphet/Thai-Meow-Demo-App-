@@ -31,7 +31,7 @@ const MinigameScreen = () => {
     {
       id: 'word-finder',
       title: 'Word Finder',
-      description: 'ช่วยแมวน้อยหาคำในตารางตัวอักษร',
+      description: 'Help the cat find words in the letter grid',
       icon: '🔍',
       color: '#8b5cf6',
       gradient: ['#8b5cf6', '#a855f7'],
@@ -42,7 +42,7 @@ const MinigameScreen = () => {
     {
       id: 'word-scramble',
       title: 'Word Scramble',
-      description: 'เรียงตัวอักษรให้เป็นคำที่ถูกต้อง',
+      description: 'Rearrange letters to form correct Thai words',
       icon: '🧩',
       color: '#f59e0b',
       gradient: ['#f59e0b', '#fbbf24'],
@@ -53,7 +53,7 @@ const MinigameScreen = () => {
     {
       id: 'memory-match',
       title: 'Memory Match',
-      description: 'จับคู่คำศัพท์กับรูปภาพ',
+      description: 'Match Thai words with pictures',
       icon: '🧠',
       color: '#10b981',
       gradient: ['#10b981', '#34d399'],
@@ -65,7 +65,7 @@ const MinigameScreen = () => {
     {
       id: 'speed-typing',
       title: 'Speed Typing',
-      description: 'พิมพ์คำศัพท์ให้เร็วที่สุด',
+      description: 'Type Thai words as fast as you can',
       icon: '⚡',
       color: '#ef4444',
       gradient: ['#ef4444', '#f87171'],
@@ -210,7 +210,7 @@ const MinigameScreen = () => {
           {/* Title */}
           <View style={styles.headerTitle}>
             <Text style={styles.headerTitleText}>Mini Games</Text>
-            <Text style={styles.headerSubtitle}>เกมสนุก ๆ สำหรับฝึกภาษาไทย</Text>
+            <Text style={styles.headerSubtitle}>Fun games to practice Thai</Text>
           </View>
 
           {/* Stats */}
@@ -245,9 +245,9 @@ const MinigameScreen = () => {
             loop
             style={styles.welcomeAnimation}
           />
-          <Text style={styles.welcomeTitle}>🎮 ยินดีต้อนรับสู่ Mini Games! 🎮</Text>
+          <Text style={styles.welcomeTitle}>🎮 Welcome to Mini Games! 🎮</Text>
           <Text style={styles.welcomeDescription}>
-            เลือกเกมที่คุณชอบและสนุกไปกับการเรียนรู้ภาษาไทย
+            Choose a game you like and have fun learning Thai.
           </Text>
           <View style={styles.statsRow}>
             <View style={styles.statBadge}>
@@ -267,7 +267,7 @@ const MinigameScreen = () => {
 
         {/* Games List */}
         <View style={styles.gamesSection}>
-          <Text style={styles.sectionTitle}>🎮 เลือกเกมที่คุณชอบ</Text>
+          <Text style={styles.sectionTitle}>🎮 Choose your game</Text>
           
           {minigames.map((game, index) => (
             <GameCard key={game.id} game={game} index={index} />
@@ -276,18 +276,18 @@ const MinigameScreen = () => {
 
         {/* Tips Section */}
         <View style={styles.tipsSection}>
-          <Text style={styles.tipsTitle}>💡 เคล็ดลับ</Text>
+          <Text style={styles.tipsTitle}>💡 Tips</Text>
           <View style={styles.tipItem}>
             <FontAwesome name="lightbulb-o" size={16} color="#f59e0b" />
-            <Text style={styles.tipText}>เล่นเกมทุกวันเพื่อเพิ่มคะแนนและความแม่นยำ</Text>
+            <Text style={styles.tipText}>Play daily to increase points and accuracy</Text>
           </View>
           <View style={styles.tipItem}>
             <FontAwesome name="trophy" size={16} color="#f59e0b" />
-            <Text style={styles.tipText}>ลองเล่นเกมที่ยากขึ้นเพื่อท้าทายตัวเอง</Text>
+            <Text style={styles.tipText}>Try harder games to challenge yourself</Text>
           </View>
           <View style={styles.tipItem}>
             <FontAwesome name="heart" size={16} color="#f59e0b" />
-            <Text style={styles.tipText}>อย่าลืมพักผ่อนเมื่อรู้สึกเหนื่อย</Text>
+            <Text style={styles.tipText}>Take breaks when you feel tired</Text>
           </View>
         </View>
       </ScrollView>
@@ -296,11 +296,11 @@ const MinigameScreen = () => {
       <Modal transparent visible={historyVisible} animationType="fade">
         <View style={styles.modalBackdrop}>
           <View style={styles.historyModal}>
-            <Text style={styles.historyTitle}>ประวัติรางวัลเพชร</Text>
-            <Text style={styles.historyTotal}>รวมทั้งหมด: 💎 {rewardTotal}</Text>
+            <Text style={styles.historyTitle}>Diamonds History</Text>
+            <Text style={styles.historyTotal}>Total: 💎 {rewardTotal}</Text>
             <ScrollView style={{ maxHeight: 280, width: '100%' }}>
               {rewardHistory.length === 0 ? (
-                <Text style={styles.historyEmpty}>ยังไม่มีประวัติ</Text>
+                <Text style={styles.historyEmpty}>No history yet</Text>
               ) : (
                 rewardHistory.map((r, idx) => (
                   <View key={idx} style={styles.historyRow}>
@@ -312,10 +312,10 @@ const MinigameScreen = () => {
             </ScrollView>
             <View style={styles.historyButtons}>
               <TouchableOpacity style={[styles.historyBtn, { backgroundColor: '#10b981' }]} onPress={() => setHistoryVisible(false)}>
-                <Text style={styles.historyBtnText}>ปิด</Text>
+                <Text style={styles.historyBtnText}>Close</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.historyBtn, { backgroundColor: '#ef4444' }]} onPress={async () => { await clearRewardsHistory(); setRewardHistory([]); setRewardTotal(0); }}>
-                <Text style={styles.historyBtnText}>ล้างประวัติ</Text>
+                <Text style={styles.historyBtnText}>Clear</Text>
               </TouchableOpacity>
             </View>
           </View>

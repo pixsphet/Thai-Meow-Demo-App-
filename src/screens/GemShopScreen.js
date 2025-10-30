@@ -50,21 +50,21 @@ const GemShopScreen = () => {
       id: 1,
       hearts: 5,
       gemsNeeded: 10,
-      description: 'แพ็คเล็ก',
+      description: 'Small Pack',
       color: '#FF6B6B',
     },
     {
       id: 2,
       hearts: 15,
       gemsNeeded: 25,
-      description: 'แพ็คกลาง',
+      description: 'Medium Pack',
       color: '#FF8E8E',
     },
     {
       id: 3,
       hearts: 35,
       gemsNeeded: 50,
-      description: 'แพ็คใหญ่',
+      description: 'Large Pack',
       color: '#FFB3BA',
       bestValue: true,
     },
@@ -72,7 +72,7 @@ const GemShopScreen = () => {
       id: 4,
       hearts: 80,
       gemsNeeded: 100,
-      description: 'แพ็คสุดคุ้ม',
+      description: 'Mega Value Pack',
       color: '#FFCCCB',
       bestValue: false,
     },
@@ -103,9 +103,9 @@ const GemShopScreen = () => {
         diamonds: diamonds - pack.gemsNeeded,
         hearts: newHearts 
       });
-      showModal('🎊 สำเร็จ!', `เติมหัวใจ +${gained}`);
+      showModal('🎊 Success!', `Added hearts +${gained}`);
     } else {
-      Alert.alert('⚠️ เพชรไม่พอ', `คุณต้องการเพชร ${pack.gemsNeeded} เม็ด แต่คุณมีแค่ ${diamonds} เม็ด`);
+      Alert.alert('⚠️ Not enough gems', `You need ${pack.gemsNeeded} gems but only have ${diamonds}.`);
     }
   };
 
@@ -157,7 +157,7 @@ const GemShopScreen = () => {
               />
             </View>
             <View>
-              <Text style={styles.statLabel}>เพชร</Text>
+              <Text style={styles.statLabel}>Gems</Text>
               <Text style={styles.statValue}>{statsLoading ? '...' : diamonds}</Text>
             </View>
           </Animated.View>
@@ -178,7 +178,7 @@ const GemShopScreen = () => {
               />
             </View>
             <View>
-              <Text style={styles.statLabel}>หัวใจ</Text>
+              <Text style={styles.statLabel}>Hearts</Text>
               <Text style={styles.statValue}>{statsLoading ? '...' : hearts}</Text>
             </View>
           </Animated.View>
@@ -195,8 +195,8 @@ const GemShopScreen = () => {
             style={styles.welcomeIcon}
           />
         </View>
-        <Text style={styles.welcomeTitle}>ร้านหัวใจ</Text>
-        <Text style={styles.welcomeSubtitle}>แลกเพชรเป็นหัวใจเพื่อเล่นเกมต่อได้!</Text>
+        <Text style={styles.welcomeTitle}>Heart Shop</Text>
+        <Text style={styles.welcomeSubtitle}>Exchange gems for hearts to keep playing!</Text>
       </View>
 
       <ScrollView 
@@ -204,7 +204,7 @@ const GemShopScreen = () => {
         contentContainerStyle={styles.scrollContent}
       >
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>เลือกแพ็คเกจหัวใจ</Text>
+          <Text style={styles.sectionTitle}>Choose a heart pack</Text>
           <View style={styles.heartPacksGrid}>
             {heartPacks.map((pack) => (
               <TouchableOpacity
@@ -219,7 +219,7 @@ const GemShopScreen = () => {
               >
                 {pack.bestValue && (
                   <View style={styles.ribbon}>
-                    <Text style={styles.ribbonText}>⭐ คุ้มสุด</Text>
+                    <Text style={styles.ribbonText}>⭐ Best Value</Text>
                   </View>
                 )}
 
@@ -249,7 +249,7 @@ const GemShopScreen = () => {
                         <Text style={styles.heartMore}>+{pack.hearts - 8}</Text>
                       )}
                     </View>
-                    <Text style={styles.heartAmountText}>{pack.hearts} หัวใจ</Text>
+                    <Text style={styles.heartAmountText}>{pack.hearts} hearts</Text>
                     <View style={styles.diamondPriceContainer}>
                       <LottieView 
                         source={require('../assets/animations/Diamond.json')} 
@@ -257,7 +257,7 @@ const GemShopScreen = () => {
                         loop 
                         style={styles.diamondPriceIcon}
                       />
-                      <Text style={styles.gemsPriceText}>{pack.gemsNeeded} เม็ด</Text>
+                      <Text style={styles.gemsPriceText}>{pack.gemsNeeded} gems</Text>
                     </View>
                   </View>
 
@@ -269,7 +269,7 @@ const GemShopScreen = () => {
                     ]}
                   >
                     <Text style={styles.exchangeButtonText}>
-                      {diamonds >= pack.gemsNeeded ? '✓ แลก' : '✕ ไม่พอ'}
+                      {diamonds >= pack.gemsNeeded ? '✓ Exchange' : '✕ Not enough'}
                     </Text>
                   </View>
                 </View>
@@ -287,11 +287,11 @@ const GemShopScreen = () => {
                 style={styles.tipsLottieIcon}
               />
             </View>
-            <Text style={styles.tipsTitle}>เคล็ดลับการเล่น</Text>
+            <Text style={styles.tipsTitle}>Tips</Text>
             <Text style={styles.tipsText}>
-              • หัวใจใช้เล่นเกมเรียนภาษาไทย{'\n'}
-              • ใช้เพชรแลกหัวใจได้ตลอดเวลา{'\n'}
-              • เลือกแพ็คใหญ่จะคุ้มกว่าค่ะ!
+              • Hearts let you play Thai learning games{'\n'}
+              • You can exchange gems for hearts anytime{'\n'}
+              • Bigger packs give better value
             </Text>
           </View>
         </View>
@@ -325,7 +325,7 @@ const GemShopScreen = () => {
                         style={[styles.modalButton, styles.cancelButton]}
                         onPress={() => setModalVisible(false)}
                         >
-                        <Text style={styles.cancelText}>ยกเลิก</Text>
+                <Text style={styles.cancelText}>Cancel</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                         style={[styles.modalButton, styles.confirmButton]}
@@ -334,7 +334,7 @@ const GemShopScreen = () => {
                             onConfirm();
                         }}
                         >
-                        <Text style={styles.confirmText}>ยืนยัน</Text>
+                <Text style={styles.confirmText}>Confirm</Text>
                         </TouchableOpacity>
                     </>
                     ) : (
@@ -342,7 +342,7 @@ const GemShopScreen = () => {
                         style={[styles.modalButton, styles.confirmButton]}
                         onPress={() => setModalVisible(false)}
                     >
-                        <Text style={styles.confirmText}>ตกลง</Text>
+                        <Text style={styles.confirmText}>OK</Text>
                     </TouchableOpacity>
                     )}
                 </View>
