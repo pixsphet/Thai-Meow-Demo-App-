@@ -219,7 +219,7 @@ const SpeedTypingScreen = () => {
           
           <View style={styles.headerTitle}>
             <Text style={styles.headerTitleText}>⚡ Speed Typing ⚡</Text>
-            <Text style={styles.headerSubtitle}>พิมพ์คำศัพท์ให้เร็วที่สุด</Text>
+            <Text style={styles.headerSubtitle}>Type Thai words as fast as you can</Text>
           </View>
           
           <View style={styles.headerStats}>
@@ -242,21 +242,21 @@ const SpeedTypingScreen = () => {
       >
         {/* Current Word Display */}
         <Animated.View style={[styles.wordCard, { transform: [{ translateX: successAnim }] }]}>
-          <Text style={styles.wordLabel}>คำที่ต้องพิมพ์:</Text>
+          <Text style={styles.wordLabel}>Word to type:</Text>
           <Text style={styles.targetWord}>{currentWord.word}</Text>
           <Text style={styles.wordHint}>💡 {currentWord.hint}</Text>
         </Animated.View>
 
         {/* Input Area */}
         <View style={styles.inputWrapper}>
-          <Text style={styles.inputLabel}>พิมพ์คำตอบ:</Text>
+          <Text style={styles.inputLabel}>Type your answer:</Text>
           <TextInput
             ref={inputRef}
             style={getInputStyle()}
             value={userInput}
             onChangeText={handleInputChange}
             onSubmitEditing={checkAnswer}
-            placeholder="พิมพ์ที่นี่..."
+            placeholder="Type here..."
             autoFocus
             autoCorrect={false}
             autoCapitalize="none"
@@ -267,7 +267,7 @@ const SpeedTypingScreen = () => {
         {/* Progress Bar */}
         <View style={styles.progressContainer}>
           <Text style={styles.progressText}>
-            คำที่ทำได้: {correctCount} / {totalWords}
+            Words completed: {correctCount} / {totalWords}
           </Text>
           <View style={styles.progressBar}>
             <View 
@@ -288,11 +288,11 @@ const SpeedTypingScreen = () => {
 
         {/* Instructions */}
         <View style={styles.instructionsCard}>
-          <Text style={styles.instructionsTitle}>💡 วิธีเล่น</Text>
+          <Text style={styles.instructionsTitle}>💡 How to play</Text>
           <Text style={styles.instructionsText}>
-            • พิมพ์คำที่แสดงให้ถูกต้อง{'\n'}
-            • พิมพ์ให้เร็วที่สุดเพื่อได้คะแนนสูง{'\n'}
-            • ทำต่อเนื่องเพื่อได้คอมโบ!
+            • Type the shown Thai word correctly{'\n'}
+            • Type fast to earn more points{'\n'}
+            • Keep streaks for combo bonus!
           </Text>
         </View>
       </ScrollView>
@@ -307,23 +307,23 @@ const SpeedTypingScreen = () => {
               loop={false}
               style={styles.trophyAnimation}
             />
-            <Text style={styles.modalTitle}>⚡ เกมจบแล้ว!</Text>
+            <Text style={styles.modalTitle}>⚡ Game Over!</Text>
             
             <View style={styles.resultsCard}>
               <View style={styles.resultRow}>
-                <Text style={styles.resultLabel}>คะแนนรวม:</Text>
+                <Text style={styles.resultLabel}>Total score:</Text>
                 <Text style={styles.resultValue}>{score}</Text>
               </View>
               <View style={styles.resultRow}>
-                <Text style={styles.resultLabel}>คำถูก:</Text>
+                <Text style={styles.resultLabel}>Correct words:</Text>
                 <Text style={styles.resultValue}>{correctCount}/{totalWords}</Text>
               </View>
               <View style={styles.resultRow}>
-                <Text style={styles.resultLabel}>ความแม่นยำ:</Text>
+                <Text style={styles.resultLabel}>Accuracy:</Text>
                 <Text style={styles.resultValue}>{accuracy}%</Text>
               </View>
               <View style={styles.resultRow}>
-                <Text style={styles.resultLabel}>คอมโบสูงสุด:</Text>
+                <Text style={styles.resultLabel}>Max combo:</Text>
                 <Text style={styles.resultValue}>🔥 x{maxCombo}</Text>
               </View>
               <View style={styles.resultRow}>
@@ -336,7 +336,7 @@ const SpeedTypingScreen = () => {
                 <View style={[styles.resultsCard, { marginTop: 6, alignItems: 'center' }]}> 
                   <LottieView source={require('../assets/animations/Diamond.json')} autoPlay loop style={{ width: 36, height: 36 }} />
                   <View style={[styles.resultRow, { width: '100%' }]}>
-                    <Text style={styles.resultLabel}>รางวัลเพชร:</Text>
+                    <Text style={styles.resultLabel}>Diamond reward:</Text>
                     <Text style={styles.resultValue}>+{rewardInfo.diamonds}</Text>
                   </View>
                 </View>
@@ -379,7 +379,7 @@ const SpeedTypingScreen = () => {
                 }}
               >
                 <FontAwesome name="refresh" size={18} color="#fff" />
-                <Text style={styles.buttonText}>เล่นอีกครั้ง</Text>
+                <Text style={styles.buttonText}>Play again</Text>
               </TouchableOpacity>
               <TouchableOpacity 
                 style={[styles.modalButton, { backgroundColor: '#667eea' }]}
@@ -417,7 +417,7 @@ const SpeedTypingScreen = () => {
                 }}
               >
                 <FontAwesome name="home" size={18} color="#fff" />
-                <Text style={styles.buttonText}>กลับเมนู</Text>
+                <Text style={styles.buttonText}>Back to menu</Text>
               </TouchableOpacity>
             </View>
           </Animated.View>

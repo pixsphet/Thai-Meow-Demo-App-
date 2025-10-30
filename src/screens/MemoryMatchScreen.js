@@ -322,7 +322,7 @@ const MemoryMatchScreen = ({ route }) => {
               style={styles.memoryMatchAnim} 
             />
             <Text style={styles.headerTitleText}>Memory Match</Text>
-            <Text style={styles.headerSubtitle}>จับคู่คำศัพท์กับรูปภาพ</Text>
+            <Text style={styles.headerSubtitle}>Match Thai words with pictures</Text>
           </View>
           
           <View style={styles.headerStats}>
@@ -356,7 +356,7 @@ const MemoryMatchScreen = ({ route }) => {
         {/* Progress */}
         <View style={styles.progressContainer}>
           <Text style={styles.progressText}>
-            จับคู่แล้ว: {matchedCards.length / 2} / {gameData.length} คู่
+            Matched: {matchedCards.length / 2} / {gameData.length} pairs
           </Text>
           <View style={styles.progressBar}>
             <View 
@@ -389,7 +389,7 @@ const MemoryMatchScreen = ({ route }) => {
 
         {/* Hearts Display */}
         <View style={styles.heartsContainer}>
-          <Text style={styles.heartsLabel}>ชีวิต:</Text>
+          <Text style={styles.heartsLabel}>Lives:</Text>
           <View style={styles.heartsRow}>
             {Array.from({ length: 5 }).map((_, index) => (
               <View key={index} style={styles.heartContainer}>
@@ -411,11 +411,11 @@ const MemoryMatchScreen = ({ route }) => {
         <View style={styles.statusCard}>
           <View style={styles.statusRow}>
             <View style={styles.statusItem}>
-              <Text style={styles.statusLabel}>การ์ดที่เหลือ:</Text>
+              <Text style={styles.statusLabel}>Cards left:</Text>
               <Text style={styles.statusValue}>{16 - matchedCards.length}</Text>
             </View>
             <View style={styles.statusItem}>
-              <Text style={styles.statusLabel}>ความแม่นยำ:</Text>
+              <Text style={styles.statusLabel}>Accuracy:</Text>
               <Text style={styles.statusValue}>
                 {matchedCards.length > 0 ? Math.round((matchedCards.length / 2) / ((matchedCards.length / 2) + mismatchCount) * 100) : 0}%
               </Text>
@@ -425,11 +425,11 @@ const MemoryMatchScreen = ({ route }) => {
 
         {/* Instructions */}
         <View style={styles.instructionsCard}>
-          <Text style={styles.instructionsTitle}>💡 วิธีเล่น</Text>
+          <Text style={styles.instructionsTitle}>💡 How to play</Text>
           <Text style={styles.instructionsText}>
-            • กดเลือกการ์ด 2 ใบเพื่อจับคู่{'\n'}
-            • จับคู่คำไทยกับรูปภาพที่ตรงกัน{'\n'}
-            • ใช้เวลาให้คุ้มค่าและจับคู่ให้ครบทุกคู่!
+            • Tap 2 cards to make a pair{'\n'}
+            • Match Thai word with its picture{'\n'}
+            • Beat the timer and match all pairs!
           </Text>
         </View>
       </ScrollView>
@@ -445,23 +445,23 @@ const MemoryMatchScreen = ({ route }) => {
               style={styles.resultAnimation}
             />
             <Text style={styles.modalTitle}>
-              {isWin ? "🎉 ยอดเยี่ยม!" : "⏱️ หมดเวลา!"}
+              {isWin ? "🎉 Great!" : "⏱️ Time's up!"}
             </Text>
             <Text style={styles.modalSubtitle}>
-              {isWin ? "คุณจับคู่ได้ครบทุกคู่แล้ว!" : "ลองใหม่อีกครั้งนะ!"}
+              {isWin ? "You matched all pairs!" : "Try again!"}
             </Text>
             
             <View style={styles.statsCard}>
               <View style={styles.statRow}>
-                <Text style={styles.statLabel}>คะแนน:</Text>
+                <Text style={styles.statLabel}>Score:</Text>
                 <Text style={styles.statValue}>{score}</Text>
               </View>
               <View style={styles.statRow}>
-                <Text style={styles.statLabel}>เวลาที่ใช้:</Text>
+                <Text style={styles.statLabel}>Time used:</Text>
                 <Text style={styles.statValue}>{formatTime(120 - timeLeft)}</Text>
               </View>
               <View style={styles.statRow}>
-                <Text style={styles.statLabel}>คู่ที่จับได้:</Text>
+                <Text style={styles.statLabel}>Pairs matched:</Text>
                 <Text style={styles.statValue}>{matchedCards.length / 2} / {gameData.length}</Text>
               </View>
             </View>
@@ -476,7 +476,7 @@ const MemoryMatchScreen = ({ route }) => {
                     style={{ width: 36, height: 36 }} 
                   />
                   <View style={[styles.statRow, { width: '100%' }]}>
-                    <Text style={styles.statLabel}>รางวัลเพชร:</Text>
+                    <Text style={styles.statLabel}>Diamond reward:</Text>
                     <Text style={styles.statValue}>+{rewardInfo.diamonds}</Text>
                   </View>
                 </View>
@@ -519,7 +519,7 @@ const MemoryMatchScreen = ({ route }) => {
                 }}
               >
                 <FontAwesome name="refresh" size={18} color="#fff" />
-                <Text style={styles.buttonText}>เล่นอีกครั้ง</Text>
+                <Text style={styles.buttonText}>Play again</Text>
               </TouchableOpacity>
               <TouchableOpacity 
                 style={[styles.modalButton, { backgroundColor: '#667eea' }]}
@@ -557,7 +557,7 @@ const MemoryMatchScreen = ({ route }) => {
                 }}
               >
                 <FontAwesome name="home" size={18} color="#fff" />
-                <Text style={styles.buttonText}>กลับเมนู</Text>
+                <Text style={styles.buttonText}>Back to menu</Text>
               </TouchableOpacity>
             </View>
           </Animated.View>

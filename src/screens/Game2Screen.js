@@ -194,12 +194,12 @@ const Game2Screen = ({ route }) => {
         </TouchableOpacity>
 
         {/* หัวข้อ */}
-        <Text style={styles.title}>ช่วยแมวน้อยเรียงคำ</Text>
+        <Text style={styles.title}>Help the cat unscramble</Text>
 
         {/* 🏆 กล่องคะแนน (อยู่ใต้หัวข้อ ตรงกลาง) */}
         <View style={styles.scoreContainer}>
           <Text style={styles.scoreIcon}>🏆</Text>
-          <Text style={styles.scoreText}>คะแนน: {score}</Text>
+          <Text style={styles.scoreText}>Score: {score}</Text>
         </View>
 
         {/* รูปภาพ */}
@@ -213,7 +213,7 @@ const Game2Screen = ({ route }) => {
 
         {/* กล่องคำตอบ */}
         <View style={styles.answerWrapper}>
-          <Text style={styles.answerLabel}>คำตอบของคุณ</Text>
+          <Text style={styles.answerLabel}>Your answer</Text>
           <View style={styles.answerContainer}>
             {splitWord.map((_, index) => (
               <Animated.View key={index} style={[styles.answerBox, { transform: [{ scale: scaleAnim }] }]}>
@@ -225,7 +225,7 @@ const Game2Screen = ({ route }) => {
 
         {/* ตัวอักษรให้เลือก */}
         <View style={styles.lettersWrapper}>
-          <Text style={styles.lettersLabel}>เลือกตัวอักษร:</Text>
+          <Text style={styles.lettersLabel}>Pick letters:</Text>
           <View style={styles.lettersContainer}>
             {shuffledLetters.map((letter, index) => (
               <TouchableOpacity
@@ -246,11 +246,11 @@ const Game2Screen = ({ route }) => {
         <View style={styles.controlContainer}>
           <TouchableOpacity style={[styles.controlButton, styles.deleteButton]} onPress={handleDelete}>
             <FontAwesome name="trash" size={20} color="#fff" />
-            <Text style={styles.controlText}>ลบ</Text>
+            <Text style={styles.controlText}>Clear</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.controlButton, styles.checkButton]} onPress={checkAnswer}>
             <FontAwesome name="check" size={20} color="#fff" />
-            <Text style={styles.controlText}>ตรวจ</Text>
+            <Text style={styles.controlText}>Check</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -265,7 +265,7 @@ const Game2Screen = ({ route }) => {
             ]}
           >
             <Text style={styles.modalEmoji}>{isCorrect ? "🎉" : "😿"}</Text>
-            <Text style={styles.modalTitle}>{isCorrect ? "เก่งมาก! ถูกต้องแล้ว!" : "ยังไม่ถูก ลองอีกทีนะ!"}</Text>
+            <Text style={styles.modalTitle}>{isCorrect ? "Great job! Correct!" : "Not yet, try again!"}</Text>
             <Text style={styles.modalWord}>
               {isCorrect ? `คำตอบคือ "${currentLevel.word}"` : `ดูคำใบ้อีกครั้งสิ 😺`}
             </Text>
@@ -311,10 +311,10 @@ const Game2Screen = ({ route }) => {
               {isCorrect && rewardInfo ? (
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                   <LottieView source={require('../assets/animations/Diamond.json')} autoPlay loop style={{ width: 24, height: 24, marginRight: 6 }} />
-                  <Text style={styles.modalButtonText}>+{rewardInfo.diamonds} ด่านต่อไป 🚀</Text>
+                  <Text style={styles.modalButtonText}>+{rewardInfo.diamonds} Next level 🚀</Text>
                 </View>
               ) : (
-                <Text style={styles.modalButtonText}>{isCorrect ? 'ด่านต่อไป 🚀' : 'ลองอีกครั้ง 💪'}</Text>
+                <Text style={styles.modalButtonText}>{isCorrect ? 'Next level 🚀' : 'Try again 💪'}</Text>
               )}
             </TouchableOpacity>
           </Animated.View>

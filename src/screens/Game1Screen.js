@@ -274,7 +274,7 @@ const Game1Screen = () => {
           Math.sign(dirColDiff) === Math.sign(currentDirColDiff);
 
         if (!sameDirection) {
-          setMessage("⚠️ ต้องเลือกในทิศทางเดียวกัน");
+          setMessage("⚠️ Keep the same direction");
           setTimeout(() => setMessage(""), 1500);
           return;
         }
@@ -282,7 +282,7 @@ const Game1Screen = () => {
 
       if (!isContinuous) {
         setSelectedCells([{ row: rowIndex, col: colIndex, key: cellKey }]);
-        setMessage("💡 เริ่มคำใหม่: การเลือกต้องต่อเนื่องกัน");
+        setMessage("💡 New word: selections must be continuous");
         setTimeout(() => setMessage(""), 1500);
         return;
       }
@@ -308,7 +308,7 @@ const Game1Screen = () => {
 
       setFoundWords(newFoundWords);
       setScore(score + 100);
-      setMessage(` ถูกต้อง! พบคำว่า "${matchedWord.word}" (+100 คะแนน)`);
+      setMessage(` Correct! Found "${matchedWord.word}" (+100 pts)`);
       setSelectedCells([]);
 
       if (newFoundWords.length === currentLevel.words.length) {
@@ -325,7 +325,7 @@ const Game1Screen = () => {
         }, 3000); // แสดงอนิเมชัน 3 วิ ก่อนแสดง popup หรือไปด่านต่อไป
       }
     } else if (cells.length > 12) {
-      setMessage("❌ ไม่ถูกต้อง ลองใหม่อีกครั้ง");
+      setMessage("❌ Not correct, try again");
       setAttempts(attempts + 1);
       setSelectedCells([]);
       setTimeout(() => setMessage(""), 1500);
@@ -394,14 +394,14 @@ const Game1Screen = () => {
           </View>
 
           <Text style={styles.subtitle}>
-            กดเลือกตัวอักษรตามลำดับเพื่อสร้างคำ
+            Tap letters in order to form the Thai word
           </Text>
 
           <View style={styles.statsContainer}>
             <Text style={styles.progress}>
-              พบแล้ว: {foundWords.length}/{currentLevel.words.length} คำ
+              Found: {foundWords.length}/{currentLevel.words.length} words
             </Text>
-            <Text style={styles.score}>🏆 {score} คะแนน</Text>
+            <Text style={styles.score}>🏆 {score} points</Text>
           </View>
         </View>
 
@@ -465,7 +465,7 @@ const Game1Screen = () => {
 
         {selectedCells.length > 0 && (
           <View style={styles.selectedWordContainer}>
-            <Text style={styles.selectedWordLabel}>คำที่เลือก:</Text>
+            <Text style={styles.selectedWordLabel}>Selected:</Text>
             <Text style={styles.selectedWord}>
               {selectedCells.map((cell) => grid[cell.row][cell.col]).join("")}
             </Text>
@@ -476,7 +476,7 @@ const Game1Screen = () => {
         )}
 
         <View style={styles.hintContainer}>
-          <Text style={styles.hintTitle}>📝 คำใบ้:</Text>
+          <Text style={styles.hintTitle}>📝 Hints:</Text>
           {currentLevel.words.map((item) => {
             const isFound = foundWords.includes(item.id);
             const splitWordLength = splitThaiWordForGrid(item.word).length;
@@ -530,9 +530,9 @@ const Game1Screen = () => {
       {showEndPopup && (
         <View style={styles.endPopupOverlay}>
           <View style={styles.endPopupBox}>
-            <Text style={styles.endPopupTitle}>🎉 สุดยอดมาก! 🎉</Text>
-            <Text style={styles.endPopupText}>คุณผ่านทุกด่านแล้ว!</Text>
-            <Text style={styles.endPopupScore}>คะแนนรวม: {score} คะแนน</Text>
+            <Text style={styles.endPopupTitle}>🎉 Awesome! 🎉</Text>
+            <Text style={styles.endPopupText}>You completed all levels!</Text>
+            <Text style={styles.endPopupScore}>Total score: {score} pts</Text>
 
             <View style={styles.popupButtonRow}>
               {/* ปุ่ม เริ่มใหม่ */}
@@ -553,7 +553,7 @@ const Game1Screen = () => {
                   setWordLocations(findWordCells(newGrid, MOCK_LEVELS[0].words));
                 }}
               >
-                <Text style={styles.popupButtonText}>เริ่มใหม่</Text>
+                <Text style={styles.popupButtonText}>Restart</Text>
               </TouchableOpacity>
 
               {/* ปุ่ม ออกเกม */}
@@ -568,7 +568,7 @@ const Game1Screen = () => {
                     });
                 }}
               >
-                <Text style={styles.popupButtonText}>ออกเกม</Text>
+                <Text style={styles.popupButtonText}>Exit</Text>
               </TouchableOpacity>
             </View>
           </View>
