@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # MongoDB Database (Development)
+  mongodb:
+    image: mongo:7.0
+    container_name: thai-meow-mongodb-dev
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+      MONGO_INITDB_DATABASE: thai-meow
+    volumes:
+      - mongodb_data_dev:/data/db
+      - mongodb_config_dev:/data/configdb
+    networks:
+      - thai-meow-network-dev
+
+  # Backend API Server (Development with hot reload)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: thai-meow-backend-dev
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - MONGODB_URI=mongodb://admin:admin123@mongodb:27017/thai-meow?authSource=admin
+      - JWT_SECRET=dev-secret-key-change-in-production
+      - CORS_ORIGINS=http://localhost:3000,http://localhost:19006,http://localhost:19000,http://localhost:8081
+      - VAJAX_API_KEY=${VAJAX_API_KEY:-}
+      - VAJAX_SPEAKER=nana
+      - VAJAX_STYLE=nana
+      - VAJAX_SPEED=1.0
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - ./backend/logs:/app/logs
+    depends_on:
+      - mongodb
+    networks:
+      - thai-meow-network-dev
+    command: npm run dev
+
+volumes:
+  mongodb_data_dev:
+    driver: local
+  mongodb_config_dev:
+    driver: local
+
+networks:
+  thai-meow-network-dev:
+    driver: bridge

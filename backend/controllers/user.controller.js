@@ -190,7 +190,16 @@ exports.updateUserProfile = async (req, res, next) => {
 // ✅ GET /api/user/stats - Get current user stats (from JWT)
 exports.getCurrentUserStats = async (req, res, next) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user?.id;
+    
+    // Check if user is authenticated
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(401).json({
+        success: false,
+        error: 'Unauthorized - Please log in to view stats',
+      });
+    }
+    
     const stats = await getUserStatsSnapshot(userId);
 
     if (!stats) {
@@ -213,7 +222,16 @@ exports.getCurrentUserStats = async (req, res, next) => {
 // ✅ POST /api/user/stats - Update current user stats (from JWT)
 exports.updateCurrentUserStats = async (req, res, next) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user?.id;
+    
+    // Check if user is authenticated
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(401).json({
+        success: false,
+        error: 'Unauthorized - Please log in to update stats',
+      });
+    }
+    
     const payload =
       (req.body && typeof req.body === 'object' && req.body.stats && typeof req.body.stats === 'object')
         ? req.body.stats

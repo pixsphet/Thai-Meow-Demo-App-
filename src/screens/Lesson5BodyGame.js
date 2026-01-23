@@ -304,16 +304,31 @@ const Lesson5BodyGame = ({ navigation, route }) => {
   useEffect(() => {
     const loadBodyParts = async () => {
       try {
-        const normalizedBodyParts = bodyFallback.map(normalizeBody);
+        const normalizedBodyParts = (bodyFallback || []).map(normalizeBody).filter(b => b && b.char);
         setBodyParts(normalizedBodyParts);
         
-        const generatedQuestions = generateBodyQuestions(normalizedBodyParts);
-        setQuestions(generatedQuestions);
+        if (normalizedBodyParts.length === 0) {
+          console.warn('No body parts data available');
+          setLoading(false);
+          return;
+        }
         
+        const generatedQuestions = generateBodyQuestions(normalizedBodyParts);
+        
+        if (generatedQuestions.length === 0) {
+          console.error('Failed to generate questions from body parts');
+          setLoading(false);
+          Alert.alert('Error', 'Unable to generate questions. Please try again.');
+          return;
+        }
+        
+        // Try to restore progress
         const savedProgress = await restoreProgress(lessonId);
-        if (savedProgress && savedProgress.questionsSnapshot) {
-          setResumeData(savedProgress);
-          setCurrentIndex(savedProgress.currentIndex || 0);
+        if (savedProgress && savedProgress.questionsSnapshot && savedProgress.questionsSnapshot.length > 0) {
+          // Restore from saved progress
+          const sanitizedSnapshot = (savedProgress.questionsSnapshot || []).filter(q => q && q.type);
+          setResumeData({ ...savedProgress, questionsSnapshot: sanitizedSnapshot });
+          setCurrentIndex(Math.min(savedProgress.currentIndex || 0, Math.max(sanitizedSnapshot.length - 1, 0)));
           if (savedProgress.hearts !== undefined) {
             setHearts(savedProgress.hearts);
           }
@@ -324,6 +339,16 @@ const Lesson5BodyGame = ({ navigation, route }) => {
           setDiamondsEarned(savedProgress.diamondsEarned || 0);
           setAnswers(savedProgress.answers || {});
           answersRef.current = savedProgress.answers || {};
+
+          if (sanitizedSnapshot.length > 0) {
+            setQuestions(sanitizedSnapshot);
+          } else {
+            // If saved questions are invalid, use generated ones
+            setQuestions(generatedQuestions);
+          }
+        } else {
+          // No saved progress, use generated questions
+          setQuestions(generatedQuestions);
         }
         
         setLoading(false);
@@ -437,6 +462,8 @@ const Lesson5BodyGame = ({ navigation, route }) => {
     if (currentAnswer === null) return;
 
     const currentQuestion = questions[currentIndex];
+    if (!currentQuestion) return;
+    
     const isCorrect = checkAnswer(currentQuestion, currentAnswer);
 
     console.debug(`[Answer Check] Q${currentIndex + 1}: ${isCorrect ? '✓ CORRECT' : '✗ WRONG'}`, {
@@ -506,6 +533,10 @@ const Lesson5BodyGame = ({ navigation, route }) => {
   
   // Start game
   const startGame = () => {
+    if (questions.length === 0) {
+      Alert.alert('Error', 'No questions available. Please try again.');
+      return;
+    }
     setGameStarted(true);
     setGameFinished(false);
     gameFinishedRef.current = false;
@@ -514,6 +545,10 @@ const Lesson5BodyGame = ({ navigation, route }) => {
   
   // Resume game
   const resumeGame = () => {
+    if (questions.length === 0) {
+      Alert.alert('Error', 'No questions available. Please start a new game.');
+      return;
+    }
     setGameStarted(true);
     setGameFinished(false);
     gameFinishedRef.current = false;
@@ -657,6 +692,7 @@ const Lesson5BodyGame = ({ navigation, route }) => {
     if (questions.length === 0 || currentIndex >= questions.length) return null;
     
     const question = questions[currentIndex];
+    if (!question || !question.type) return null;
     
     switch (question.type) {
       case QUESTION_TYPES.LISTEN_CHOOSE:
@@ -905,6 +941,16 @@ const Lesson5BodyGame = ({ navigation, route }) => {
   }
   
   const currentQuestion = questions[currentIndex];
+  if (!currentQuestion || questions.length === 0) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading question...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+  
   const progress = ((currentIndex + 1) / questions.length) * 100;
   
   return (
@@ -942,7 +988,9 @@ const Lesson5BodyGame = ({ navigation, route }) => {
             </View>
             <View style={styles.headerMetaRow}>
               <Text style={styles.progressText}>{currentIndex + 1} / {questions.length}</Text>
-              <View style={styles.typePill}><Text style={styles.typePillText}>{getTypeLabel(currentQuestion.type)}</Text></View>
+              {currentQuestion && (
+                <View style={styles.typePill}><Text style={styles.typePillText}>{getTypeLabel(currentQuestion.type)}</Text></View>
+              )}
               <View style={styles.heartsDisplayContainer}>
                 <LottieView
                   source={require('../assets/animations/Heart.json')}

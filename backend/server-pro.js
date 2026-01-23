@@ -1,7 +1,3 @@
-// ================================================
-// 🐱 Thai-Meow Backend Server.js (FULL PRO VERSION)
-// ================================================
-
 require('dotenv').config({ path: './config.env' });
 const express = require('express');
 const mongoose = require('mongoose');
@@ -14,15 +10,9 @@ const path = require('path');
 
 const app = express();
 
-// ==============================
-// 🧩 Middleware
-// ==============================
 app.use(cors());
 app.use(express.json());
 
-// ==============================
-// 📜 HTTP Request Logger (Morgan)
-// ==============================
 const logFormat =
   chalk.gray('[:date[iso]]') + ' ' +
   chalk.cyan(':method') + ' ' +
@@ -38,9 +28,6 @@ const accessLogStream = fs.createWriteStream(
 app.use(morgan(logFormat));
 app.use(morgan('combined', { stream: accessLogStream }));
 
-// ==============================
-// 🧠 Database Connection
-// ==============================
 const mongoURI = process.env.MONGODB_URI;
 const dbName = mongoURI?.split('/').pop()?.split('?')[0] || 'UnknownDB';
 
@@ -61,9 +48,6 @@ mongoose.connection.on('error', (err) => {
   process.exit(1);
 });
 
-// ==============================
-// 🧩 Routes
-// ==============================
 const userRoutes = require('./routes/user.routes');
 const authRoutes = require('./routes/auth');
 const vocabRoutes = require('./routes/vocabRoutes');
@@ -80,14 +64,13 @@ app.use('/api/user', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/vocab', vocabRoutes);
 app.use('/api/lessons', lessonsRoutes);
-app.use('/api/progress', progressRoutes); // Legacy routes (no auth)
-app.use('/api/progress/user', auth, progressPerUserRoutes); // Per-user progress routes (with auth)
+app.use('/api/progress', progressRoutes);
+app.use('/api/progress/user', auth, progressPerUserRoutes);
 app.use('/api/game-results', gameResultRoutes);
 app.use('/api', lesson3Routes);
 app.use('/api/tts', ttsRoutes);
 app.use('/api/game-vocab', gameVocabRoutes);
 
-// Health Check Endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     success: true,
@@ -97,8 +80,6 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-
-// หน้าหลัก (สำหรับทดสอบ)
 app.get('/', (req, res) => {
   res.status(200).json({
     status: 'OK',
@@ -107,7 +88,6 @@ app.get('/', (req, res) => {
   });
 });
 
-// 404 Not Found Handler
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -116,16 +96,12 @@ app.use((req, res) => {
   });
 });
 
-// ⚠️ Error Handler (Global)
 app.use((err, req, res, next) => {
   const time = moment().format('YYYY-MM-DD HH:mm:ss');
   console.error(chalk.red.bold(`\n❌ [${time}] ERROR:`), chalk.yellow(err.message));
   res.status(500).json({ success: false, message: err.message });
 });
 
-// ==============================
-// 🚀 Dynamic Port Handling
-// ==============================
 const DEFAULT_PORT = Number(process.env.PORT) || 3000;
 
 function startServer(port) {
@@ -148,7 +124,4 @@ function startServer(port) {
   });
 }
 
-// ==============================
-// 🏁 Start Server
-// ==============================
 startServer(DEFAULT_PORT);

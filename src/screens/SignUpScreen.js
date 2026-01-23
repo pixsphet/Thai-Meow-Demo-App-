@@ -221,7 +221,7 @@ const SignUpScreen = ({ navigation }) => {
     return;
   }
   if (!petName.trim()) {
-    showAlert("แจ้งเตือน", "กรุณากรอกชื่อสัตว์เลี้ยง");
+    showAlert("Warning", "Please enter your pet name");
     return;
   }
   if (!agree) {
@@ -252,7 +252,7 @@ const SignUpScreen = ({ navigation }) => {
       } else if (result.error && result.error.includes("ชื่อผู้ใช้นี้มีผู้ใช้งานแล้ว")) {
         errorMessage = "This username is already taken. Please choose another";
       } else if (result.error && result.error.includes("ชื่อสัตว์เลี้ยงนี้มีผู้ใช้งานแล้ว")) {
-        errorMessage = "ชื่อสัตว์เลี้ยงนี้มีผู้ใช้งานแล้ว กรุณาเลือกชื่ออื่น";
+        errorMessage = "This pet name is already in use. Please choose another";
       } else if (result.error && result.error.includes("กรุณากรอกข้อมูลให้ครบถ้วน")) {
         errorMessage = "กรุณากรอกข้อมูลให้ครบถ้วน";
       } else if (result.error && result.error.includes("ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้")) {
@@ -273,7 +273,7 @@ const SignUpScreen = ({ navigation }) => {
     } else if (error.message.includes("ชื่อผู้ใช้นี้มีผู้ใช้งานแล้ว")) {
       errorMessage = "This username is already taken. Please choose another";
     } else if (error.message.includes("ชื่อสัตว์เลี้ยงนี้มีผู้ใช้งานแล้ว")) {
-      errorMessage = "ชื่อสัตว์เลี้ยงนี้มีผู้ใช้งานแล้ว กรุณาเลือกชื่ออื่น";
+      errorMessage = "This pet name is already in use. Please choose another";
     } else if (error.message.includes("กรุณากรอกข้อมูลให้ครบถ้วน")) {
       errorMessage = "กรุณากรอกข้อมูลให้ครบถ้วน";
     } else if (error.message.includes("ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้")) {
@@ -434,7 +434,7 @@ const SignUpScreen = ({ navigation }) => {
             </View>
 
             <TextInput
-              label="ชื่อสัตว์เลี้ยง (จำเป็น)"
+              label="Pet Name (required)"
               value={petName}
               onChangeText={setPetName}
               mode="outlined"
@@ -448,8 +448,8 @@ const SignUpScreen = ({ navigation }) => {
               }
               style={[styles.textInput, { backgroundColor: theme.colors.background }]}
               theme={inputTheme(theme)}
-              placeholder="เช่น มะลิ, โบโบ้"
-              helperText="⚠️ จำเป็น: ใช้ยืนยันตัวตนเมื่อลืมรหัสผ่าน"
+              placeholder="e.g., Mali, Bobo"
+              helperText="⚠️ Required: Used for identity verification if you forget your password"
               helperTextMode="on-focus"
             />
           </View>

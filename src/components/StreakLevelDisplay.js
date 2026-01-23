@@ -38,7 +38,7 @@ const StreakLevelDisplay = () => {
   if (statsLoading && !stats) {
     return (
       <View style={styles.loadingCard}>
-        <Text style={styles.loadingText}>กำลังดึงสถานะเลเวล...</Text>
+        <Text style={styles.loadingText}>Loading level status...</Text>
       </View>
     );
   }
@@ -105,9 +105,9 @@ const StreakLevelDisplay = () => {
         : null);
 
     if (mappedName) {
-      return `เลเวลถัดไป: Lv.${nextLevelNumber} - ${mappedName}`;
+      return `Next Level: Lv.${nextLevelNumber} - ${mappedName}`;
     }
-    return `เลเวลถัดไป Lv.${nextLevelNumber}`;
+    return `Next Level Lv.${nextLevelNumber}`;
   }, [nextLevelInfo, nextLevelNumber]);
 
   const xpLabel = `${xpProgress.withinClamped.toLocaleString('th-TH')} / ${xpProgress.requirement.toLocaleString('th-TH')} XP`;
@@ -155,7 +155,7 @@ const StreakLevelDisplay = () => {
               </View>
               <Text style={styles.modalTitle}>{nextLevelTitle}</Text>
             </View>
-            <Text style={styles.modalSubtitle}>ของขวัญที่จะได้รับ</Text>
+            <Text style={styles.modalSubtitle}>Rewards you will receive</Text>
             <View style={styles.modalRewardsRow}>
               <View style={[styles.modalRewardChip, styles.modalHeartChip]}>
                 <MaterialCommunityIcons name="heart" size={16} color="#FF4F64" />
@@ -167,7 +167,7 @@ const StreakLevelDisplay = () => {
               </View>
             </View>
             <TouchableOpacity style={styles.modalButton} onPress={toggleModal} activeOpacity={0.85}>
-              <Text style={styles.modalButtonText}>รับทราบ</Text>
+              <Text style={styles.modalButtonText}>Got it</Text>
             </TouchableOpacity>
           </Pressable>
         </Pressable>

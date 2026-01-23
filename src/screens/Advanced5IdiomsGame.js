@@ -467,6 +467,8 @@ const Advanced5IdiomsGame = ({ navigation, route }) => {
     if (answerToCheck === null) return;
     
     const currentQuestion = questions[currentIndex];
+    if (!currentQuestion) return;
+    
     const isCorrect = checkAnswer(currentQuestion, answerToCheck);
     
     console.debug(`[Answer Check] Q${currentIndex + 1}: ${isCorrect ? '✓ CORRECT' : '✗ WRONG'}`, {
@@ -694,6 +696,7 @@ const Advanced5IdiomsGame = ({ navigation, route }) => {
     if (questions.length === 0 || currentIndex >= questions.length) return null;
     
     const question = questions[currentIndex];
+    if (!question || !question.type) return null;
     
     switch (question.type) {
       case QUESTION_TYPES.LEARN_IDIOM:
@@ -1000,6 +1003,16 @@ const Advanced5IdiomsGame = ({ navigation, route }) => {
   }
   
   const currentQuestion = questions[currentIndex];
+  if (!currentQuestion || questions.length === 0) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading question...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+  
   const progress = ((currentIndex + 1) / questions.length) * 100;
   const isLearn = currentQuestion?.type === QUESTION_TYPES.LEARN_IDIOM;
   const isFeedbackPhase = currentFeedback !== null;
@@ -1031,7 +1044,9 @@ const Advanced5IdiomsGame = ({ navigation, route }) => {
           </View>
           <View style={styles.headerMetaRow}>
             <Text style={styles.progressText}>{currentIndex + 1} / {questions.length}</Text>
-            <View style={styles.typePill}><Text style={styles.typePillText}>{getTypeLabel(currentQuestion.type)}</Text></View>
+            {currentQuestion && (
+              <View style={styles.typePill}><Text style={styles.typePillText}>{getTypeLabel(currentQuestion.type)}</Text></View>
+            )}
           </View>
         </View>
       </View>
